@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { OctopusOrb } from "@/features/shared/OctopusOrb";
+import { BeviMark } from "@/features/shared/BeviMark";
 import { ParticleField } from "@/features/shared/ParticleField";
 import { GlassCard, SignalLabel, Sparkline } from "@/features/shared/primitives";
 
