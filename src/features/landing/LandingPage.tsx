@@ -263,12 +263,12 @@ export function LandingPage() {
             aria-hidden
           />
           <div className="relative">
-            <SignalLabel>One next move, always ready</SignalLabel>
+            <SignalLabel>One conversation</SignalLabel>
             <h3 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight text-white">
-              Stop reacting. Start sensing.
+              One clear <span className="text-gradient">next move.</span>
             </h3>
             <p className="mt-4 max-w-xl mx-auto text-muted-foreground">
-              The calm command center for revenue teams who are tired of chasing the obvious.
+              Capture everything. Surface what matters. Move deals forward. Win the next call.
             </p>
             <Link
               to="/dashboard"
