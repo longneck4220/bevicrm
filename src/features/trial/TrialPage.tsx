@@ -79,9 +79,53 @@ export function TrialPage() {
       setVisitId(null);
       setRawNote("");
       setSupportingContext("");
+      setAttachments([]);
       setError(null);
     }
   }, [activeId]);
+
+  function buildSupportingContext(): string {
+    const parts: string[] = [];
+    if (supportingContext.trim()) {
+      parts.push(`--- Pasted context ---\n${supportingContext.trim()}`);
+    }
+    for (const a of attachments) {
+      parts.push(`--- File: ${a.name} ---\n${a.text}`);
+    }
+    return parts.join("\n\n");
+  }
+
+  async function handleFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setExtracting(true);
+    setError(null);
+    try {
+      for (const file of Array.from(files)) {
+        if (file.size > 20 * 1024 * 1024) {
+          setError(`${file.name} is over 20 MB — skipped.`);
+          continue;
+        }
+        try {
+          const text = await extractFileText(file);
+          setAttachments((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), name: file.name, size: file.size, text },
+          ]);
+        } catch (e) {
+          setError(
+            `Couldn't read ${file.name}: ${e instanceof Error ? e.message : "unknown error"}`,
+          );
+        }
+      }
+    } finally {
+      setExtracting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  function removeAttachment(id: string) {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  }
 
   async function handleGenerate() {
     if (!active || !rawNote.trim()) return;
@@ -89,13 +133,12 @@ export function TrialPage() {
     setError(null);
     setOutput(null);
     try {
-      // Persist any unsaved memory edits first so AI sees latest
       if (memoryDirty) {
         await saveMemory({ data: { accountId: active.id, memory: memoryDraft } });
         setMemoryDirty(false);
       }
       const res = await generate({
-        data: { accountId: active.id, rawNote, supportingContext },
+        data: { accountId: active.id, rawNote, supportingContext: buildSupportingContext() },
       });
       setOutput(res.output);
       setVisitId(res.visitId);
