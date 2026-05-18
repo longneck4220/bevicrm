@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { conversations } from "@/features/intelligence/data";
 import { GlassCard, RiskDot, SignalLabel } from "@/features/shared/primitives";
-import { OctopusOrb } from "@/features/shared/OctopusOrb";
+import { BeviMark } from "@/features/shared/BeviMark";
 
 export function MobileCompanionPage() {
   const c = conversations[0];
