@@ -41,9 +41,19 @@ export function LandingPage() {
               custom={1}
               className="text-[clamp(2.8rem,6.4vw,5.5rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-white"
             >
-              Eight arms of <br className="hidden sm:block" />
-              <span className="text-gradient">sales perception.</span>
+              Win the <br className="hidden sm:block" />
+              <span className="text-gradient">next call.</span>
             </motion.h1>
+            <motion.p
+              initial="hidden"
+              animate="show"
+              variants={fadeUp}
+              custom={1.4}
+              className="mt-4 signal-label"
+              style={{ color: "var(--brand-cyan)" }}
+            >
+              Inspired by the octopus · Built for results
+            </motion.p>
 
             <motion.p
               initial="hidden"
