@@ -1,29 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { BeviMark } from "./BeviMark";
 
 export function BeviLogo({ compact = false }: { compact?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2.5 group">
-      <div className="relative w-8 h-8">
-        <div
-          className="absolute inset-0 rounded-lg blur-md opacity-70 group-hover:opacity-100 transition-opacity"
-          style={{ background: "var(--gradient-signal)" }}
-        />
-        <div
-          className="relative w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: "var(--gradient-signal)" }}
-        >
-          <motion.div
-            className="w-2 h-2 rounded-full bg-white"
-            animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
-            transition={{ duration: 2.4, repeat: Infinity }}
-          />
-        </div>
-      </div>
+      <BeviMark size={36} />
       {!compact && (
         <div className="leading-none">
-          <div className="text-[15px] font-semibold tracking-tight text-white">BEVI</div>
-          <div className="signal-label !text-[9px] mt-0.5">Sales Intelligence</div>
+          <div className="text-[16px] font-semibold tracking-[0.18em] text-white">BEVI</div>
+          <div className="signal-label !text-[9px] mt-1" style={{ color: "var(--brand-cyan)" }}>
+            Win the next call
+          </div>
         </div>
       )}
     </Link>

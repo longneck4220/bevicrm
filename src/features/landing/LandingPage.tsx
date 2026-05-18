@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { OctopusOrb } from "@/features/shared/OctopusOrb";
+import { BeviMark } from "@/features/shared/BeviMark";
 import { ParticleField } from "@/features/shared/ParticleField";
 import { GlassCard, SignalLabel, Sparkline } from "@/features/shared/primitives";
 
@@ -41,9 +41,19 @@ export function LandingPage() {
               custom={1}
               className="text-[clamp(2.8rem,6.4vw,5.5rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-white"
             >
-              Eight arms of <br className="hidden sm:block" />
-              <span className="text-gradient">sales perception.</span>
+              Win the <br className="hidden sm:block" />
+              <span className="text-gradient">next call.</span>
             </motion.h1>
+            <motion.p
+              initial="hidden"
+              animate="show"
+              variants={fadeUp}
+              custom={1.4}
+              className="mt-4 signal-label"
+              style={{ color: "var(--brand-cyan)" }}
+            >
+              Inspired by the octopus · Built for results
+            </motion.p>
 
             <motion.p
               initial="hidden"
@@ -106,10 +116,21 @@ export function LandingPage() {
             className="lg:col-span-5 relative flex justify-center"
           >
             <div className="relative">
-              <OctopusOrb size={380} />
-              {/* floating signal chips */}
+              {/* aura behind the brandmark */}
+              <div
+                className="absolute -inset-16 rounded-full blur-3xl opacity-60 pointer-events-none"
+                style={{ background: "var(--gradient-aurora)" }}
+              />
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="relative"
+              >
+                <BeviMark size={380} />
+              </motion.div>
+
               <FloatingChip
-                className="absolute -left-10 top-10"
+                className="absolute -left-10 top-6"
                 label="BUYING SIGNAL"
                 value="Budget unlocked"
                 tone="var(--signal-positive)"
@@ -121,14 +142,36 @@ export function LandingPage() {
                 tone="var(--brand-cyan)"
               />
               <FloatingChip
-                className="absolute -left-4 bottom-8"
-                label="RISK"
-                value="DPA redlines"
-                tone="var(--signal-risk)"
+                className="absolute -left-2 bottom-10"
+                label="NEXT MOVE"
+                value="Send SOC2 brief"
+                tone="var(--brand-violet)"
                 delay={1.2}
               />
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* THREE PILLARS — Senses · Understands · Delivers */}
+      <section className="relative mx-auto max-w-7xl px-6 mt-24">
+        <div className="grid sm:grid-cols-3 gap-4">
+          {[
+            { label: "Senses opportunity", tone: "var(--brand-cyan)" },
+            { label: "Understands context", tone: "var(--brand-blue)" },
+            { label: "Delivers the next move", tone: "var(--brand-violet)" },
+          ].map((p) => (
+            <div
+              key={p.label}
+              className="glass rounded-2xl px-5 py-4 flex items-center gap-3"
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ background: p.tone, boxShadow: `0 0 14px ${p.tone}` }}
+              />
+              <span className="signal-label !text-white/90">{p.label}</span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -220,12 +263,12 @@ export function LandingPage() {
             aria-hidden
           />
           <div className="relative">
-            <SignalLabel>One next move, always ready</SignalLabel>
+            <SignalLabel>One conversation</SignalLabel>
             <h3 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight text-white">
-              Stop reacting. Start sensing.
+              One clear <span className="text-gradient">next move.</span>
             </h3>
             <p className="mt-4 max-w-xl mx-auto text-muted-foreground">
-              The calm command center for revenue teams who are tired of chasing the obvious.
+              Capture everything. Surface what matters. Move deals forward. Win the next call.
             </p>
             <Link
               to="/dashboard"
