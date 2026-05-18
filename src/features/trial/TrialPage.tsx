@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
+import { extractFileText, type Attachment } from "./extractFileText";
 import {
   generateVisitIntelligence,
   updateAccountMemory,
@@ -41,6 +42,9 @@ export function TrialPage() {
   const [newName, setNewName] = useState("");
   const [newContact, setNewContact] = useState("");
   const [recognizing, setRecognizing] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [extracting, setExtracting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const generate = useServerFn(generateVisitIntelligence);
   const saveMemory = useServerFn(updateAccountMemory);
@@ -75,9 +79,53 @@ export function TrialPage() {
       setVisitId(null);
       setRawNote("");
       setSupportingContext("");
+      setAttachments([]);
       setError(null);
     }
   }, [activeId]);
+
+  function buildSupportingContext(): string {
+    const parts: string[] = [];
+    if (supportingContext.trim()) {
+      parts.push(`--- Pasted context ---\n${supportingContext.trim()}`);
+    }
+    for (const a of attachments) {
+      parts.push(`--- File: ${a.name} ---\n${a.text}`);
+    }
+    return parts.join("\n\n");
+  }
+
+  async function handleFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setExtracting(true);
+    setError(null);
+    try {
+      for (const file of Array.from(files)) {
+        if (file.size > 20 * 1024 * 1024) {
+          setError(`${file.name} is over 20 MB — skipped.`);
+          continue;
+        }
+        try {
+          const text = await extractFileText(file);
+          setAttachments((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), name: file.name, size: file.size, text },
+          ]);
+        } catch (e) {
+          setError(
+            `Couldn't read ${file.name}: ${e instanceof Error ? e.message : "unknown error"}`,
+          );
+        }
+      }
+    } finally {
+      setExtracting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  function removeAttachment(id: string) {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  }
 
   async function handleGenerate() {
     if (!active || !rawNote.trim()) return;
@@ -85,13 +133,12 @@ export function TrialPage() {
     setError(null);
     setOutput(null);
     try {
-      // Persist any unsaved memory edits first so AI sees latest
       if (memoryDirty) {
         await saveMemory({ data: { accountId: active.id, memory: memoryDraft } });
         setMemoryDirty(false);
       }
       const res = await generate({
-        data: { accountId: active.id, rawNote, supportingContext },
+        data: { accountId: active.id, rawNote, supportingContext: buildSupportingContext() },
       });
       setOutput(res.output);
       setVisitId(res.visitId);
@@ -279,15 +326,64 @@ export function TrialPage() {
 
             {/* Supporting context */}
             <GlassCard className="p-5">
-              <SignalLabel>Supporting context (optional)</SignalLabel>
-              <p className="text-xs text-white/50 mt-1">
-                Paste range decks, promo plans, price lists, masterfile excerpts. Stays with this visit only.
-              </p>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <SignalLabel>Supporting context (optional)</SignalLabel>
+                  <p className="text-xs text-white/50 mt-1">
+                    Paste range decks, promo plans, price lists, masterfile excerpts — or upload PDFs, Word, Excel, CSV, text. Stays with this visit only.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,.md,.json,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/*"
+                    onChange={(e) => handleFiles(e.target.files)}
+                    disabled={!active || extracting}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={!active || extracting}
+                    className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white disabled:opacity-40"
+                  >
+                    {extracting ? "Reading…" : "＋ Upload files"}
+                  </button>
+                </div>
+              </div>
+
+              {attachments.length > 0 && (
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {attachments.map((a) => (
+                    <li
+                      key={a.id}
+                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-xs text-white/85"
+                    >
+                      <span
+                        className="inline-block w-1.5 h-1.5 rounded-full"
+                        style={{ background: "var(--brand-cyan)" }}
+                      />
+                      <span className="font-medium">{a.name}</span>
+                      <span className="text-white/40">· {(a.text.length / 1000).toFixed(1)}k chars</span>
+                      <button
+                        onClick={() => removeAttachment(a.id)}
+                        className="ml-1 text-white/40 hover:text-white"
+                        aria-label={`Remove ${a.name}`}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
               <textarea
                 value={supportingContext}
                 onChange={(e) => setSupportingContext(e.target.value)}
                 disabled={!active}
-                placeholder="Paste anything here…"
+                placeholder="Paste anything here — prior emails, masterfile rows, promo plan notes…"
                 className="mt-3 w-full min-h-[80px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
               />
             </GlassCard>
