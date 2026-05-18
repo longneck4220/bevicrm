@@ -1,0 +1,521 @@
+import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
+import { GlassCard, SignalLabel } from "@/features/shared/primitives";
+import { BeviMark } from "@/features/shared/BeviMark";
+import {
+  generateVisitIntelligence,
+  updateAccountMemory,
+  createAccount,
+  rateVisit,
+} from "@/lib/trial.functions";
+
+type Account = { id: string; name: string; contact: string | null; memory: string };
+type AiOutput = {
+  needs_more_info: boolean;
+  clarifying_questions: string[];
+  next_best_move: {
+    recommendation: string;
+    reason: string;
+    specific_ask: string;
+    commercial_posture: string;
+    confidence: string;
+  };
+  combined_crm_note: string;
+  follow_up_email: { subject: string; body: string };
+  missed_opportunity: string;
+  updated_account_memory: string;
+};
+
+export function TrialPage() {
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [memoryDraft, setMemoryDraft] = useState("");
+  const [memoryDirty, setMemoryDirty] = useState(false);
+  const [supportingContext, setSupportingContext] = useState("");
+  const [rawNote, setRawNote] = useState("");
+  const [output, setOutput] = useState<AiOutput | null>(null);
+  const [visitId, setVisitId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [newName, setNewName] = useState("");
+  const [newContact, setNewContact] = useState("");
+  const [recognizing, setRecognizing] = useState(false);
+
+  const generate = useServerFn(generateVisitIntelligence);
+  const saveMemory = useServerFn(updateAccountMemory);
+  const addAccount = useServerFn(createAccount);
+  const rate = useServerFn(rateVisit);
+
+  const active = useMemo(() => accounts.find((a) => a.id === activeId) ?? null, [accounts, activeId]);
+
+  async function loadAccounts(selectId?: string) {
+    const { data, error } = await supabase
+      .from("accounts")
+      .select("id, name, contact, memory")
+      .order("updated_at", { ascending: false });
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setAccounts(data ?? []);
+    const next = selectId ?? data?.[0]?.id ?? null;
+    setActiveId(next);
+  }
+
+  useEffect(() => {
+    loadAccounts();
+  }, []);
+
+  useEffect(() => {
+    if (active) {
+      setMemoryDraft(active.memory);
+      setMemoryDirty(false);
+      setOutput(null);
+      setVisitId(null);
+      setRawNote("");
+      setSupportingContext("");
+      setError(null);
+    }
+  }, [activeId]);
+
+  async function handleGenerate() {
+    if (!active || !rawNote.trim()) return;
+    setLoading(true);
+    setError(null);
+    setOutput(null);
+    try {
+      // Persist any unsaved memory edits first so AI sees latest
+      if (memoryDirty) {
+        await saveMemory({ data: { accountId: active.id, memory: memoryDraft } });
+        setMemoryDirty(false);
+      }
+      const res = await generate({
+        data: { accountId: active.id, rawNote, supportingContext },
+      });
+      setOutput(res.output);
+      setVisitId(res.visitId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleAdoptMemory() {
+    if (!active || !output) return;
+    await saveMemory({ data: { accountId: active.id, memory: output.updated_account_memory } });
+    setMemoryDraft(output.updated_account_memory);
+    setAccounts((prev) =>
+      prev.map((a) => (a.id === active.id ? { ...a, memory: output.updated_account_memory } : a)),
+    );
+  }
+
+  async function handleSaveMemory() {
+    if (!active) return;
+    await saveMemory({ data: { accountId: active.id, memory: memoryDraft } });
+    setMemoryDirty(false);
+    setAccounts((prev) => prev.map((a) => (a.id === active.id ? { ...a, memory: memoryDraft } : a)));
+  }
+
+  async function handleCreate() {
+    if (!newName.trim()) return;
+    const res = await addAccount({ data: { name: newName.trim(), contact: newContact.trim() } });
+    setNewName("");
+    setNewContact("");
+    await loadAccounts(res.id);
+  }
+
+  async function handleRate(rating: "good" | "needs_edit") {
+    if (!visitId) return;
+    await rate({ data: { visitId, rating } });
+  }
+
+  function toggleDictation() {
+    // Lightweight Web Speech API integration; graceful fallback if unsupported
+    const w = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognitionLike;
+      webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+    };
+    const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!Ctor) {
+      setError("Dictation is not supported in this browser. Type the note instead.");
+      return;
+    }
+    if (recognizing) {
+      setRecognizing(false);
+      return;
+    }
+    const rec = new Ctor();
+    rec.continuous = true;
+    rec.interimResults = false;
+    rec.lang = "en-AU";
+    rec.onresult = (e: SpeechRecognitionEvent) => {
+      let txt = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        txt += e.results[i][0].transcript + " ";
+      }
+      setRawNote((prev) => (prev ? prev + " " : "") + txt.trim());
+    };
+    rec.onend = () => setRecognizing(false);
+    rec.onerror = () => setRecognizing(false);
+    rec.start();
+    setRecognizing(true);
+  }
+
+  return (
+    <main className="relative pt-28 pb-24 min-h-screen">
+      <div className="absolute inset-0 grid-overlay pointer-events-none" aria-hidden />
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+        {/* Header */}
+        <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <BeviMark size={40} animated={false} />
+            <div>
+              <SignalLabel>Post-visit intelligence</SignalLabel>
+              <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white mt-1">
+                Making conversations <span className="text-gradient">commercial conversions.</span>
+              </h1>
+            </div>
+          </div>
+          <div className="signal-label !text-white/60">
+            Otter records · Salesforce remembers · <span style={{ color: "var(--brand-cyan)" }}>BEVI converts</span>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-[280px_minmax(0,1fr)] gap-6">
+          {/* Sidebar: accounts */}
+          <aside className="space-y-4">
+            <GlassCard className="p-4">
+              <SignalLabel>Accounts</SignalLabel>
+              <ul className="mt-3 space-y-1">
+                {accounts.map((a) => {
+                  const isActive = a.id === activeId;
+                  return (
+                    <li key={a.id}>
+                      <button
+                        type="button"
+                        onClick={() => setActiveId(a.id)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive
+                            ? "bg-white/8 text-white"
+                            : "text-white/70 hover:text-white hover:bg-white/5"
+                        }`}
+                      >
+                        <div className="font-medium">{a.name}</div>
+                        {a.contact && (
+                          <div className="text-[11px] text-white/50 mt-0.5">{a.contact}</div>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+                {accounts.length === 0 && (
+                  <li className="text-sm text-white/50 px-3 py-2">No accounts yet.</li>
+                )}
+              </ul>
+            </GlassCard>
+
+            <GlassCard className="p-4">
+              <SignalLabel>New account</SignalLabel>
+              <div className="mt-3 space-y-2">
+                <input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Venue name"
+                  className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)]"
+                />
+                <input
+                  value={newContact}
+                  onChange={(e) => setNewContact(e.target.value)}
+                  placeholder="Contact (optional)"
+                  className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)]"
+                />
+                <button
+                  type="button"
+                  onClick={handleCreate}
+                  disabled={!newName.trim()}
+                  className="w-full px-3 py-2 rounded-lg text-sm font-medium text-primary-foreground disabled:opacity-40"
+                  style={{ background: "var(--gradient-signal)" }}
+                >
+                  Add account
+                </button>
+              </div>
+            </GlassCard>
+          </aside>
+
+          {/* Main column */}
+          <div className="space-y-6 min-w-0">
+            {/* Account memory */}
+            <GlassCard className="p-5">
+              <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+                <div>
+                  <SignalLabel>Account memory</SignalLabel>
+                  <div className="text-white font-medium mt-1">
+                    {active?.name ?? "Select an account"}
+                    {active?.contact && <span className="text-white/50"> · {active.contact}</span>}
+                  </div>
+                </div>
+                {memoryDirty && (
+                  <button
+                    onClick={handleSaveMemory}
+                    className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white"
+                  >
+                    Save memory
+                  </button>
+                )}
+              </div>
+              <textarea
+                value={memoryDraft}
+                onChange={(e) => {
+                  setMemoryDraft(e.target.value);
+                  setMemoryDirty(true);
+                }}
+                disabled={!active}
+                placeholder="What BEVI already knows about this venue and contact. You can paste prior conversations or email context here too."
+                className="w-full min-h-[110px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
+              />
+            </GlassCard>
+
+            {/* Supporting context */}
+            <GlassCard className="p-5">
+              <SignalLabel>Supporting context (optional)</SignalLabel>
+              <p className="text-xs text-white/50 mt-1">
+                Paste range decks, promo plans, price lists, masterfile excerpts. Stays with this visit only.
+              </p>
+              <textarea
+                value={supportingContext}
+                onChange={(e) => setSupportingContext(e.target.value)}
+                disabled={!active}
+                placeholder="Paste anything here…"
+                className="mt-3 w-full min-h-[80px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
+              />
+            </GlassCard>
+
+            {/* Note */}
+            <GlassCard tone="strong" className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <SignalLabel>Post-visit note</SignalLabel>
+                <button
+                  type="button"
+                  onClick={toggleDictation}
+                  className={`text-xs px-3 py-1.5 rounded-md ${
+                    recognizing
+                      ? "bg-[var(--signal-risk)]/20 text-[var(--signal-risk)]"
+                      : "bg-white/10 text-white hover:bg-white/15"
+                  }`}
+                >
+                  {recognizing ? "● Listening — tap to stop" : "🎙 Dictate"}
+                </button>
+              </div>
+              <textarea
+                value={rawNote}
+                onChange={(e) => setRawNote(e.target.value)}
+                disabled={!active}
+                placeholder="Dictate or type. Messy is fine — BEVI will structure it."
+                className="w-full min-h-[140px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
+              />
+              <div className="mt-4 flex items-center gap-3 justify-end">
+                {error && <span className="text-sm text-[var(--signal-risk)]">{error}</span>}
+                <button
+                  type="button"
+                  onClick={handleGenerate}
+                  disabled={!active || !rawNote.trim() || loading}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-primary-foreground disabled:opacity-40 ambient-glow"
+                  style={{ background: "var(--gradient-signal)" }}
+                >
+                  {loading ? "Generating…" : "Generate intelligence →"}
+                </button>
+              </div>
+            </GlassCard>
+
+            {/* Output */}
+            {output && <OutputPanel output={output} onAdoptMemory={handleAdoptMemory} onRate={handleRate} />}
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={async () => {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+      className="text-xs px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white"
+    >
+      {copied ? "Copied ✓" : "Copy"}
+    </button>
+  );
+}
+
+function OutputPanel({
+  output,
+  onAdoptMemory,
+  onRate,
+}: {
+  output: AiOutput;
+  onAdoptMemory: () => void;
+  onRate: (r: "good" | "needs_edit") => void;
+}) {
+  const [rated, setRated] = useState<"good" | "needs_edit" | null>(null);
+
+  if (output.needs_more_info) {
+    return (
+      <GlassCard tone="strong" className="p-6">
+        <SignalLabel>Need a bit more to be useful</SignalLabel>
+        <p className="text-white/80 mt-2 text-sm">
+          The note is light. Answer one or two of these and BEVI will draft the full pack.
+        </p>
+        <ul className="mt-4 space-y-2">
+          {output.clarifying_questions.map((q, i) => (
+            <li key={i} className="text-sm text-white flex gap-2">
+              <span style={{ color: "var(--brand-cyan)" }}>{i + 1}.</span>
+              {q}
+            </li>
+          ))}
+        </ul>
+      </GlassCard>
+    );
+  }
+
+  const nbm = output.next_best_move;
+
+  return (
+    <div className="space-y-6">
+      <GlassCard tone="strong" className="p-6">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <SignalLabel>Next best move</SignalLabel>
+          <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.18em]">
+            <span
+              className="px-2 py-1 rounded-md"
+              style={{
+                color: "var(--brand-cyan)",
+                background: "color-mix(in oklab, var(--brand-cyan) 12%, transparent)",
+              }}
+            >
+              {nbm.commercial_posture}
+            </span>
+            <span
+              className="px-2 py-1 rounded-md"
+              style={{
+                color: "var(--brand-violet)",
+                background: "color-mix(in oklab, var(--brand-violet) 12%, transparent)",
+              }}
+            >
+              {nbm.confidence} confidence
+            </span>
+          </div>
+        </div>
+        <h3 className="mt-3 text-xl md:text-2xl text-white font-semibold leading-snug">
+          {nbm.recommendation}
+        </h3>
+        <p className="mt-3 text-white/70 text-sm leading-relaxed">{nbm.reason}</p>
+        <div className="mt-4 p-3 rounded-lg border border-white/10 bg-white/5">
+          <SignalLabel>Specific ask</SignalLabel>
+          <p className="text-white/90 text-sm mt-1">{nbm.specific_ask}</p>
+        </div>
+      </GlassCard>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <GlassCard className="p-5">
+          <div className="flex items-center justify-between mb-2">
+            <SignalLabel>CRM note</SignalLabel>
+            <CopyButton text={output.combined_crm_note} />
+          </div>
+          <pre className="text-[13px] text-white/85 whitespace-pre-wrap font-sans leading-relaxed">
+            {output.combined_crm_note}
+          </pre>
+        </GlassCard>
+
+        <GlassCard className="p-5">
+          <div className="flex items-center justify-between mb-2">
+            <SignalLabel>Follow-up email</SignalLabel>
+            <CopyButton
+              text={`Subject: ${output.follow_up_email.subject}\n\n${output.follow_up_email.body}`}
+            />
+          </div>
+          <div className="text-xs text-white/50 mb-1">Subject</div>
+          <div className="text-white text-sm font-medium">{output.follow_up_email.subject}</div>
+          <div className="text-xs text-white/50 mt-3 mb-1">Body</div>
+          <pre className="text-[13px] text-white/85 whitespace-pre-wrap font-sans leading-relaxed">
+            {output.follow_up_email.body}
+          </pre>
+        </GlassCard>
+      </div>
+
+      {output.missed_opportunity && (
+        <GlassCard className="p-5">
+          <SignalLabel>Missed opportunity challenge</SignalLabel>
+          <p className="mt-2 text-white/85 text-sm">{output.missed_opportunity}</p>
+        </GlassCard>
+      )}
+
+      <GlassCard className="p-5">
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+          <SignalLabel>Updated account memory (proposed)</SignalLabel>
+          <button
+            onClick={onAdoptMemory}
+            className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white"
+          >
+            Adopt as new memory
+          </button>
+        </div>
+        <pre className="text-[13px] text-white/80 whitespace-pre-wrap font-sans leading-relaxed">
+          {output.updated_account_memory}
+        </pre>
+      </GlassCard>
+
+      <div className="flex items-center justify-end gap-2">
+        <span className="signal-label !text-white/50 mr-2">Rate this output</span>
+        <button
+          onClick={() => {
+            setRated("good");
+            onRate("good");
+          }}
+          className={`text-xs px-3 py-1.5 rounded-md ${
+            rated === "good"
+              ? "bg-[var(--signal-positive)]/25 text-[var(--signal-positive)]"
+              : "bg-white/10 text-white hover:bg-white/15"
+          }`}
+        >
+          Good
+        </button>
+        <button
+          onClick={() => {
+            setRated("needs_edit");
+            onRate("needs_edit");
+          }}
+          className={`text-xs px-3 py-1.5 rounded-md ${
+            rated === "needs_edit"
+              ? "bg-[var(--signal-warning)]/25 text-[var(--signal-warning)]"
+              : "bg-white/10 text-white hover:bg-white/15"
+          }`}
+        >
+          Needs edit
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Minimal Web Speech API types (browser-only, optional API)
+interface SpeechRecognitionLike {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onresult: ((e: SpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+}
+interface SpeechRecognitionEvent {
+  resultIndex: number;
+  results: { [index: number]: { [index: number]: { transcript: string } }; length: number };
+}
