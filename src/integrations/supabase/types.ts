@@ -14,7 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      accounts: {
+        Row: {
+          contact: string | null
+          created_at: string
+          id: string
+          memory: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          contact?: string | null
+          created_at?: string
+          id?: string
+          memory?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          contact?: string | null
+          created_at?: string
+          id?: string
+          memory?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      visits: {
+        Row: {
+          account_id: string
+          ai_output: Json | null
+          created_at: string
+          id: string
+          rating: string | null
+          raw_note: string
+          supporting_context: string
+        }
+        Insert: {
+          account_id: string
+          ai_output?: Json | null
+          created_at?: string
+          id?: string
+          rating?: string | null
+          raw_note: string
+          supporting_context?: string
+        }
+        Update: {
+          account_id?: string
+          ai_output?: Json | null
+          created_at?: string
+          id?: string
+          rating?: string | null
+          raw_note?: string
+          supporting_context?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visits_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
