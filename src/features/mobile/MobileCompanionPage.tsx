@@ -64,13 +64,16 @@ export function MobileCompanionPage() {
                   style={{ background: "var(--gradient-aurora)" }}
                 />
 
-                <div className="relative pt-6 flex justify-between text-[10px] font-mono text-white/60">
+                <div className="relative pt-6 flex justify-between items-center text-[10px] font-mono text-white/60">
                   <span>9:41</span>
-                  <span>BEVI</span>
+                  <div className="flex items-center gap-1.5">
+                    <BeviMark size={14} animated={false} />
+                    <span className="tracking-[0.2em] text-white/80">BEVI</span>
+                  </div>
                 </div>
 
                 <div className="relative mt-6 flex justify-center">
-                  <OctopusOrb size={120} />
+                  <BeviMark size={120} />
                 </div>
 
                 <div className="relative mt-4 text-center">
