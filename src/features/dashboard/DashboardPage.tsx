@@ -9,6 +9,7 @@ import {
   Sparkline,
 } from "@/features/shared/primitives";
 import { ParticleField } from "@/features/shared/ParticleField";
+import { BeviMark } from "@/features/shared/BeviMark";
 
 const fmt$ = (n: number) =>
   n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(2)}M` : `$${(n / 1000).toFixed(0)}k`;
