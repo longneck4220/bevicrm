@@ -17,7 +17,8 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
   );
 }
 
-const links: { to: "/" | "/dashboard" | "/mobile"; label: string }[] = [
+const links: { to: "/" | "/trial" | "/dashboard" | "/mobile"; label: string }[] = [
+  { to: "/trial", label: "Trial" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/mobile", label: "Mobile" },
 ];
@@ -53,11 +54,11 @@ export function TopNav() {
               Sign in
             </Link>
             <Link
-              to="/dashboard"
+              to="/trial"
               className="relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-primary-foreground"
               style={{ background: "var(--gradient-signal)" }}
             >
-              Open Command Center
+              Try the agent
             </Link>
           </div>
         </div>

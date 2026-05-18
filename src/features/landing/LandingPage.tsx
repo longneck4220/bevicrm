@@ -74,11 +74,11 @@ export function LandingPage() {
               className="mt-10 flex flex-wrap items-center gap-3"
             >
               <Link
-                to="/dashboard"
+                to="/trial"
                 className="group relative inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
                 style={{ background: "var(--gradient-signal)" }}
               >
-                Enter Command Center
+                Try the agent
                 <span className="transition-transform group-hover:translate-x-0.5">→</span>
               </Link>
               <Link
