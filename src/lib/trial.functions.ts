@@ -4,8 +4,8 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const GenerateInput = z.object({
   accountId: z.string().uuid(),
-  rawNote: z.string().min(1).max(8000),
-  supportingContext: z.string().max(20000).optional().default(""),
+  rawNote: z.string().min(1).max(12000),
+  supportingContext: z.string().max(400000).optional().default(""),
 });
 
 const SYSTEM_PROMPT = `You are BEVI, a post-visit intelligence agent for Queensland spirits and beverage hospitality field sales reps.
