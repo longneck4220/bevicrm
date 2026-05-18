@@ -133,7 +133,7 @@ Generate the BEVI output JSON now.`;
         account_id: account.id,
         raw_note: data.rawNote,
         supporting_context: data.supportingContext ?? "",
-        ai_output: parsed as unknown as Record<string, unknown>,
+        ai_output: parsed as never,
       })
       .select("id, created_at")
       .single();
