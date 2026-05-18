@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as MobileRouteImport } from './routes/mobile'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConversationIdRouteImport } from './routes/conversation.$id'
 
+const MobileRoute = MobileRouteImport.update({
+  id: '/mobile',
+  path: '/mobile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -32,35 +38,46 @@ const ConversationIdRoute = ConversationIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/mobile': typeof MobileRoute
   '/conversation/$id': typeof ConversationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/mobile': typeof MobileRoute
   '/conversation/$id': typeof ConversationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/mobile': typeof MobileRoute
   '/conversation/$id': typeof ConversationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/conversation/$id'
+  fullPaths: '/' | '/dashboard' | '/mobile' | '/conversation/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/conversation/$id'
-  id: '__root__' | '/' | '/dashboard' | '/conversation/$id'
+  to: '/' | '/dashboard' | '/mobile' | '/conversation/$id'
+  id: '__root__' | '/' | '/dashboard' | '/mobile' | '/conversation/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  MobileRoute: typeof MobileRoute
   ConversationIdRoute: typeof ConversationIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/mobile': {
+      id: '/mobile'
+      path: '/mobile'
+      fullPath: '/mobile'
+      preLoaderRoute: typeof MobileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  MobileRoute: MobileRoute,
   ConversationIdRoute: ConversationIdRoute,
 }
 export const routeTree = rootRouteImport
