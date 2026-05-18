@@ -16,7 +16,6 @@ async function extractPdf(file: File): Promise<string> {
   // Dynamic import keeps the (large) pdf.js worker out of the initial bundle.
   const pdfjs = await import("pdfjs-dist");
   // Use a CDN worker; matches the installed version.
-  // @ts-expect-error - GlobalWorkerOptions exists at runtime
   pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
   const buf = await file.arrayBuffer();
   const doc = await pdfjs.getDocument({ data: buf }).promise;
