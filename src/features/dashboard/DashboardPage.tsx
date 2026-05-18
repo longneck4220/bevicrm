@@ -9,6 +9,7 @@ import {
   Sparkline,
 } from "@/features/shared/primitives";
 import { ParticleField } from "@/features/shared/ParticleField";
+import { BeviMark } from "@/features/shared/BeviMark";
 
 const fmt$ = (n: number) =>
   n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(2)}M` : `$${(n / 1000).toFixed(0)}k`;
@@ -122,7 +123,10 @@ export function DashboardPage() {
 
           {/* Next moves */}
           <aside className="space-y-4">
-            <SignalLabel>Today's next moves</SignalLabel>
+            <div className="flex items-center gap-2.5">
+              <BeviMark size={22} animated={false} />
+              <SignalLabel>Today's next moves</SignalLabel>
+            </div>
             {conversations.flatMap((c) =>
               c.nextMoves.slice(0, 1).map((nm) => (
                 <motion.div
