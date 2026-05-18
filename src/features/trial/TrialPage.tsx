@@ -42,6 +42,9 @@ export function TrialPage() {
   const [newName, setNewName] = useState("");
   const [newContact, setNewContact] = useState("");
   const [recognizing, setRecognizing] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [extracting, setExtracting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const generate = useServerFn(generateVisitIntelligence);
   const saveMemory = useServerFn(updateAccountMemory);
