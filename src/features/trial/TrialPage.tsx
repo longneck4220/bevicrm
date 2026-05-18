@@ -326,15 +326,64 @@ export function TrialPage() {
 
             {/* Supporting context */}
             <GlassCard className="p-5">
-              <SignalLabel>Supporting context (optional)</SignalLabel>
-              <p className="text-xs text-white/50 mt-1">
-                Paste range decks, promo plans, price lists, masterfile excerpts. Stays with this visit only.
-              </p>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <SignalLabel>Supporting context (optional)</SignalLabel>
+                  <p className="text-xs text-white/50 mt-1">
+                    Paste range decks, promo plans, price lists, masterfile excerpts — or upload PDFs, Word, Excel, CSV, text. Stays with this visit only.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,.md,.json,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/*"
+                    onChange={(e) => handleFiles(e.target.files)}
+                    disabled={!active || extracting}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={!active || extracting}
+                    className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white disabled:opacity-40"
+                  >
+                    {extracting ? "Reading…" : "＋ Upload files"}
+                  </button>
+                </div>
+              </div>
+
+              {attachments.length > 0 && (
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {attachments.map((a) => (
+                    <li
+                      key={a.id}
+                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-xs text-white/85"
+                    >
+                      <span
+                        className="inline-block w-1.5 h-1.5 rounded-full"
+                        style={{ background: "var(--brand-cyan)" }}
+                      />
+                      <span className="font-medium">{a.name}</span>
+                      <span className="text-white/40">· {(a.text.length / 1000).toFixed(1)}k chars</span>
+                      <button
+                        onClick={() => removeAttachment(a.id)}
+                        className="ml-1 text-white/40 hover:text-white"
+                        aria-label={`Remove ${a.name}`}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
               <textarea
                 value={supportingContext}
                 onChange={(e) => setSupportingContext(e.target.value)}
                 disabled={!active}
-                placeholder="Paste anything here…"
+                placeholder="Paste anything here — prior emails, masterfile rows, promo plan notes…"
                 className="mt-3 w-full min-h-[80px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
               />
             </GlassCard>
