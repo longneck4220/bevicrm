@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { TopNav } from "@/features/shared/TopNav";
 
 function NotFoundComponent() {
   return (
@@ -72,11 +73,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "BEVI — Ambient Sales Intelligence" },
+      { name: "description", content: "BEVI senses, understands, and acts across every sales conversation — surfacing the one next move that matters." },
+      { name: "author", content: "BEVI" },
+      { property: "og:title", content: "BEVI — Ambient Sales Intelligence" },
+      { property: "og:description", content: "Eight arms of sales perception. Calm, strategic, decisive." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -113,6 +114,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <TopNav />
       <Outlet />
     </QueryClientProvider>
   );
