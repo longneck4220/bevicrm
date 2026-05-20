@@ -52,8 +52,8 @@ export function LandingPage() {
               custom={2}
               className="mt-6 max-w-xl text-lg text-muted-foreground leading-relaxed"
             >
-              BEVI turns post-visit thinking into your next commercial move —
-              a CRM-ready note and the single next action that advances the account.
+              BEVI turns post-visit thinking into CRM notes, account memory
+              and the next commercial move.
             </motion.p>
 
             <motion.div
@@ -79,24 +79,6 @@ export function LandingPage() {
               </Link>
             </motion.div>
 
-            <motion.div
-              initial="hidden"
-              animate="show"
-              variants={fadeUp}
-              custom={4}
-              className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-3"
-            >
-              {[
-                ["<60s", "CRM note ready"],
-                ["Instant", "next move surfaced"],
-                ["Compounds", "commercial memory"],
-              ].map(([v, l]) => (
-                <div key={l} className="flex items-baseline gap-2">
-                  <span className="text-2xl font-semibold text-white">{v}</span>
-                  <span className="signal-label">{l}</span>
-                </div>
-              ))}
-            </motion.div>
           </div>
 
           <motion.div
