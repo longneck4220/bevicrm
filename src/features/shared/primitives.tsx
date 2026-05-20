@@ -19,7 +19,7 @@ export const GlassCard = forwardRef<HTMLDivElement, Props>(function GlassCard(
 });
 
 export function SignalLabel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <span className={`signal-label font-sans font-bold text-lg ${className}`}>{children}</span>;
+  return <span className={`signal-label font-sans text-lg text-right font-extrabold ${className}`}>{children}</span>;
 }
 
 export function SignalChip({ kind, label }: { kind: string; label: string }) {

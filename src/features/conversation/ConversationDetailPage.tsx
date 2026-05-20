@@ -30,7 +30,7 @@ export function ConversationDetailPage({ id }: { id: string }) {
             <div className="mt-1 text-sm text-white/60">{conv.contact}</div>
           </div>
           <GlassCard className="px-5 py-4 text-right">
-            <SignalLabel>Deal</SignalLabel>
+            <SignalLabel>MAT Value</SignalLabel>
             <div className="text-3xl font-semibold text-white">{fmt$(conv.dealValue)}</div>
             <div className="signal-label font-sans font-bold text-lg !text-[10px] mt-0.5">{conv.stage}</div>
           </GlassCard>
