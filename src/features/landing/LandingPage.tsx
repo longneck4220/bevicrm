@@ -101,25 +101,6 @@ export function LandingPage() {
                 <BeviMark size={380} />
               </motion.div>
 
-              <FloatingChip
-                className="absolute -left-10 top-6"
-                label="BUYING SIGNAL"
-                value="Budget unlocked"
-                tone="var(--signal-positive)"
-              />
-              <FloatingChip
-                className="absolute -right-6 top-32"
-                label="STAKEHOLDER"
-                value="CFO surfaced"
-                tone="var(--brand-cyan)"
-              />
-              <FloatingChip
-                className="absolute -left-2 bottom-10"
-                label="NEXT MOVE"
-                value="Send SOC2 brief"
-                tone="var(--brand-violet)"
-                delay={1.2}
-              />
             </div>
           </motion.div>
         </div>
