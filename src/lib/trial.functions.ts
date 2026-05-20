@@ -180,7 +180,8 @@ Generate the BEVI output JSON now.`;
     if (resp.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
     if (!resp.ok) {
       const txt = await resp.text();
-      throw new Error(`AI gateway error ${resp.status}: ${txt.slice(0, 300)}`);
+      console.error("[AI gateway error]", resp.status, txt.slice(0, 1000));
+      throw new Error("AI service error. Please try again later.");
     }
     const payload = await resp.json();
     const content: string = payload?.choices?.[0]?.message?.content ?? "";
