@@ -135,7 +135,10 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       .select("id, name, contact, memory")
       .eq("id", data.accountId)
       .single();
-    if (accErr || !account) throw new Error("Account not found");
+    if (accErr || !account) {
+      if (accErr) console.error("[DB error] fetch account", accErr);
+      throw new Error("Account not found");
+    }
 
     const userPrompt = `Account: ${account.name}
 Contact: ${account.contact ?? "(unknown)"}
