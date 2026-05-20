@@ -114,7 +114,7 @@ export function DashboardPage() {
 
         {/* FOLLOW UPS DUE */}
         <section className="mt-12">
-          <SignalLabel>Follow ups due</SignalLabel>
+          <SignalLabel as="h2">Follow ups due</SignalLabel>
           <GlassCard className="mt-4 p-5">
             <ul className="divide-y divide-white/5">
               {conversations.map((c) => (
