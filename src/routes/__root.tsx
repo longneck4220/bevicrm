@@ -10,7 +10,6 @@ import {
 
 import appCss from "../styles.css?url";
 import { TopNav } from "@/features/shared/TopNav";
-import { AuthProvider } from "@/hooks/use-auth";
 
 function NotFoundComponent() {
   return (
@@ -74,23 +73,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "BEVI — Ambient Sales Intelligence" },
+      { title: "BEVI — Sales Intelligence" },
       { name: "description", content: "BEVI senses, understands, and acts across every sales conversation — surfacing the one next move that matters." },
       { name: "author", content: "BEVI" },
-      { property: "og:title", content: "BEVI — Ambient Sales Intelligence" },
-      { property: "og:description", content: "Eight arms of sales perception. Calm, strategic, decisive." },
+      { property: "og:title", content: "BEVI — Sales Intelligence" },
+      { property: "og:description", content: "BEVI senses, understands, and acts across every sales conversation — surfacing the one next move that matters." },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "/og-image.jpg" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "BEVI — Ambient Sales Intelligence" },
-      { name: "twitter:description", content: "Eight arms of sales perception. Calm, strategic, decisive." },
-      { name: "twitter:image", content: "/og-image.jpg" },
+      { name: "twitter:title", content: "BEVI — Sales Intelligence" },
+      { name: "twitter:description", content: "BEVI senses, understands, and acts across every sales conversation — surfacing the one next move that matters." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/80fbf211-cdbf-44f9-ae74-73f6b784302e" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/80fbf211-cdbf-44f9-ae74-73f6b784302e" },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
-      { rel: "apple-touch-icon", href: "/favicon.png" },
+      {
+        rel: "stylesheet",
+        href: appCss,
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -118,10 +118,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TopNav />
-        <Outlet />
-      </AuthProvider>
+      <TopNav />
+      <Outlet />
     </QueryClientProvider>
   );
 }
