@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrialRouteImport } from './routes/trial'
 import { Route as MobileRouteImport } from './routes/mobile'
-import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConversationIdRouteImport } from './routes/conversation.$id'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 
 const TrialRoute = TrialRouteImport.update({
   id: '/trial',
@@ -25,9 +27,13 @@ const MobileRoute = MobileRouteImport.update({
   path: '/mobile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -40,46 +46,64 @@ const ConversationIdRoute = ConversationIdRouteImport.update({
   path: '/conversation/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/mobile': typeof MobileRoute
   '/trial': typeof TrialRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/conversation/$id': typeof ConversationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/mobile': typeof MobileRoute
   '/trial': typeof TrialRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/conversation/$id': typeof ConversationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
   '/mobile': typeof MobileRoute
   '/trial': typeof TrialRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/conversation/$id': typeof ConversationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/mobile' | '/trial' | '/conversation/$id'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/mobile'
+    | '/trial'
+    | '/dashboard'
+    | '/conversation/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/mobile' | '/trial' | '/conversation/$id'
+  to: '/' | '/login' | '/mobile' | '/trial' | '/dashboard' | '/conversation/$id'
   id:
     | '__root__'
     | '/'
-    | '/dashboard'
+    | '/_authenticated'
+    | '/login'
     | '/mobile'
     | '/trial'
+    | '/_authenticated/dashboard'
     | '/conversation/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
   MobileRoute: typeof MobileRoute
   TrialRoute: typeof TrialRoute
   ConversationIdRoute: typeof ConversationIdRoute
@@ -101,11 +125,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MobileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -122,12 +153,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConversationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
   MobileRoute: MobileRoute,
   TrialRoute: TrialRoute,
   ConversationIdRoute: ConversationIdRoute,
@@ -135,3 +186,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
