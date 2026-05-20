@@ -85,6 +85,12 @@ Return ONLY JSON matching this exact schema:
     "commercial_posture": "Suggest" | "Recommend" | "Push" | "Hold",
     "confidence": "Low" | "Medium" | "High"
   },
+  "commercial_signals": {
+    "buying_style": string,                    // 1 short line describing how this contact buys (e.g. "Premium-led, slow to commit, wants social proof")
+    "risk_flags": string[],                    // 0-4 short bullets; concrete risks (margin, staff, competitor, timing). [] if none.
+    "margin_pressure": string,                 // 1 line on current margin sensitivity, or "" if not evident
+    "opportunity_signals": string[]            // 0-4 short bullets; concrete openings the rep can act on. [] if none.
+  },
   "combined_crm_note": string,                 // single open-text block paste-ready for Salesforce/Rhino, with these labelled lines, exact labels, each on its own line:
                                                // Contact: ...
                                                // Objective: ...
@@ -112,6 +118,12 @@ type AiOutput = {
     specific_ask: string;
     commercial_posture: string;
     confidence: string;
+  };
+  commercial_signals: {
+    buying_style: string;
+    risk_flags: string[];
+    margin_pressure: string;
+    opportunity_signals: string[];
   };
   combined_crm_note: string;
   follow_up_email: { subject: string; body: string };
