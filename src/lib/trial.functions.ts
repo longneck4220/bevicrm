@@ -260,6 +260,9 @@ export const createAccount = createServerFn({ method: "POST" })
       .insert({ name: data.name, contact: data.contact || null, memory: "", owner_id: context.userId })
       .select("id")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error] create account", error);
+      throw new Error("Could not create account. Please try again.");
+    }
     return { id: row.id };
   });
