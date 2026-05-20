@@ -101,7 +101,7 @@ export function DashboardPage() {
                       </div>
                       <div className="text-right shrink-0 hidden sm:block">
                         <div className="text-sm text-white">{fmt$(c.dealValue)}</div>
-                        <div className="signal-label font-sans font-bold text-lg !text-[10px] mt-0.5">{c.stage}</div>
+                        <div className="signal-label font-sans text-lg text-right font-extrabold !text-[10px] mt-0.5">{c.stage}</div>
                       </div>
                       <span className="text-white/40">→</span>
                     </div>
