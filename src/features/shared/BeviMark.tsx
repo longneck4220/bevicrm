@@ -9,7 +9,7 @@ export function BeviMark({ size = 40, animated = true }: { size?: number; animat
   return (
     <img
       src={logoSrc}
-      alt="BEVI"
+      alt="BEVI ambient sales intelligence"
       height={size}
       style={{ height: size, width: "auto", display: "block" }}
       draggable={false}
