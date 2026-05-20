@@ -473,7 +473,7 @@ function OutputPanel({
   if (output.needs_more_info) {
     return (
       <GlassCard tone="strong" className="p-6">
-        <SignalLabel>Need a bit more to be useful</SignalLabel>
+        <SignalLabel as="h2">Need a bit more to be useful</SignalLabel>
         <p className="text-white/80 mt-2 text-sm">
           The note is light. Answer one or two of these and BEVI will draft the full pack.
         </p>
