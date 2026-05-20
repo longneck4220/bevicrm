@@ -158,7 +158,7 @@ export function ConversationDetailPage({ id }: { id: string }) {
 
             {/* Stakeholders */}
             <GlassCard className="p-6">
-              <SignalLabel>Stakeholder map</SignalLabel>
+              <SignalLabel>Account Contacts</SignalLabel>
               <div className="mt-4 space-y-3">
                 {conv.stakeholders.map((s) => (
                   <div key={s.name}>
