@@ -18,8 +18,16 @@ export const GlassCard = forwardRef<HTMLDivElement, Props>(function GlassCard(
   );
 });
 
-export function SignalLabel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <span className={`signal-label font-sans text-lg text-right font-extrabold ${className}`}>{children}</span>;
+export function SignalLabel({
+  children,
+  className = "",
+  as: Tag = "span",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  as?: "span" | "h2" | "h3" | "h4";
+}) {
+  return <Tag className={`signal-label font-sans text-lg text-right font-extrabold ${className}`}>{children}</Tag>;
 }
 
 export function SignalChip({ kind, label }: { kind: string; label: string }) {
