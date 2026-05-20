@@ -612,7 +612,7 @@ function OutputPanel({
       {/* 6. MISSED OPPORTUNITY */}
       {output.missed_opportunity && (
         <GlassCard className="p-5">
-          <SignalLabel>Missed opportunity challenge</SignalLabel>
+          <SignalLabel as="h2">Missed opportunity challenge</SignalLabel>
           <p className="mt-2 text-white/85 text-sm">{output.missed_opportunity}</p>
         </GlassCard>
       )}
