@@ -22,6 +22,30 @@ export function SignalLabel({ children, className = "" }: { children: React.Reac
   return <span className={`signal-label font-sans font-bold text-lg ${className}`}>{children}</span>;
 }
 
+export function SignalChip({ kind, label }: { kind: string; label: string }) {
+  const map: Record<string, string> = {
+    buying: "var(--signal-positive)",
+    risk: "var(--signal-risk)",
+    objection: "var(--signal-warning)",
+    intent: "var(--brand-cyan)",
+    stakeholder: "var(--brand-violet)",
+  };
+  const color = map[kind] ?? "var(--brand-cyan)";
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-[0.14em] px-2 py-1 rounded-md"
+      style={{
+        color,
+        background: `color-mix(in oklab, ${color} 12%, transparent)`,
+        border: `1px solid color-mix(in oklab, ${color} 30%, transparent)`,
+      }}
+    >
+      <span className="w-1 h-1 rounded-full" style={{ background: color }} />
+      {label}
+    </span>
+  );
+}
+
 export function RiskDot({ risk }: { risk: "low" | "medium" | "high" }) {
   const color =
     risk === "low" ? "var(--signal-positive)" : risk === "medium" ? "var(--signal-warning)" : "var(--signal-risk)";
