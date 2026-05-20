@@ -135,7 +135,10 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       .select("id, name, contact, memory")
       .eq("id", data.accountId)
       .single();
-    if (accErr || !account) throw new Error("Account not found");
+    if (accErr || !account) {
+      if (accErr) console.error("[DB error] fetch account", accErr);
+      throw new Error("Account not found");
+    }
 
     const userPrompt = `Account: ${account.name}
 Contact: ${account.contact ?? "(unknown)"}
@@ -199,7 +202,10 @@ Generate the BEVI output JSON now.`;
       })
       .select("id, created_at")
       .single();
-    if (visitErr) throw new Error(visitErr.message);
+    if (visitErr) {
+      console.error("[DB error] insert visit", visitErr);
+      throw new Error("Could not save visit. Please try again.");
+    }
 
     return { output: parsed, visitId: visit.id, createdAt: visit.created_at };
   });
@@ -214,7 +220,10 @@ export const updateAccountMemory = createServerFn({ method: "POST" })
       .from("accounts")
       .update({ memory: data.memory, updated_at: new Date().toISOString() })
       .eq("id", data.accountId);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error] update account memory", error);
+      throw new Error("Could not update account memory. Please try again.");
+    }
     return { ok: true };
   });
 
@@ -228,7 +237,10 @@ export const rateVisit = createServerFn({ method: "POST" })
       .from("visits")
       .update({ rating: data.rating })
       .eq("id", data.visitId);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error] update visit rating", error);
+      throw new Error("Could not save rating. Please try again.");
+    }
     return { ok: true };
   });
 
@@ -248,6 +260,9 @@ export const createAccount = createServerFn({ method: "POST" })
       .insert({ name: data.name, contact: data.contact || null, memory: "", owner_id: context.userId })
       .select("id")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error] create account", error);
+      throw new Error("Could not create account. Please try again.");
+    }
     return { id: row.id };
   });
