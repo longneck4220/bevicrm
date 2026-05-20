@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrialPage } from "@/features/trial/TrialPage";
 
-export const Route = createFileRoute("/trial")({
+export const Route = createFileRoute("/_authenticated/trial")({
   component: TrialPage,
   head: () => ({
     meta: [

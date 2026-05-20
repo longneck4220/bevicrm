@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ConversationDetailPage } from "@/features/conversation/ConversationDetailPage";
 
-export const Route = createFileRoute("/conversation/$id")({
+export const Route = createFileRoute("/_authenticated/conversation/$id")({
   head: () => ({
     meta: [
       { title: "Conversation · BEVI" },

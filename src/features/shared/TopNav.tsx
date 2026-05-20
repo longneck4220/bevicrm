@@ -1,5 +1,6 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { BeviMark } from "./BeviMark";
+import { useAuth } from "@/hooks/use-auth";
 
 export function BeviLogo({ compact = false }: { compact?: boolean }) {
   return (
@@ -17,7 +18,7 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
   );
 }
 
-const links: { to: "/" | "/trial" | "/dashboard" | "/mobile"; label: string }[] = [
+const links: { to: "/trial" | "/dashboard" | "/mobile"; label: string }[] = [
   { to: "/trial", label: "Trial" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/mobile", label: "Mobile" },
@@ -25,6 +26,9 @@ const links: { to: "/" | "/trial" | "/dashboard" | "/mobile"; label: string }[] 
 
 export function TopNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { user, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <header className="fixed top-0 inset-x-0 z-50">
       <div className="mx-auto max-w-7xl px-6 py-4">
@@ -32,7 +36,7 @@ export function TopNav() {
           <BeviLogo />
           <nav className="hidden md:flex items-center gap-1">
             {links.map((l) => {
-              const active = path === l.to || (l.to !== "/" && path.startsWith(l.to));
+              const active = path === l.to || path.startsWith(l.to);
               return (
                 <Link
                   key={l.to}
@@ -47,19 +51,46 @@ export function TopNav() {
             })}
           </nav>
           <div className="flex items-center gap-2">
-            <Link
-              to="/dashboard"
-              className="hidden sm:inline-flex text-xs signal-label font-sans font-bold text-lg !text-white/80 px-3 py-2 rounded-lg hover:bg-white/5"
-            >
-              Sign in
-            </Link>
-            <Link
-              to="/trial"
-              className="relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-primary-foreground"
-              style={{ background: "var(--gradient-signal)" }}
-            >
-              Try the agent
-            </Link>
+            {user ? (
+              <>
+                <span className="hidden sm:inline text-xs text-white/60 truncate max-w-[160px]">
+                  {user.email}
+                  {isAdmin && (
+                    <span
+                      className="ml-2 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider"
+                      style={{ background: "var(--brand-cyan)", color: "#000" }}
+                    >
+                      Admin
+                    </span>
+                  )}
+                </span>
+                <button
+                  onClick={async () => {
+                    await signOut();
+                    navigate({ to: "/" });
+                  }}
+                  className="text-xs px-3 py-2 rounded-lg text-white/80 hover:bg-white/5"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="hidden sm:inline-flex text-xs signal-label font-sans font-bold text-lg !text-white/80 px-3 py-2 rounded-lg hover:bg-white/5"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/login"
+                  className="relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-primary-foreground"
+                  style={{ background: "var(--gradient-signal)" }}
+                >
+                  Get started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

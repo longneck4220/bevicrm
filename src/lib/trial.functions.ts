@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const GenerateInput = z.object({
   accountId: z.string().uuid(),
@@ -77,36 +77,27 @@ What would a top 1% Queensland liquor field sales rep do here to win long-term?
 Return ONLY JSON matching this exact schema:
 {
   "needs_more_info": boolean,
-  "clarifying_questions": string[],            // 0-3 short questions if needs_more_info=true, else []
+  "clarifying_questions": string[],
   "next_best_move": {
-    "recommendation": string,                  // 1-2 sentences, the move itself
-    "reason": string,                          // why this fits the venue/contact right now
-    "specific_ask": string,                    // exact ask the rep can use next visit/call
+    "recommendation": string,
+    "reason": string,
+    "specific_ask": string,
     "commercial_posture": "Suggest" | "Recommend" | "Push" | "Hold",
     "confidence": "Low" | "Medium" | "High"
   },
   "commercial_signals": {
-    "buying_style": string,                    // 1 short line describing how this contact buys (e.g. "Premium-led, slow to commit, wants social proof")
-    "risk_flags": string[],                    // 0-4 short bullets; concrete risks (margin, staff, competitor, timing). [] if none.
-    "margin_pressure": string,                 // 1 line on current margin sensitivity, or "" if not evident
-    "opportunity_signals": string[]            // 0-4 short bullets; concrete openings the rep can act on. [] if none.
+    "buying_style": string,
+    "risk_flags": string[],
+    "margin_pressure": string,
+    "opportunity_signals": string[]
   },
-  "combined_crm_note": string,                 // single open-text block paste-ready for Salesforce/Rhino, with these labelled lines, exact labels, each on its own line:
-                                               // Contact: ...
-                                               // Objective: ...
-                                               // Result: ...
-                                               // Opportunities: ...
-                                               // Other items of note: ...
-                                               // Orders placed: ...                  (use "N/A" or "No sale" if none)
-                                               // Objections or limitations: ...
-                                               // Follow-up to-dos: ...
-                                               // Next step: ...
+  "combined_crm_note": string,
   "follow_up_email": {
     "subject": string,
-    "body": string                             // friendly, short, rep-voice; no pricing or commitments unless they appeared in the note
+    "body": string
   },
-  "missed_opportunity": string,                // one fair challenge: something the rep could have explored but didn't. If nothing fair to flag, return "".
-  "updated_account_memory": string             // a refreshed memory block (replaces existing); keep what's still true, add new durable facts about the venue/contact. No transient details.
+  "missed_opportunity": string,
+  "updated_account_memory": string
 }`;
 
 type AiOutput = {
@@ -132,12 +123,14 @@ type AiOutput = {
 };
 
 export const generateVisitIntelligence = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => GenerateInput.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
-    const { data: account, error: accErr } = await supabaseAdmin
+    const { data: account, error: accErr } = await supabase
       .from("accounts")
       .select("id, name, contact, memory")
       .eq("id", data.accountId)
@@ -195,11 +188,11 @@ Generate the BEVI output JSON now.`;
       throw new Error("AI returned non-JSON output");
     }
 
-    // Persist visit
-    const { data: visit, error: visitErr } = await supabaseAdmin
+    const { data: visit, error: visitErr } = await supabase
       .from("visits")
       .insert({
         account_id: account.id,
+        owner_id: userId,
         raw_note: data.rawNote,
         supporting_context: data.supportingContext ?? "",
         ai_output: parsed as never,
@@ -212,11 +205,12 @@ Generate the BEVI output JSON now.`;
   });
 
 export const updateAccountMemory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z.object({ accountId: z.string().uuid(), memory: z.string().max(20000) }).parse(d),
   )
-  .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
       .from("accounts")
       .update({ memory: data.memory, updated_at: new Date().toISOString() })
       .eq("id", data.accountId);
@@ -225,11 +219,12 @@ export const updateAccountMemory = createServerFn({ method: "POST" })
   });
 
 export const rateVisit = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z.object({ visitId: z.string().uuid(), rating: z.enum(["good", "needs_edit"]) }).parse(d),
   )
-  .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
       .from("visits")
       .update({ rating: data.rating })
       .eq("id", data.visitId);
@@ -238,6 +233,7 @@ export const rateVisit = createServerFn({ method: "POST" })
   });
 
 export const createAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z
       .object({
@@ -246,10 +242,10 @@ export const createAccount = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data }) => {
-    const { data: row, error } = await supabaseAdmin
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
       .from("accounts")
-      .insert({ name: data.name, contact: data.contact || null, memory: "" })
+      .insert({ name: data.name, contact: data.contact || null, memory: "", owner_id: context.userId })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
