@@ -82,7 +82,7 @@ export function DashboardPage() {
 
         {/* PRIORITY ACCOUNTS */}
         <section className="mt-12">
-          <SignalLabel>Priority accounts</SignalLabel>
+          <SignalLabel as="h2">Priority accounts</SignalLabel>
           <div className="mt-4 space-y-3">
             {priorityAccounts.map((c, i) => (
               <motion.div
