@@ -141,7 +141,7 @@ export function LandingPage() {
                 className="w-2.5 h-2.5 rounded-full"
                 style={{ background: p.tone, boxShadow: `0 0 14px ${p.tone}` }}
               />
-              <span className="signal-label text-base font-sans font-semibold !text-white/90">{p.label}</span>
+              <span className="signal-label font-bold text-base font-sans !text-white/90">{p.label}</span>
             </div>
           ))}
         </div>

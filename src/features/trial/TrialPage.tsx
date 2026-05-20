@@ -231,7 +231,7 @@ export function TrialPage() {
               </h1>
             </div>
           </div>
-          <div className="signal-label text-base font-sans font-semibold !text-white/60">
+          <div className="signal-label font-bold text-base font-sans !text-white/60">
             Otter records · Salesforce remembers · <span style={{ color: "var(--brand-cyan)" }}>BEVI converts</span>
           </div>
         </div>
@@ -577,7 +577,7 @@ function OutputPanel({
       {/* 4. FOLLOW-UP EMAIL */}
       <GlassCard className="p-5">
         <div className="flex items-center justify-between mb-2">
-          <SignalLabel>Follow-up email</SignalLabel>
+          <SignalLabel>Follow-up Email</SignalLabel>
           <CopyButton
             text={`Subject: ${output.follow_up_email.subject}\n\n${output.follow_up_email.body}`}
           />
@@ -615,7 +615,7 @@ function OutputPanel({
       )}
 
       <div className="flex items-center justify-end gap-2">
-        <span className="signal-label text-base font-sans font-semibold !text-white/50 mr-2">Rate this output</span>
+        <span className="signal-label font-bold text-base font-sans !text-white/50 mr-2">Rate this output</span>
         <button
           onClick={() => {
             setRated("good");
