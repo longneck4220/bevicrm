@@ -231,7 +231,7 @@ export function TrialPage() {
               </h1>
             </div>
           </div>
-          <div className="signal-label font-bold text-base font-sans !text-white/60">
+          <div className="signal-label font-sans font-bold text-lg !text-white/60">
             Otter records · Salesforce remembers · <span style={{ color: "var(--brand-cyan)" }}>BEVI converts</span>
           </div>
         </div>
@@ -593,7 +593,7 @@ function OutputPanel({
       {/* 5. ACCOUNT MEMORY */}
       <GlassCard className="p-5">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-          <SignalLabel>Updated account memory (proposed)</SignalLabel>
+          <SignalLabel>Post-visit Note</SignalLabel>
           <button
             onClick={onAdoptMemory}
             className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white"
@@ -615,7 +615,7 @@ function OutputPanel({
       )}
 
       <div className="flex items-center justify-end gap-2">
-        <span className="signal-label font-bold text-base font-sans !text-white/50 mr-2">Rate this output</span>
+        <span className="signal-label font-sans font-bold text-lg !text-white/50 mr-2">Rate this output</span>
         <button
           onClick={() => {
             setRated("good");
