@@ -44,16 +44,6 @@ export function LandingPage() {
               Win the <br className="hidden sm:block" />
               <span className="text-gradient">next call.</span>
             </motion.h1>
-            <motion.p
-              initial="hidden"
-              animate="show"
-              variants={fadeUp}
-              custom={1.4}
-              className="mt-4 signal-label"
-              style={{ color: "var(--brand-cyan)" }}
-            >
-              Inspired by the octopus · Built for results
-            </motion.p>
 
             <motion.p
               initial="hidden"
@@ -62,8 +52,8 @@ export function LandingPage() {
               custom={2}
               className="mt-6 max-w-xl text-lg text-muted-foreground leading-relaxed"
             >
-              BEVI listens across every conversation, surfaces the signals that move deals,
-              and tells you the single next move that matters — calmly, with conviction.
+              BEVI turns post-visit thinking into your next commercial move —
+              a CRM-ready note and the single next action that advances the account.
             </motion.p>
 
             <motion.div
@@ -97,9 +87,9 @@ export function LandingPage() {
               className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-3"
             >
               {[
-                ["3.2×", "faster deal cycles"],
-                ["94%", "next-move accuracy"],
-                ["0", "manual notes"],
+                ["<60s", "CRM note ready"],
+                ["Instant", "next move surfaced"],
+                ["Compounds", "commercial memory"],
               ].map(([v, l]) => (
                 <div key={l} className="flex items-baseline gap-2">
                   <span className="text-2xl font-semibold text-white">{v}</span>
