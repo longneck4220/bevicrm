@@ -497,7 +497,7 @@ function OutputPanel({
       {/* 1. NEXT BEST MOVE — largest */}
       <GlassCard tone="strong" className="p-6">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <SignalLabel>Next best move</SignalLabel>
+          <SignalLabel as="h2">Next best move</SignalLabel>
           <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.18em]">
             <span
               className="px-2 py-1 rounded-md"
