@@ -487,9 +487,11 @@ function OutputPanel({
   }
 
   const nbm = output.next_best_move;
+  const sig = output.commercial_signals;
 
   return (
     <div className="space-y-6">
+      {/* 1. NEXT BEST MOVE — largest */}
       <GlassCard tone="strong" className="p-6">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <SignalLabel>Next best move</SignalLabel>
@@ -524,40 +526,71 @@ function OutputPanel({
         </div>
       </GlassCard>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <GlassCard className="p-5">
-          <div className="flex items-center justify-between mb-2">
-            <SignalLabel>CRM note</SignalLabel>
-            <CopyButton text={output.combined_crm_note} />
+      {/* 2. COMMERCIAL SIGNALS */}
+      {sig && (
+        <GlassCard tone="strong" className="p-6">
+          <SignalLabel>Commercial signals</SignalLabel>
+          <div className="mt-4 grid sm:grid-cols-2 gap-4">
+            <SignalBlock label="Buying style" tone="var(--brand-cyan)">
+              <p className="text-white/85 text-sm">{sig.buying_style || "—"}</p>
+            </SignalBlock>
+            <SignalBlock label="Margin pressure" tone="var(--signal-warning)">
+              <p className="text-white/85 text-sm">{sig.margin_pressure || "—"}</p>
+            </SignalBlock>
+            <SignalBlock label="Risk flags" tone="var(--signal-risk)">
+              {sig.risk_flags?.length ? (
+                <ul className="text-white/85 text-sm space-y-1">
+                  {sig.risk_flags.map((r, i) => (
+                    <li key={i}>· {r}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-white/50 text-sm">None flagged.</p>
+              )}
+            </SignalBlock>
+            <SignalBlock label="Opportunity signals" tone="var(--signal-positive)">
+              {sig.opportunity_signals?.length ? (
+                <ul className="text-white/85 text-sm space-y-1">
+                  {sig.opportunity_signals.map((r, i) => (
+                    <li key={i}>· {r}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-white/50 text-sm">None surfaced.</p>
+              )}
+            </SignalBlock>
           </div>
-          <pre className="text-[13px] text-white/85 whitespace-pre-wrap font-sans leading-relaxed">
-            {output.combined_crm_note}
-          </pre>
-        </GlassCard>
-
-        <GlassCard className="p-5">
-          <div className="flex items-center justify-between mb-2">
-            <SignalLabel>Follow-up email</SignalLabel>
-            <CopyButton
-              text={`Subject: ${output.follow_up_email.subject}\n\n${output.follow_up_email.body}`}
-            />
-          </div>
-          <div className="text-xs text-white/50 mb-1">Subject</div>
-          <div className="text-white text-sm font-medium">{output.follow_up_email.subject}</div>
-          <div className="text-xs text-white/50 mt-3 mb-1">Body</div>
-          <pre className="text-[13px] text-white/85 whitespace-pre-wrap font-sans leading-relaxed">
-            {output.follow_up_email.body}
-          </pre>
-        </GlassCard>
-      </div>
-
-      {output.missed_opportunity && (
-        <GlassCard className="p-5">
-          <SignalLabel>Missed opportunity challenge</SignalLabel>
-          <p className="mt-2 text-white/85 text-sm">{output.missed_opportunity}</p>
         </GlassCard>
       )}
 
+      {/* 3. CRM NOTE */}
+      <GlassCard className="p-5">
+        <div className="flex items-center justify-between mb-2">
+          <SignalLabel>CRM note</SignalLabel>
+          <CopyButton text={output.combined_crm_note} />
+        </div>
+        <pre className="text-[13px] text-white/85 whitespace-pre-wrap font-sans leading-relaxed">
+          {output.combined_crm_note}
+        </pre>
+      </GlassCard>
+
+      {/* 4. FOLLOW-UP EMAIL */}
+      <GlassCard className="p-5">
+        <div className="flex items-center justify-between mb-2">
+          <SignalLabel>Follow-up email</SignalLabel>
+          <CopyButton
+            text={`Subject: ${output.follow_up_email.subject}\n\n${output.follow_up_email.body}`}
+          />
+        </div>
+        <div className="text-xs text-white/50 mb-1">Subject</div>
+        <div className="text-white text-sm font-medium">{output.follow_up_email.subject}</div>
+        <div className="text-xs text-white/50 mt-3 mb-1">Body</div>
+        <pre className="text-[13px] text-white/85 whitespace-pre-wrap font-sans leading-relaxed">
+          {output.follow_up_email.body}
+        </pre>
+      </GlassCard>
+
+      {/* 5. ACCOUNT MEMORY */}
       <GlassCard className="p-5">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
           <SignalLabel>Updated account memory (proposed)</SignalLabel>
@@ -572,6 +605,14 @@ function OutputPanel({
           {output.updated_account_memory}
         </pre>
       </GlassCard>
+
+      {/* 6. MISSED OPPORTUNITY */}
+      {output.missed_opportunity && (
+        <GlassCard className="p-5">
+          <SignalLabel>Missed opportunity challenge</SignalLabel>
+          <p className="mt-2 text-white/85 text-sm">{output.missed_opportunity}</p>
+        </GlassCard>
+      )}
 
       <div className="flex items-center justify-end gap-2">
         <span className="signal-label !text-white/50 mr-2">Rate this output</span>
