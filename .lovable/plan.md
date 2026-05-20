@@ -1,41 +1,17 @@
-## Context
+## Goal
 
-`BeviMark` is already imported in every shell surface: `TopNav` (site header), `LandingPage` (hero), `TrialPage` (header), `DashboardPage` (section heading), `MobileCompanionPage` (footer). The new transparent PNG is cropped to its non-square bounding box (the dot tail extends out the lower-left), so the current `BeviMark` — which forces `width = height = size` — squishes it slightly and undersizes the visible mark.
+Adopt the freshly uploaded brand-book "B" mark as the canonical BeviMark asset across the site and favicon. The new artwork is cleaner, better composed, and isolated on a dark background — a strict upgrade over the current `src/assets/bevi-logo.png`.
 
-There is no dedicated "sidebar" component or "login" page in the project. The closest matches are:
-- **Sidebar** → the left "Accounts" column inside `TrialPage` (no logo there today).
-- **Login** → the `Sign in` link in `TopNav` (no dedicated screen).
+## Steps
 
-I'll treat the request as "make the transparent logo render correctly everywhere it appears, and add it to the trial sidebar header for parity." If you actually want a new dedicated login page or a different sidebar, say so and I'll split that off.
-
-## Changes
-
-### 1. `BeviMark.tsx` — respect intrinsic aspect ratio
-
-Stop forcing a square box. Render with `height: size`, `width: auto`, so the cropped PNG keeps its true proportions and the visible mark fills the intended height across every surface. Keep the existing API (`size`, `animated`) so no callers change.
-
-### 2. `TopNav.tsx` — header polish
-
-- Bump `BeviMark` from `size={36}` → `size={32}` (the new mark reads bigger because the tail clears the bounding box, so a slightly smaller height balances the wordmark).
-- Keep the wordmark and tagline as-is.
-
-### 3. `TrialPage.tsx` — sidebar header
-
-- Add a small `<BeviMark size={18} animated={false} />` next to the "Accounts" sidebar header at line ~240 so the sidebar gets brand presence (currently just a `SignalLabel`).
-- Leave the page-header mark at `size={40}`.
-
-### 4. `DashboardPage.tsx` — section heading
-
-- Leave existing `size={20}` usage — already correct.
-
-### 5. `MobileCompanionPage.tsx` — footer
-
-- Leave existing `size={14}` — already correct.
-
-No changes to landing hero, mobile, routing, or copy.
+1. **Copy** `user-uploads://image-5.png` → `src/assets/bevi-logo.png` (overwrite existing).
+2. **Remove the dark background** via `imagegen--edit_image` with `transparent_background: true`, writing back to `src/assets/bevi-logo.png` so the mark floats on glass/page surfaces.
+3. **Tight-crop** the transparent PNG to its non-transparent bounding box (Python/PIL one-liner) so `BeviMark`'s height-based sizing fills the intended space.
+4. **Refresh the favicon**: do the same transparent-background + tight-crop pass on a copy at `public/favicon.png`.
+5. **Leave `public/og-image.jpg` alone** — social cards need the opaque dark backdrop.
+6. **No code changes** — `BeviMark.tsx` already imports `@/assets/bevi-logo.png` and renders it at `height: size, width: auto`, so every surface (TopNav, trial header + sidebar, dashboard, mobile footer, landing hero) picks up the new asset automatically.
 
 ## Verification
 
-- Reload `/`, `/trial`, `/dashboard`, `/mobile` and confirm the mark sits crisply on the glass surfaces with no black box.
-- Confirm the TopNav logo aligns with the BEVI wordmark baseline.
-- Confirm the trial sidebar shows the small mark next to "Accounts".
+- Reload `/`, `/trial`, `/dashboard`, `/mobile`; confirm the new mark sits on glass with no halo or black box, and looks crisp at hero (380px) and nav (32px) sizes.
+- Confirm the browser-tab favicon updates.
