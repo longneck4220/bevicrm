@@ -237,36 +237,3 @@ export function LandingPage() {
   );
 }
 
-function FloatingChip({
-  className,
-  label,
-  value,
-  tone,
-  delay = 0,
-}: {
-  className?: string;
-  label: string;
-  value: string;
-  tone: string;
-  delay?: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: [0, -6, 0] }}
-      transition={{
-        opacity: { duration: 0.8, delay },
-        y: { duration: 5, repeat: Infinity, ease: "easeInOut", delay },
-      }}
-      className={`glass-strong rounded-xl px-3.5 py-2.5 ambient-glow ${className ?? ""}`}
-    >
-      <div className="flex items-center gap-2">
-        <span className="w-1.5 h-1.5 rounded-full" style={{ background: tone, boxShadow: `0 0 10px ${tone}` }} />
-        <span className="text-[10px] tracking-[0.2em] font-mono" style={{ color: tone }}>
-          {label}
-        </span>
-      </div>
-      <div className="mt-1 text-sm text-white font-medium">{value}</div>
-    </motion.div>
-  );
-}
