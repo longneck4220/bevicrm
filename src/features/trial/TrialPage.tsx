@@ -654,7 +654,7 @@ function SignalBlock({
 }: {
   label: string;
   tone: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="p-3 rounded-lg border border-white/10 bg-white/5">
