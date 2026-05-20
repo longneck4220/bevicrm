@@ -22,6 +22,12 @@ type AiOutput = {
     commercial_posture: string;
     confidence: string;
   };
+  commercial_signals: {
+    buying_style: string;
+    risk_flags: string[];
+    margin_pressure: string;
+    opportunity_signals: string[];
+  };
   combined_crm_note: string;
   follow_up_email: { subject: string; body: string };
   missed_opportunity: string;
@@ -330,7 +336,7 @@ export function TrialPage() {
                 <div>
                   <SignalLabel>Supporting context (optional)</SignalLabel>
                   <p className="text-xs text-white/50 mt-1">
-                    Paste range decks, promo plans, price lists, masterfile excerpts — or upload PDFs, Word, Excel, CSV, text. Stays with this visit only.
+                    Promo deck · Pricing sheet · Activation brief · Masterfile · Previous email. Stays with this visit only.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
