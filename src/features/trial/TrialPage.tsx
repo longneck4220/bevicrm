@@ -580,7 +580,7 @@ function OutputPanel({
       {/* 4. FOLLOW-UP EMAIL */}
       <GlassCard className="p-5">
         <div className="flex items-center justify-between mb-2">
-          <SignalLabel>Follow-up Email</SignalLabel>
+          <SignalLabel as="h2">Follow-up Email</SignalLabel>
           <CopyButton
             text={`Subject: ${output.follow_up_email.subject}\n\n${output.follow_up_email.body}`}
           />
