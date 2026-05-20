@@ -4,7 +4,7 @@ import { BeviMark } from "./BeviMark";
 export function BeviLogo({ compact = false }: { compact?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2.5 group">
-      <BeviMark size={36} />
+      <BeviMark size={32} />
       {!compact && (
         <div className="leading-none">
           <div className="text-[16px] font-semibold tracking-[0.18em] text-white">BEVI</div>

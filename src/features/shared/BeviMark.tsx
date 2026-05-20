@@ -10,9 +10,8 @@ export function BeviMark({ size = 40, animated = true }: { size?: number; animat
     <img
       src={logoSrc}
       alt="BEVI"
-      width={size}
       height={size}
-      style={{ width: size, height: size, objectFit: "contain", display: "block" }}
+      style={{ height: size, width: "auto", display: "block" }}
       draggable={false}
     />
   );
