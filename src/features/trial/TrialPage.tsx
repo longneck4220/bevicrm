@@ -231,7 +231,7 @@ export function TrialPage() {
               </h1>
             </div>
           </div>
-          <div className="signal-label !text-white/60">
+          <div className="signal-label text-base font-sans font-semibold !text-white/60">
             Otter records · Salesforce remembers · <span style={{ color: "var(--brand-cyan)" }}>BEVI converts</span>
           </div>
         </div>
@@ -615,7 +615,7 @@ function OutputPanel({
       )}
 
       <div className="flex items-center justify-end gap-2">
-        <span className="signal-label !text-white/50 mr-2">Rate this output</span>
+        <span className="signal-label text-base font-sans font-semibold !text-white/50 mr-2">Rate this output</span>
         <button
           onClick={() => {
             setRated("good");
