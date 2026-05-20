@@ -240,7 +240,10 @@ export function TrialPage() {
           {/* Sidebar: accounts */}
           <aside className="space-y-4">
             <GlassCard className="p-4">
-              <SignalLabel>Accounts</SignalLabel>
+              <div className="flex items-center gap-2">
+                <BeviMark size={18} animated={false} />
+                <SignalLabel>Accounts</SignalLabel>
+              </div>
               <ul className="mt-3 space-y-1">
                 {accounts.map((a) => {
                   const isActive = a.id === activeId;
