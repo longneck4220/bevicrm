@@ -137,7 +137,7 @@ export function DashboardPage() {
 
         {/* TERRITORY SNAPSHOT */}
         <section className="mt-12">
-          <SignalLabel>Territory snapshot</SignalLabel>
+          <SignalLabel as="h2">Territory snapshot</SignalLabel>
           <GlassCard className="mt-4 p-8 text-center">
             <div className="text-sm text-white/60">Coming soon</div>
             <div className="mt-1 text-xs text-white/40">
