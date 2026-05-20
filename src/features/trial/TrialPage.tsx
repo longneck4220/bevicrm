@@ -519,9 +519,9 @@ function OutputPanel({
             </span>
           </div>
         </div>
-        <h3 className="mt-3 text-xl md:text-2xl text-white font-semibold leading-snug">
+        <p className="mt-3 text-xl md:text-2xl text-white font-semibold leading-snug">
           {nbm.recommendation}
-        </h3>
+        </p>
         <p className="mt-3 text-white/70 text-sm leading-relaxed">{nbm.reason}</p>
         <div className="mt-4 p-3 rounded-lg border border-white/10 bg-white/5">
           <SignalLabel>Specific ask</SignalLabel>
