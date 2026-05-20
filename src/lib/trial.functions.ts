@@ -237,7 +237,10 @@ export const rateVisit = createServerFn({ method: "POST" })
       .from("visits")
       .update({ rating: data.rating })
       .eq("id", data.visitId);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error] update visit rating", error);
+      throw new Error("Could not save rating. Please try again.");
+    }
     return { ok: true };
   });
 
