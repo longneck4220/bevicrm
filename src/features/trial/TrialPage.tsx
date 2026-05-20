@@ -566,7 +566,7 @@ function OutputPanel({
       {/* 3. CRM NOTE */}
       <GlassCard className="p-5">
         <div className="flex items-center justify-between mb-2">
-          <SignalLabel>CRM note</SignalLabel>
+          <SignalLabel>CRM NOTE</SignalLabel>
           <CopyButton text={output.combined_crm_note} />
         </div>
         <pre className="text-[13px] text-white/85 whitespace-pre-wrap font-sans leading-relaxed">
