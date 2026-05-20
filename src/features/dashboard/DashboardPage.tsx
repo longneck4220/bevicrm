@@ -22,10 +22,10 @@ export function DashboardPage() {
           <div>
             <SignalLabel>Today · Field view</SignalLabel>
             <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight text-white">
-              Good morning, Matthew
+              Sales Intelligence Dashboard
             </h1>
             <p className="mt-2 text-muted-foreground max-w-lg">
-              Four moves to make. Three accounts to watch. Pick one and go.
+              Good morning, Matthew. Four moves to make. Three accounts to watch. Pick one and go.
             </p>
           </div>
           <Link
