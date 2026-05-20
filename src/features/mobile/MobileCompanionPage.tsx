@@ -103,7 +103,7 @@ export function MobileCompanionPage() {
                 </div>
 
                 <div className="absolute bottom-3 inset-x-3">
-                  <GlassCard className="px-3 py-2 flex items-center justify-around text-[10px] signal-label font-bold text-base font-sans">
+                  <GlassCard className="px-3 py-2 flex items-center justify-around text-[10px] signal-label font-sans font-bold text-lg">
                     <span className="!text-white">Today</span>
                     <span>Deals</span>
                     <span>Signals</span>
