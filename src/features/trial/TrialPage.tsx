@@ -647,6 +647,29 @@ function OutputPanel({
   );
 }
 
+function SignalBlock({
+  label,
+  tone,
+  children,
+}: {
+  label: string;
+  tone: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="p-3 rounded-lg border border-white/10 bg-white/5">
+      <div className="flex items-center gap-2 mb-1.5">
+        <span
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ background: tone, boxShadow: `0 0 10px ${tone}` }}
+        />
+        <SignalLabel>{label}</SignalLabel>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 // Minimal Web Speech API types (browser-only, optional API)
 interface SpeechRecognitionLike {
   continuous: boolean;
