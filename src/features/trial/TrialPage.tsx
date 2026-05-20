@@ -65,7 +65,8 @@ export function TrialPage() {
       .select("id, name, contact, memory")
       .order("updated_at", { ascending: false });
     if (error) {
-      setError(error.message);
+      console.error("[load accounts]", error);
+      setError("Failed to load accounts. Please try again.");
       return;
     }
     setAccounts(data ?? []);
