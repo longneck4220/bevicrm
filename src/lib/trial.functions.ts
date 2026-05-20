@@ -220,7 +220,10 @@ export const updateAccountMemory = createServerFn({ method: "POST" })
       .from("accounts")
       .update({ memory: data.memory, updated_at: new Date().toISOString() })
       .eq("id", data.accountId);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error] update account memory", error);
+      throw new Error("Could not update account memory. Please try again.");
+    }
     return { ok: true };
   });
 
