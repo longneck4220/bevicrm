@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { TopNav } from "@/features/shared/TopNav";
+import { AuthProvider } from "@/hooks/use-auth";
 
 function NotFoundComponent() {
   return (
@@ -118,8 +119,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TopNav />
-      <Outlet />
+      <AuthProvider>
+        <TopNav />
+        <Outlet />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
