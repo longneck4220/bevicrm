@@ -199,7 +199,10 @@ Generate the BEVI output JSON now.`;
       })
       .select("id, created_at")
       .single();
-    if (visitErr) throw new Error(visitErr.message);
+    if (visitErr) {
+      console.error("[DB error] insert visit", visitErr);
+      throw new Error("Could not save visit. Please try again.");
+    }
 
     return { output: parsed, visitId: visit.id, createdAt: visit.created_at };
   });
