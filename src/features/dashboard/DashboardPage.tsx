@@ -74,7 +74,7 @@ export function DashboardPage() {
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
               <SignalLabel>Live conversations</SignalLabel>
-              <span className="signal-label text-base font-sans font-semibold !text-white/40">{conversations.length} active</span>
+              <span className="signal-label font-bold text-base font-sans !text-white/40">{conversations.length} active</span>
             </div>
             {conversations.map((c, i) => (
               <motion.div
@@ -103,7 +103,7 @@ export function DashboardPage() {
                       <div className="text-right shrink-0">
                         <SignalLabel>Deal</SignalLabel>
                         <div className="text-xl font-semibold text-white">{fmt$(c.dealValue)}</div>
-                        <div className="signal-label text-base font-sans font-semibold !text-[10px] mt-1">{c.stage}</div>
+                        <div className="signal-label font-bold text-base font-sans !text-[10px] mt-1">{c.stage}</div>
                       </div>
                     </div>
 
@@ -155,7 +155,7 @@ export function DashboardPage() {
                       {nm.rationale}
                     </p>
                     <div className="mt-4 flex items-center justify-between">
-                      <span className="signal-label text-base font-sans font-semibold">Effort · {nm.effort}</span>
+                      <span className="signal-label font-bold text-base font-sans">Effort · {nm.effort}</span>
                       <Link
                         to="/conversation/$id"
                         params={{ id: c.id }}
