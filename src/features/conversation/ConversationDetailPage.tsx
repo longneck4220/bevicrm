@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { conversations } from "@/features/intelligence/data";
-import { GlassCard, MomentumBadge, RiskDot, SignalLabel } from "@/features/shared/primitives";
-import { SignalChip } from "@/features/dashboard/DashboardPage";
+import { GlassCard, MomentumBadge, RiskDot, SignalLabel, SignalChip } from "@/features/shared/primitives";
 
 export function ConversationDetailPage({ id }: { id: string }) {
   const conv = conversations.find((c) => c.id === id) ?? conversations[0];
