@@ -596,7 +596,7 @@ function OutputPanel({
       {/* 5. ACCOUNT MEMORY */}
       <GlassCard className="p-5">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-          <SignalLabel>Post-visit Note</SignalLabel>
+          <SignalLabel as="h2">Post-visit Note</SignalLabel>
           <button
             onClick={onAdoptMemory}
             className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white"
