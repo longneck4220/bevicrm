@@ -473,7 +473,7 @@ function OutputPanel({
   if (output.needs_more_info) {
     return (
       <GlassCard tone="strong" className="p-6">
-        <SignalLabel>Need a bit more to be useful</SignalLabel>
+        <SignalLabel as="h2">Need a bit more to be useful</SignalLabel>
         <p className="text-white/80 mt-2 text-sm">
           The note is light. Answer one or two of these and BEVI will draft the full pack.
         </p>
@@ -497,7 +497,7 @@ function OutputPanel({
       {/* 1. NEXT BEST MOVE — largest */}
       <GlassCard tone="strong" className="p-6">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <SignalLabel>Next best move</SignalLabel>
+          <SignalLabel as="h2">Next best move</SignalLabel>
           <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.18em]">
             <span
               className="px-2 py-1 rounded-md"
@@ -519,9 +519,9 @@ function OutputPanel({
             </span>
           </div>
         </div>
-        <h3 className="mt-3 text-xl md:text-2xl text-white font-semibold leading-snug">
+        <p className="mt-3 text-xl md:text-2xl text-white font-semibold leading-snug">
           {nbm.recommendation}
-        </h3>
+        </p>
         <p className="mt-3 text-white/70 text-sm leading-relaxed">{nbm.reason}</p>
         <div className="mt-4 p-3 rounded-lg border border-white/10 bg-white/5">
           <SignalLabel>Specific ask</SignalLabel>
@@ -532,7 +532,7 @@ function OutputPanel({
       {/* 2. COMMERCIAL SIGNALS */}
       {sig && (
         <GlassCard tone="strong" className="p-6">
-          <SignalLabel>Commercial signals</SignalLabel>
+          <SignalLabel as="h2">Commercial signals</SignalLabel>
           <div className="mt-4 grid sm:grid-cols-2 gap-4">
             <SignalBlock label="Buying style" tone="var(--brand-cyan)">
               <p className="text-white/85 text-sm">{sig.buying_style || "—"}</p>
@@ -569,7 +569,7 @@ function OutputPanel({
       {/* 3. CRM NOTE */}
       <GlassCard className="p-5">
         <div className="flex items-center justify-between mb-2">
-          <SignalLabel>CRM NOTE</SignalLabel>
+          <SignalLabel as="h2">CRM NOTE</SignalLabel>
           <CopyButton text={output.combined_crm_note} />
         </div>
         <pre className="text-[13px] text-white/85 whitespace-pre-wrap font-sans leading-relaxed">
@@ -580,7 +580,7 @@ function OutputPanel({
       {/* 4. FOLLOW-UP EMAIL */}
       <GlassCard className="p-5">
         <div className="flex items-center justify-between mb-2">
-          <SignalLabel>Follow-up Email</SignalLabel>
+          <SignalLabel as="h2">Follow-up Email</SignalLabel>
           <CopyButton
             text={`Subject: ${output.follow_up_email.subject}\n\n${output.follow_up_email.body}`}
           />
@@ -596,7 +596,7 @@ function OutputPanel({
       {/* 5. ACCOUNT MEMORY */}
       <GlassCard className="p-5">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-          <SignalLabel>Post-visit Note</SignalLabel>
+          <SignalLabel as="h2">Post-visit Note</SignalLabel>
           <button
             onClick={onAdoptMemory}
             className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white"
@@ -612,7 +612,7 @@ function OutputPanel({
       {/* 6. MISSED OPPORTUNITY */}
       {output.missed_opportunity && (
         <GlassCard className="p-5">
-          <SignalLabel>Missed opportunity challenge</SignalLabel>
+          <SignalLabel as="h2">Missed opportunity challenge</SignalLabel>
           <p className="mt-2 text-white/85 text-sm">{output.missed_opportunity}</p>
         </GlassCard>
       )}

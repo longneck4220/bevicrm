@@ -22,10 +22,10 @@ export function DashboardPage() {
           <div>
             <SignalLabel>Today · Field view</SignalLabel>
             <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight text-white">
-              Good morning, Matthew
+              Sales Intelligence Dashboard
             </h1>
             <p className="mt-2 text-muted-foreground max-w-lg">
-              Four moves to make. Three accounts to watch. Pick one and go.
+              Good morning, Matthew. Four moves to make. Three accounts to watch. Pick one and go.
             </p>
           </div>
           <Link
@@ -41,7 +41,7 @@ export function DashboardPage() {
         <section className="mt-12">
           <div className="flex items-center gap-2.5 mb-4">
             <BeviMark size={20} animated={false} />
-            <SignalLabel>Today's next moves</SignalLabel>
+            <SignalLabel as="h2">Today's next moves</SignalLabel>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             {nextMoves.map(({ nm, c }, i) => (
@@ -82,7 +82,7 @@ export function DashboardPage() {
 
         {/* PRIORITY ACCOUNTS */}
         <section className="mt-12">
-          <SignalLabel>Priority accounts</SignalLabel>
+          <SignalLabel as="h2">Priority accounts</SignalLabel>
           <div className="mt-4 space-y-3">
             {priorityAccounts.map((c, i) => (
               <motion.div
@@ -114,7 +114,7 @@ export function DashboardPage() {
 
         {/* FOLLOW UPS DUE */}
         <section className="mt-12">
-          <SignalLabel>Follow ups due</SignalLabel>
+          <SignalLabel as="h2">Follow ups due</SignalLabel>
           <GlassCard className="mt-4 p-5">
             <ul className="divide-y divide-white/5">
               {conversations.map((c) => (
@@ -137,7 +137,7 @@ export function DashboardPage() {
 
         {/* TERRITORY SNAPSHOT */}
         <section className="mt-12">
-          <SignalLabel>Territory snapshot</SignalLabel>
+          <SignalLabel as="h2">Territory snapshot</SignalLabel>
           <GlassCard className="mt-4 p-8 text-center">
             <div className="text-sm text-white/60">Coming soon</div>
             <div className="mt-1 text-xs text-white/40">
