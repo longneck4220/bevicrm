@@ -532,7 +532,7 @@ function OutputPanel({
       {/* 2. COMMERCIAL SIGNALS */}
       {sig && (
         <GlassCard tone="strong" className="p-6">
-          <SignalLabel>Commercial signals</SignalLabel>
+          <SignalLabel as="h2">Commercial signals</SignalLabel>
           <div className="mt-4 grid sm:grid-cols-2 gap-4">
             <SignalBlock label="Buying style" tone="var(--brand-cyan)">
               <p className="text-white/85 text-sm">{sig.buying_style || "—"}</p>
