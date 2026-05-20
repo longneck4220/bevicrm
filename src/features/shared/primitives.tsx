@@ -19,7 +19,7 @@ export const GlassCard = forwardRef<HTMLDivElement, Props>(function GlassCard(
 });
 
 export function SignalLabel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <span className={`signal-label ${className}`}>{children}</span>;
+  return <span className={`signal-label text-base font-sans font-semibold ${className}`}>{children}</span>;
 }
 
 export function RiskDot({ risk }: { risk: "low" | "medium" | "high" }) {

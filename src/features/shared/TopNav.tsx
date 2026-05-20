@@ -8,7 +8,7 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
       {!compact && (
         <div className="leading-none">
           <div className="text-[16px] font-semibold tracking-[0.18em] text-white">BEVI</div>
-          <div className="signal-label !text-[9px] mt-1" style={{ color: "var(--brand-cyan)" }}>
+          <div className="signal-label text-base font-sans font-semibold !text-[9px] mt-1" style={{ color: "var(--brand-cyan)" }}>
             Win the next call
           </div>
         </div>
@@ -49,7 +49,7 @@ export function TopNav() {
           <div className="flex items-center gap-2">
             <Link
               to="/dashboard"
-              className="hidden sm:inline-flex text-xs signal-label !text-white/80 px-3 py-2 rounded-lg hover:bg-white/5"
+              className="hidden sm:inline-flex text-xs signal-label text-base font-sans font-semibold !text-white/80 px-3 py-2 rounded-lg hover:bg-white/5"
             >
               Sign in
             </Link>
