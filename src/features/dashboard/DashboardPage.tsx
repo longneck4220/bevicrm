@@ -41,7 +41,7 @@ export function DashboardPage() {
         <section className="mt-12">
           <div className="flex items-center gap-2.5 mb-4">
             <BeviMark size={20} animated={false} />
-            <SignalLabel>Today's next moves</SignalLabel>
+            <SignalLabel as="h2">Today's next moves</SignalLabel>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             {nextMoves.map(({ nm, c }, i) => (
