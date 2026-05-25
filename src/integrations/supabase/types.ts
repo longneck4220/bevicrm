@@ -44,6 +44,56 @@ export type Database = {
         }
         Relationships: []
       }
+      library_files: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          extracted_text: string
+          file_type: Database["public"]["Enums"]["library_file_type"]
+          id: string
+          mime_type: string
+          name: string
+          owner_id: string
+          size_bytes: number
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          extracted_text?: string
+          file_type: Database["public"]["Enums"]["library_file_type"]
+          id?: string
+          mime_type?: string
+          name: string
+          owner_id: string
+          size_bytes?: number
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          extracted_text?: string
+          file_type?: Database["public"]["Enums"]["library_file_type"]
+          id?: string
+          mime_type?: string
+          name?: string
+          owner_id?: string
+          size_bytes?: number
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "library_files_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -148,6 +198,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      library_file_type: "pdf" | "xlsx" | "pptx" | "docx" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -276,6 +327,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      library_file_type: ["pdf", "xlsx", "pptx", "docx", "other"],
     },
   },
 } as const

@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
-import { extractFileText, type Attachment } from "./extractFileText";
+import type { Attachment } from "./extractFileText";
+import { LibraryPanel } from "./LibraryPanel";
 import {
   generateVisitIntelligence,
   updateAccountMemory,
@@ -50,8 +51,6 @@ export function TrialPage() {
   const [newContact, setNewContact] = useState("");
   const [recognizing, setRecognizing] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [extracting, setExtracting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const generate = useServerFn(generateVisitIntelligence);
   const saveMemory = useServerFn(updateAccountMemory);
@@ -103,33 +102,8 @@ export function TrialPage() {
     return parts.join("\n\n");
   }
 
-  async function handleFiles(files: FileList | null) {
-    if (!files || files.length === 0) return;
-    setExtracting(true);
-    setError(null);
-    try {
-      for (const file of Array.from(files)) {
-        if (file.size > 20 * 1024 * 1024) {
-          setError(`${file.name} is over 20 MB — skipped.`);
-          continue;
-        }
-        try {
-          const text = await extractFileText(file);
-          setAttachments((prev) => [
-            ...prev,
-            { id: crypto.randomUUID(), name: file.name, size: file.size, text },
-          ]);
-        } catch (e) {
-          setError(
-            `Couldn't read ${file.name}: ${e instanceof Error ? e.message : "unknown error"}`,
-          );
-        }
-      }
-    } finally {
-      setExtracting(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  }
+
+
 
   function removeAttachment(id: string) {
     setAttachments((prev) => prev.filter((a) => a.id !== id));
@@ -313,35 +287,22 @@ export function TrialPage() {
               />
             </GlassCard>
 
-            {/* Supporting context */}
+            {/* File library */}
+            <LibraryPanel
+              activeAccountId={active?.id ?? null}
+              activeAccountName={active?.name ?? null}
+              onAttach={({ id, name, text }) => {
+                if (attachments.some((a) => a.id === id)) return;
+                setAttachments((prev) => [...prev, { id, name, size: text.length, text }]);
+              }}
+            />
+
+            {/* Supporting context — paste only */}
             <GlassCard className="p-5">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <SignalLabel>Supporting context (optional)</SignalLabel>
-                  <p className="text-xs text-white/50 mt-1">
-                    Promo deck · Pricing sheet · Activation brief · Masterfile · Previous email. Stays with this visit only.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,.md,.json,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/*"
-                    onChange={(e) => handleFiles(e.target.files)}
-                    disabled={!active || extracting}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={!active || extracting}
-                    className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white disabled:opacity-40"
-                  >
-                    {extracting ? "Reading…" : "＋ Upload files"}
-                  </button>
-                </div>
-              </div>
+              <SignalLabel>Supporting context (optional)</SignalLabel>
+              <p className="text-xs text-white/50 mt-1">
+                Paste prior emails, masterfile rows, promo notes. Attached library files appear as chips.
+              </p>
 
               {attachments.length > 0 && (
                 <ul className="mt-3 flex flex-wrap gap-2">
