@@ -313,35 +313,22 @@ export function TrialPage() {
               />
             </GlassCard>
 
-            {/* Supporting context */}
+            {/* File library */}
+            <LibraryPanel
+              activeAccountId={active?.id ?? null}
+              activeAccountName={active?.name ?? null}
+              onAttach={({ id, name, text }) => {
+                if (attachments.some((a) => a.id === id)) return;
+                setAttachments((prev) => [...prev, { id, name, size: text.length, text }]);
+              }}
+            />
+
+            {/* Supporting context — paste only */}
             <GlassCard className="p-5">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <SignalLabel>Supporting context (optional)</SignalLabel>
-                  <p className="text-xs text-white/50 mt-1">
-                    Promo deck · Pricing sheet · Activation brief · Masterfile · Previous email. Stays with this visit only.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,.md,.json,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/*"
-                    onChange={(e) => handleFiles(e.target.files)}
-                    disabled={!active || extracting}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={!active || extracting}
-                    className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white disabled:opacity-40"
-                  >
-                    {extracting ? "Reading…" : "＋ Upload files"}
-                  </button>
-                </div>
-              </div>
+              <SignalLabel>Supporting context (optional)</SignalLabel>
+              <p className="text-xs text-white/50 mt-1">
+                Paste prior emails, masterfile rows, promo notes. Attached library files appear as chips.
+              </p>
 
               {attachments.length > 0 && (
                 <ul className="mt-3 flex flex-wrap gap-2">
