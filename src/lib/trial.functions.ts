@@ -100,7 +100,7 @@ Return ONLY JSON matching this exact schema:
   "updated_account_memory": string
 }`;
 
-type AiOutput = {
+export type AiOutput = {
   needs_more_info: boolean;
   clarifying_questions: string[];
   next_best_move: {
