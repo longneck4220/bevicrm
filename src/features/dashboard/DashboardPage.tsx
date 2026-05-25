@@ -67,12 +67,28 @@ export function DashboardPage() {
     [visits],
   );
 
-  const priorityAccounts = useMemo(() => {
+  const allAccounts = useMemo(() => {
     const byAccount = new Map<string, VisitListItem>();
     for (const v of visits) if (!byAccount.has(v.account_id)) byAccount.set(v.account_id, v);
-    const rank = { high: 3, medium: 2, low: 1 } as const;
-    return [...byAccount.values()].sort((a, b) => rank[visitRisk(b)] - rank[visitRisk(a)]).slice(0, 6);
+    return [...byAccount.values()];
   }, [visits]);
+
+  const priorityAccounts = useMemo(() => {
+    const rank = { high: 3, medium: 2, low: 1 } as const;
+    return [...allAccounts].sort((a, b) => rank[visitRisk(b)] - rank[visitRisk(a)]).slice(0, 6);
+  }, [allAccounts]);
+
+  const q = query.trim().toLowerCase();
+  const displayed = useMemo(() => {
+    if (!q) return priorityAccounts;
+    return allAccounts
+      .filter(
+        (v) =>
+          v.account_name.toLowerCase().includes(q) ||
+          (v.account_contact ?? "").toLowerCase().includes(q),
+      )
+      .sort((a, b) => a.account_name.localeCompare(b.account_name));
+  }, [q, allAccounts, priorityAccounts]);
 
   const highConfidenceCount = visits.filter(
     (v) => (v.ai_output?.next_best_move?.confidence ?? "").toLowerCase() === "high",
