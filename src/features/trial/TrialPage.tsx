@@ -232,9 +232,6 @@ export function TrialPage() {
               </h1>
             </div>
           </div>
-          <div className="signal-label font-sans font-bold text-lg !text-white/60">
-            Otter records · Salesforce remembers · <span style={{ color: "var(--brand-cyan)" }}>BEVI converts</span>
-          </div>
         </div>
 
         <div className="grid lg:grid-cols-[280px_minmax(0,1fr)] gap-6">
