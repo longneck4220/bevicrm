@@ -39,10 +39,24 @@ function formatDate(iso: string) {
 
 export function DashboardPage() {
   const fetchVisits = useServerFn(listVisits);
+  const navigate = useNavigate();
   const { data: visits = [], isLoading } = useQuery({
     queryKey: ["visits"],
     queryFn: () => fetchVisits(),
   });
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "/" && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const nextMoves = useMemo(
     () =>
