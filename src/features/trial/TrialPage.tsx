@@ -238,7 +238,7 @@ export function TrialPage() {
         <div className="grid lg:grid-cols-[280px_minmax(0,1fr)] gap-6">
           {/* Sidebar: accounts */}
           <aside className="space-y-4">
-            <GlassCard className="p-3 relative z-30 overflow-visible">
+            <GlassCard className="p-3 relative">
               <div className="flex items-center gap-2 px-1 pb-2">
                 <BeviMark size={16} animated={false} />
                 <SignalLabel>Accounts</SignalLabel>
