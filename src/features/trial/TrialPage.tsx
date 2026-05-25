@@ -784,35 +784,42 @@ function AccountSearch({
         )}
       </div>
 
-      {open && accounts.length > 0 && (
-        <div className="absolute z-50 mt-1.5 w-full max-h-72 overflow-y-auto rounded-xl border border-white/10 ring-1 ring-white/5 bg-background/80 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]">
-          {matches.length === 0 ? (
-            <div className="px-3 py-3 text-xs text-white/50">No venues match "{query}"</div>
-          ) : (
-            <ul className="py-1 divide-y divide-white/5">
-              {matches.map((a, i) => (
-                <li key={a.id}>
-                  <button
-                    type="button"
-                    onMouseEnter={() => setHighlight(i)}
-                    onClick={() => pick(a.id)}
-                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                      i === highlight
-                        ? "bg-white/8 text-white"
-                        : "text-white/80 hover:bg-white/5"
-                    } ${a.id === activeId ? "border-l-2 border-[var(--brand-cyan)]" : ""}`}
-                  >
-                    <div className="font-medium truncate">{a.name}</div>
-                    {a.contact && (
-                      <div className="text-[11px] text-white/50 truncate">{a.contact}</div>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      {open && accounts.length > 0 && anchor && typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={popRef}
+            style={{ position: "fixed", top: anchor.top, left: anchor.left, width: anchor.width, zIndex: 1000 }}
+            className="max-h-72 overflow-y-auto rounded-xl border border-white/10 ring-1 ring-white/5 bg-background/95 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]"
+          >
+            {matches.length === 0 ? (
+              <div className="px-3 py-3 text-xs text-white/50">No venues match "{query}"</div>
+            ) : (
+              <ul className="py-1 divide-y divide-white/5">
+                {matches.map((a, i) => (
+                  <li key={a.id}>
+                    <button
+                      type="button"
+                      onMouseEnter={() => setHighlight(i)}
+                      onClick={() => pick(a.id)}
+                      className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                        i === highlight
+                          ? "bg-white/8 text-white"
+                          : "text-white/80 hover:bg-white/5"
+                      } ${a.id === activeId ? "border-l-2 border-[var(--brand-cyan)]" : ""}`}
+                    >
+                      <div className="font-medium truncate">{a.name}</div>
+                      {a.contact && (
+                        <div className="text-[11px] text-white/50 truncate">{a.contact}</div>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>,
+          document.body,
+        )}
+
 
       {active && !open && (
         <div className="mt-2 px-1 text-[11px] text-white/40">
