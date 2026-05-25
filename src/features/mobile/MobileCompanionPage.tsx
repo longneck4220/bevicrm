@@ -1,11 +1,23 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { conversations } from "@/features/intelligence/data";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { GlassCard, RiskDot, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
+import { listVisits, type VisitListItem } from "@/lib/trial.functions";
+
+function visitRisk(v: VisitListItem): "low" | "medium" | "high" {
+  const flags = v.ai_output?.commercial_signals?.risk_flags?.length ?? 0;
+  if (flags >= 2) return "high";
+  if (flags === 1) return "medium";
+  return "low";
+}
 
 export function MobileCompanionPage() {
-  const today = conversations.slice(0, 3);
+  const fetchVisits = useServerFn(listVisits);
+  const { data: visits = [] } = useQuery({ queryKey: ["visits"], queryFn: () => fetchVisits() });
+  const today = visits.slice(0, 3);
+
   return (
     <main className="relative pt-28 pb-16">
       <div className="mx-auto max-w-md px-5">
@@ -44,17 +56,22 @@ export function MobileCompanionPage() {
           </Link>
         </motion.div>
 
-        {/* Today's accounts — quick context */}
+        {/* Recent visits */}
         <div className="mt-10">
-          <SignalLabel>Today's stops</SignalLabel>
+          <SignalLabel>Recent visits</SignalLabel>
           <div className="mt-3 space-y-2.5">
-            {today.map((c) => (
-              <Link key={c.id} to="/conversation/$id" params={{ id: c.id }}>
+            {today.length === 0 && (
+              <div className="text-xs text-white/50 px-1">No visits yet — record your first one above.</div>
+            )}
+            {today.map((v) => (
+              <Link key={v.id} to="/visit/$id" params={{ id: v.id }}>
                 <GlassCard className="p-4 flex items-center gap-3 active:bg-white/[0.04] transition">
-                  <RiskDot risk={c.risk} />
+                  <RiskDot risk={visitRisk(v)} />
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-white truncate">{c.account}</div>
-                    <div className="text-[11px] text-white/50 truncate">{c.nextMoves[0].title}</div>
+                    <div className="text-sm font-medium text-white truncate">{v.account_name}</div>
+                    <div className="text-[11px] text-white/50 truncate">
+                      {v.ai_output?.next_best_move?.recommendation ?? "Open visit"}
+                    </div>
                   </div>
                   <span className="text-white/40">→</span>
                 </GlassCard>
