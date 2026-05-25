@@ -1,29 +1,18 @@
-## Replace Priority Accounts list with a searchable Rolodex
+## Fix Account search dropdown stacking + polish styling
 
-Swap the current vertical list of priority accounts on the dashboard for a compact, type-to-find "rolodex" — keeping the same glass aesthetic, just denser and search-driven.
+The dropdown currently slides under the "New account" card because both `GlassCard`s establish their own stacking contexts (backdrop-blur + opaque background), and the search card has no elevated z-index relative to its sibling.
 
-### UX
+### Changes (single file: `src/features/trial/TrialPage.tsx`)
 
-- Section header stays: `SignalLabel` "Priority accounts" with a small count chip on the right (`12 accounts`).
-- Below the header, a single `GlassCard` containing:
-  - **Search bar** at the top — full-width, borderless input over a subtle inner surface, with a small search glyph on the left and a muted placeholder: *"Type a venue or contact…"*. Auto-focuses on `/` keypress.
-  - **Results panel** beneath it — a scrollable area (max-height ~320px, custom thin scrollbar) showing matched accounts as tight one-line rows:
-    - `RiskDot` · venue name · muted contact name · muted relative date · `→`
-    - Hover: faint white/[0.03] background, cursor pointer, navigates to `/visit/$id` (latest visit for that account).
-  - **Empty search state** (no query): show the top 6 priority accounts (current ranking) as the default rolodex view, with a tiny muted hint "Showing top priorities — start typing to search all".
-  - **No-match state**: centered muted line "No venues match '<query>'".
+1. **Stacking fix**
+   - Wrap the Accounts `GlassCard` (the search one) in a container with `relative z-30` so its absolutely-positioned dropdown overlays the sibling "New account" card.
+   - Add `z-40` to the dropdown panel itself (currently `z-20`) for safety.
+   - If `GlassCard` clips with `overflow-hidden`, also pass a wrapper class to let the popover escape — verified by skim, but I'll confirm in build and add `overflow-visible` if needed.
 
-### Matching
+2. **Design-aesthetic polish on the dropdown** (match the rest of the app: deep glass + cyan accent, no off-palette dark hex)
+   - Replace the hard-coded `bg-[#0e1117]/95` with a token-driven surface: `bg-background/80 backdrop-blur-xl border-white/10` plus a subtle `shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]` and `ring-1 ring-white/5`.
+   - Highlight row uses `bg-white/[0.06]` (matches existing hover patterns) and the active-account left bar uses `border-[var(--brand-cyan)]` (already there — keep).
+   - Search input border on focus already uses `--brand-cyan`; keep.
+   - Tighten the popover: `rounded-xl`, `mt-1.5`, divide rows with `divide-y divide-white/5`.
 
-- Case-insensitive substring match against `account_name` and `account_contact`.
-- One row per account (dedupe by `account_id`, keep latest visit).
-- When searching: results sorted by name asc. When idle: current risk-ranked top 6.
-
-### Technical notes
-
-- File touched: `src/features/dashboard/DashboardPage.tsx` only. No server, schema, or other component changes.
-- Add `useState` for `query`, derive `allAccounts` (dedup map of visits by account, same as today) once with `useMemo`.
-- Derive `displayed` = query ? filtered+sorted : `priorityAccounts.slice(0,6)`.
-- Use shadcn `Input` (already in project) styled with existing token classes; no new deps.
-- Keep `RiskDot`, `GlassCard`, `SignalLabel`, `formatDate`, `visitRisk` helpers as-is.
-- Keyboard: `Enter` in the search box navigates to the first result (via `useNavigate`).
+No behavior, routing, or data changes. Plan stays scoped to the dropdown layering + visual tokens.
