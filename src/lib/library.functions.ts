@@ -102,7 +102,7 @@ async function extract(bytes: Uint8Array, type: LibraryFileType, name: string): 
 const UploadInput = z.object({
   name: z.string().min(1).max(255),
   mime: z.string().max(200).default(""),
-  base64: z.string().min(1),
+  base64: z.string().min(1).max(28_000_000),
   accountId: z.string().uuid().nullable().optional(),
 });
 
