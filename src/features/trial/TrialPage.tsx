@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
-import { extractFileText, type Attachment } from "./extractFileText";
+import type { Attachment } from "./extractFileText";
 import { LibraryPanel } from "./LibraryPanel";
 import {
   generateVisitIntelligence,
