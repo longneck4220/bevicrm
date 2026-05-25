@@ -767,7 +767,7 @@ function AccountSearch({
           {matches.length === 0 ? (
             <div className="px-3 py-3 text-xs text-white/50">No venues match "{query}"</div>
           ) : (
-            <ul className="py-1">
+            <ul className="py-1 divide-y divide-white/5">
               {matches.map((a, i) => (
                 <li key={a.id}>
                   <button
