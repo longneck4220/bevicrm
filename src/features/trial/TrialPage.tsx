@@ -682,6 +682,8 @@ function AccountSearch({
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null);
 
   const active = accounts.find((a) => a.id === activeId);
   const q = query.trim().toLowerCase();
@@ -700,13 +702,32 @@ function AccountSearch({
     setHighlight(0);
   }, [q]);
 
+  useLayoutEffect(() => {
+    if (!open) return;
+    const update = () => {
+      const r = wrapRef.current?.getBoundingClientRect();
+      if (r) setAnchor({ top: r.bottom + 6, left: r.left, width: r.width });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open]);
+
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (wrapRef.current?.contains(t)) return;
+      if (popRef.current?.contains(t)) return;
+      setOpen(false);
     };
     window.addEventListener("mousedown", onDown);
     return () => window.removeEventListener("mousedown", onDown);
   }, []);
+
 
   const pick = (id: string) => {
     onSelect(id);
