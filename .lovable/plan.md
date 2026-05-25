@@ -1,68 +1,44 @@
+
 ## Goal
 
-Replace the open trial-mode database with proper email/password authentication, per-user profiles, and an admin/user role system. Admins manage everything; regular users see only the data they own.
+Replace the demo data on `/dashboard` with the real visits you've recorded in the Trial flow, and give every past call its own permanent page you can return to.
 
-## Database changes (single migration)
+## What changes
 
-**1. `profiles` table**
-- `id` (PK), `user_id` (unique, references auth.users), `display_name`, `email`, `created_at`, `updated_at`
-- RLS: users can select/update their own row; admins can select all
-- Trigger `handle_new_user()` auto-inserts a profile row on signup
+### 1. New server function: `listVisits`
+In `src/lib/trial.functions.ts`, add an auth-protected server fn that returns the signed-in user's visits joined with account info, newest first. Returns: `id`, `account_id`, `account_name`, `account_contact`, `created_at`, `rating`, and the parsed `ai_output` (next_best_move, commercial_signals, etc.).
 
-**2. `app_role` enum + `user_roles` table** (separate table per security best-practice — never store roles on profiles)
-- enum: `admin`, `user`
-- `user_roles`: `id`, `user_id`, `role`, unique(user_id, role)
-- `has_role(_user_id, _role)` SECURITY DEFINER function — avoids RLS recursion
-- Trigger assigns default `user` role on signup
-- RLS: only admins can insert/update/delete roles; users can read their own
+### 2. Rebuild `/dashboard` against real data
+`src/features/dashboard/DashboardPage.tsx` becomes a live view of your recorded visits:
 
-**3. Lock down `accounts` and `visits`**
-- Add `owner_id uuid NOT NULL` referencing auth.users (backfill existing rows to a placeholder, then enforce)
-- Drop the existing "trial open" permissive policies
-- New RLS:
-  - SELECT/UPDATE/DELETE: `auth.uid() = owner_id OR has_role(auth.uid(), 'admin')`
-  - INSERT: `auth.uid() = owner_id`
+- **Header** — keep "Sales Intelligence Dashboard" H1; subline becomes a live count ("12 visits logged · 4 high-confidence moves").
+- **Today's next moves** — top 4 visits ranked by recency + `next_best_move.confidence` (High > Medium > Low) + `commercial_posture` (Push/Recommend ranked above Hold/Suggest). Each card shows account name, the recommendation, the specific ask, confidence, posture, and a link to the visit detail page.
+- **Priority accounts** — accounts grouped from your visits, sorted by risk derived from latest visit's `risk_flags` count (high if ≥2, medium if 1, low if 0). Click → trial page with that account preselected.
+- **Recent visits** (replaces "Follow ups due") — chronological log of every visit: date, account, one-line recommendation, rating chip, "Open →" to detail page.
+- **Empty state** — if no visits yet, friendly card pointing to `/mobile` or `/trial` to record the first one.
 
-**4. Auth config**
-- Auto-confirm email enabled (per user choice)
-- Signups enabled, anonymous disabled, HIBP password check enabled
+Uses `useQuery` + `listVisits`, with the `_authenticated` gate already in place.
 
-## Frontend changes
+### 3. New route: visit detail page
+- Route file: `src/routes/_authenticated/visit.$id.tsx`
+- Component: `src/features/visit/VisitDetailPage.tsx`
 
-**Auth pages**
-- `src/routes/login.tsx` — sign-in + sign-up tabs (email/password). Uses `supabase.auth.signInWithPassword` / `signUp` with `emailRedirectTo: window.location.origin`.
-- `src/routes/_authenticated.tsx` — pathless layout: `beforeLoad` redirects to `/login` if no session; renders `<Outlet />`.
+Shows the full saved intelligence for one past call: account header, when recorded, the next best move block, commercial signals (buying style, risk flags, margin, opportunities), the combined CRM note, the follow-up email (copyable), missed opportunity, and the raw note + supporting context collapsed. Includes "Back to dashboard" and "Open account in Trial" links.
 
-**Auth context**
-- `src/hooks/use-auth.tsx` — wraps `onAuthStateChange` (set up BEFORE `getSession`), exposes `user`, `session`, `isAdmin`, `signOut`. Provider mounted in `__root.tsx`.
-- Cache invalidation: call `router.invalidate()` + `queryClient.invalidateQueries()` on auth state change.
+Backed by a `getVisit(id)` server fn that fetches one visit (RLS already scopes to owner).
 
-**Route protection**
-- Move `/dashboard`, `/mobile`, `/trial` (and any other gated pages) under `src/routes/_authenticated/`.
-- Keep `/` (landing) and `/login` public.
+### 4. Mobile companion uses real "today's stops"
+`src/features/mobile/MobileCompanionPage.tsx` swaps the demo `conversations` array for the 3 most recent real visits via the same `listVisits` fn. Each card links to `/visit/$id` instead of the demo conversation route.
 
-**Data layer**
-- Every `accounts` / `visits` insert sets `owner_id: user.id`.
-- Queries rely on RLS — no manual `.eq('owner_id', ...)` filter needed but added for clarity.
-- Existing trial flows that wrote without a user need a signed-in user; gate the trial CTA behind login or convert it to a signup prompt.
+## What stays the same
 
-**Header**
-- Add sign-in / sign-out button + user email in `TopNav`. Admin badge when `isAdmin`.
+- No schema changes — `visits` + `accounts` already store everything we need.
+- Trial recording flow untouched.
+- Visual design, tokens, glass cards, and gradients all preserved.
+- The old demo `/conversation/$id` route stays for now (not removed in this pass).
 
-## Bootstrapping the first admin
+## Technical notes
 
-After migration, you sign up normally, then I'll show you a one-line SQL snippet (run in Cloud → Database) to promote your `user_id` to admin. We do NOT seed an admin in the migration (no user exists yet).
-
-## Verification
-
-- Sign up → confirm profile + `user` role rows created automatically.
-- Sign in → `/dashboard`, `/mobile`, `/trial` accessible; signed-out users get redirected to `/login`.
-- Create an account/visit → confirm `owner_id` is set and another test user cannot see it.
-- Promote yourself to admin → confirm you can see all rows.
-- Run Supabase linter; resolve any warnings tied to the new tables.
-
-## Out of scope
-
-- Google / social login (you chose email-only)
-- Password reset flow (can add later — would need a `/reset-password` route)
-- Email branding / custom auth email templates
+- All reads go through `createServerFn` + `requireSupabaseAuth`; no client-side `supabase.from(...)` calls added to the dashboard.
+- Sort/ranking is computed client-side from the returned list — no extra DB indexes needed.
+- `ai_output` is typed as `AiOutput | null` and the UI safely handles older visits where it might be missing.
