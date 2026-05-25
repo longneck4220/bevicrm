@@ -1,0 +1,235 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+const MAX_BYTES = 20 * 1024 * 1024;
+const MAX_CHARS = 120_000;
+
+export type LibraryFileType = "pdf" | "xlsx" | "pptx" | "docx" | "other";
+
+export type LibraryFile = {
+  id: string;
+  account_id: string | null;
+  name: string;
+  file_type: LibraryFileType;
+  size_bytes: number;
+  mime_type: string;
+  created_at: string;
+  has_text: boolean;
+};
+
+function detectType(name: string, mime: string): LibraryFileType {
+  const n = name.toLowerCase();
+  if (mime === "application/pdf" || n.endsWith(".pdf")) return "pdf";
+  if (
+    mime === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+    mime === "application/vnd.ms-excel" ||
+    n.endsWith(".xlsx") || n.endsWith(".xls") || n.endsWith(".csv")
+  ) return "xlsx";
+  if (
+    mime === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+    n.endsWith(".pptx")
+  ) return "pptx";
+  if (
+    mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    n.endsWith(".docx")
+  ) return "docx";
+  return "other";
+}
+
+function clamp(s: string): string {
+  s = s.trim();
+  return s.length <= MAX_CHARS ? s : s.slice(0, MAX_CHARS) + `\n\n…[truncated ${s.length - MAX_CHARS} chars]`;
+}
+
+function b64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+async function extract(bytes: Uint8Array, type: LibraryFileType, name: string): Promise<string> {
+  try {
+    if (type === "pdf") {
+      const { extractText, getDocumentProxy } = await import("unpdf");
+      const doc = await getDocumentProxy(bytes);
+      const { text } = await extractText(doc, { mergePages: true });
+      return clamp(typeof text === "string" ? text : text.join("\n\n"));
+    }
+    if (type === "docx") {
+      const mammoth = await import("mammoth");
+      const res = await mammoth.extractRawText({ buffer: Buffer.from(bytes) });
+      return clamp(res.value ?? "");
+    }
+    if (type === "xlsx") {
+      const XLSX = await import("xlsx");
+      const wb = XLSX.read(bytes, { type: "array" });
+      const sheets = wb.SheetNames.map((sn) => {
+        const csv = XLSX.utils.sheet_to_csv(wb.Sheets[sn]);
+        return `--- Sheet: ${sn} ---\n${csv}`;
+      });
+      return clamp(sheets.join("\n\n"));
+    }
+    if (type === "pptx") {
+      const JSZip = (await import("jszip")).default;
+      const zip = await JSZip.loadAsync(bytes);
+      const slideFiles = Object.keys(zip.files)
+        .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
+        .sort((a, b) => {
+          const na = parseInt(a.match(/slide(\d+)/)?.[1] ?? "0", 10);
+          const nb = parseInt(b.match(/slide(\d+)/)?.[1] ?? "0", 10);
+          return na - nb;
+        });
+      const parts: string[] = [];
+      for (let i = 0; i < slideFiles.length; i++) {
+        const xml = await zip.files[slideFiles[i]].async("string");
+        const matches = xml.match(/<a:t[^>]*>([^<]*)<\/a:t>/g) ?? [];
+        const text = matches.map((m) => m.replace(/<[^>]+>/g, "")).join(" ");
+        parts.push(`--- Slide ${i + 1} ---\n${text}`);
+      }
+      return clamp(parts.join("\n\n"));
+    }
+    // plain text fallback
+    return clamp(new TextDecoder().decode(bytes));
+  } catch (e) {
+    console.error("[library extract]", name, e);
+    return ""; // store row even if extraction fails; user can re-upload
+  }
+}
+
+const UploadInput = z.object({
+  name: z.string().min(1).max(255),
+  mime: z.string().max(200).default(""),
+  base64: z.string().min(1),
+  accountId: z.string().uuid().nullable().optional(),
+});
+
+export const uploadLibraryFile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => UploadInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const bytes = b64ToBytes(data.base64);
+    if (bytes.byteLength === 0) throw new Error("Empty file.");
+    if (bytes.byteLength > MAX_BYTES) throw new Error("File is over 20 MB.");
+
+    const type = detectType(data.name, data.mime);
+    const ext = data.name.includes(".") ? data.name.split(".").pop()! : "bin";
+    const fileId = crypto.randomUUID();
+    const storagePath = `${userId}/${fileId}.${ext}`;
+
+    const { error: upErr } = await supabaseAdmin.storage
+      .from("library")
+      .upload(storagePath, bytes, {
+        contentType: data.mime || "application/octet-stream",
+        upsert: false,
+      });
+    if (upErr) {
+      console.error("[library upload]", upErr);
+      throw new Error("Could not store the file. Please try again.");
+    }
+
+    const text = await extract(bytes, type, data.name);
+
+    const { data: row, error: insErr } = await supabase
+      .from("library_files")
+      .insert({
+        id: fileId,
+        owner_id: userId,
+        account_id: data.accountId ?? null,
+        name: data.name,
+        file_type: type,
+        storage_path: storagePath,
+        size_bytes: bytes.byteLength,
+        mime_type: data.mime || "",
+        extracted_text: text,
+      })
+      .select("id, account_id, name, file_type, size_bytes, mime_type, created_at, extracted_text")
+      .single();
+    if (insErr || !row) {
+      console.error("[library insert]", insErr);
+      await supabaseAdmin.storage.from("library").remove([storagePath]);
+      throw new Error("Could not save file record. Please try again.");
+    }
+
+    const dto: LibraryFile = {
+      id: row.id,
+      account_id: row.account_id,
+      name: row.name,
+      file_type: row.file_type as LibraryFileType,
+      size_bytes: row.size_bytes,
+      mime_type: row.mime_type,
+      created_at: row.created_at,
+      has_text: (row.extracted_text ?? "").length > 0,
+    };
+    return dto;
+  });
+
+const ListInput = z.object({
+  type: z.enum(["pdf", "xlsx", "pptx", "docx", "other", "all"]).optional().default("all"),
+  accountId: z.string().uuid().nullable().optional(),
+  search: z.string().max(200).optional().default(""),
+});
+
+export const listLibraryFiles = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => ListInput.parse(d ?? {}))
+  .handler(async ({ data, context }): Promise<LibraryFile[]> => {
+    let q = context.supabase
+      .from("library_files")
+      .select("id, account_id, name, file_type, size_bytes, mime_type, created_at, extracted_text")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (data.type !== "all") q = q.eq("file_type", data.type);
+    if (data.accountId) q = q.or(`account_id.is.null,account_id.eq.${data.accountId}`);
+    if (data.search) q = q.ilike("name", `%${data.search}%`);
+    const { data: rows, error } = await q;
+    if (error) {
+      console.error("[library list]", error);
+      throw new Error("Could not load library.");
+    }
+    return (rows ?? []).map((r) => ({
+      id: r.id,
+      account_id: r.account_id,
+      name: r.name,
+      file_type: r.file_type as LibraryFileType,
+      size_bytes: r.size_bytes,
+      mime_type: r.mime_type,
+      created_at: r.created_at,
+      has_text: (r.extracted_text ?? "").length > 0,
+    }));
+  });
+
+export const getLibraryFileText = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("library_files")
+      .select("id, name, extracted_text")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error || !row) throw new Error("File not found.");
+    return { id: row.id, name: row.name, text: row.extracted_text ?? "" };
+  });
+
+export const deleteLibraryFile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: row, error: getErr } = await context.supabase
+      .from("library_files")
+      .select("storage_path")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (getErr || !row) throw new Error("File not found.");
+    await supabaseAdmin.storage.from("library").remove([row.storage_path]);
+    const { error: delErr } = await context.supabase.from("library_files").delete().eq("id", data.id);
+    if (delErr) {
+      console.error("[library delete]", delErr);
+      throw new Error("Could not delete file.");
+    }
+    return { ok: true };
+  });
