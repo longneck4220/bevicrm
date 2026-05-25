@@ -56,7 +56,7 @@ async function extract(bytes: Uint8Array, type: LibraryFileType, name: string): 
       const { extractText, getDocumentProxy } = await import("unpdf");
       const doc = await getDocumentProxy(bytes);
       const { text } = await extractText(doc, { mergePages: true });
-      return clamp(typeof text === "string" ? text : text.join("\n\n"));
+      return clamp(typeof text === "string" ? text : (text as string[]).join("\n\n"));
     }
     if (type === "docx") {
       const mammoth = await import("mammoth");
