@@ -1,8 +1,9 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Search } from "lucide-react";
 import { GlassCard, RiskDot, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { listVisits, type VisitListItem } from "@/lib/trial.functions";
@@ -38,10 +39,24 @@ function formatDate(iso: string) {
 
 export function DashboardPage() {
   const fetchVisits = useServerFn(listVisits);
+  const navigate = useNavigate();
   const { data: visits = [], isLoading } = useQuery({
     queryKey: ["visits"],
     queryFn: () => fetchVisits(),
   });
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "/" && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const nextMoves = useMemo(
     () =>
@@ -52,12 +67,28 @@ export function DashboardPage() {
     [visits],
   );
 
-  const priorityAccounts = useMemo(() => {
+  const allAccounts = useMemo(() => {
     const byAccount = new Map<string, VisitListItem>();
     for (const v of visits) if (!byAccount.has(v.account_id)) byAccount.set(v.account_id, v);
-    const rank = { high: 3, medium: 2, low: 1 } as const;
-    return [...byAccount.values()].sort((a, b) => rank[visitRisk(b)] - rank[visitRisk(a)]).slice(0, 6);
+    return [...byAccount.values()];
   }, [visits]);
+
+  const priorityAccounts = useMemo(() => {
+    const rank = { high: 3, medium: 2, low: 1 } as const;
+    return [...allAccounts].sort((a, b) => rank[visitRisk(b)] - rank[visitRisk(a)]).slice(0, 6);
+  }, [allAccounts]);
+
+  const q = query.trim().toLowerCase();
+  const displayed = useMemo(() => {
+    if (!q) return priorityAccounts;
+    return allAccounts
+      .filter(
+        (v) =>
+          v.account_name.toLowerCase().includes(q) ||
+          (v.account_contact ?? "").toLowerCase().includes(q),
+      )
+      .sort((a, b) => a.account_name.localeCompare(b.account_name));
+  }, [q, allAccounts, priorityAccounts]);
 
   const highConfidenceCount = visits.filter(
     (v) => (v.ai_output?.next_best_move?.confidence ?? "").toLowerCase() === "high",
@@ -157,38 +188,83 @@ export function DashboardPage() {
           </section>
         )}
 
-        {/* PRIORITY ACCOUNTS */}
-        {priorityAccounts.length > 0 && (
+        {/* PRIORITY ACCOUNTS — ROLODEX */}
+        {allAccounts.length > 0 && (
           <section className="mt-12">
-            <SignalLabel as="h2">Priority accounts</SignalLabel>
-            <div className="mt-4 space-y-3">
-              {priorityAccounts.map((v, i) => (
-                <motion.div
-                  key={v.account_id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.05 }}
-                >
-                  <Link to="/visit/$id" params={{ id: v.id }}>
-                    <GlassCard className="p-4 hover:bg-white/[0.03] transition-colors cursor-pointer">
-                      <div className="flex items-center gap-4">
-                        <RiskDot risk={visitRisk(v)} />
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[15px] font-medium text-white truncate">{v.account_name}</div>
-                          <div className="text-xs text-muted-foreground truncate">
-                            {v.ai_output?.next_best_move?.recommendation ?? "No recommendation yet"}
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0 hidden sm:block">
-                          <div className="text-[10px] font-mono text-white/50">{formatDate(v.created_at)}</div>
-                        </div>
-                        <span className="text-white/40">→</span>
-                      </div>
-                    </GlassCard>
-                  </Link>
-                </motion.div>
-              ))}
+            <div className="flex items-end justify-between gap-3">
+              <SignalLabel as="h2">Priority accounts</SignalLabel>
+              <span className="text-[10px] font-mono text-white/40">
+                {allAccounts.length} account{allAccounts.length === 1 ? "" : "s"}
+              </span>
             </div>
+            <GlassCard className="mt-4 p-3">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/5 focus-within:border-white/15 transition-colors">
+                <Search className="h-4 w-4 text-white/40 shrink-0" />
+                <input
+                  ref={searchRef}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && displayed[0]) {
+                      navigate({ to: "/visit/$id", params: { id: displayed[0].id } });
+                    } else if (e.key === "Escape") {
+                      setQuery("");
+                    }
+                  }}
+                  placeholder="Type a venue or contact…"
+                  className="w-full bg-transparent text-sm text-white placeholder:text-white/30 outline-none"
+                  aria-label="Search accounts"
+                />
+                {query && (
+                  <button
+                    onClick={() => setQuery("")}
+                    className="text-[10px] font-mono text-white/40 hover:text-white/70 shrink-0"
+                  >
+                    clear
+                  </button>
+                )}
+              </div>
+
+              <div className="mt-2 max-h-[320px] overflow-y-auto">
+                {displayed.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-muted-foreground">
+                    No venues match "{query}"
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-white/5">
+                    {displayed.map((v) => (
+                      <li key={v.account_id}>
+                        <Link
+                          to="/visit/$id"
+                          params={{ id: v.id }}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-white/[0.03] transition-colors"
+                        >
+                          <RiskDot risk={visitRisk(v)} />
+                          <div className="min-w-0 flex-1 flex items-baseline gap-2">
+                            <span className="text-sm text-white truncate">{v.account_name}</span>
+                            {v.account_contact && (
+                              <span className="text-xs text-muted-foreground truncate">
+                                · {v.account_contact}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] font-mono text-white/40 shrink-0 hidden sm:inline">
+                            {formatDate(v.created_at)}
+                          </span>
+                          <span className="text-white/30 shrink-0">→</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="mt-1 px-3 pt-2 pb-1 text-[10px] font-mono text-white/30 border-t border-white/5">
+                {q
+                  ? `${displayed.length} match${displayed.length === 1 ? "" : "es"}`
+                  : "Showing top priorities — start typing to search all  ·  press / to focus"}
+              </div>
+            </GlassCard>
           </section>
         )}
 
