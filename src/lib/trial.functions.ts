@@ -100,7 +100,7 @@ Return ONLY JSON matching this exact schema:
   "updated_account_memory": string
 }`;
 
-type AiOutput = {
+export type AiOutput = {
   needs_more_info: boolean;
   clarifying_questions: string[];
   next_best_move: {
@@ -266,4 +266,76 @@ export const createAccount = createServerFn({ method: "POST" })
       throw new Error("Could not create account. Please try again.");
     }
     return { id: row.id };
+  });
+
+export type VisitListItem = {
+  id: string;
+  account_id: string;
+  account_name: string;
+  account_contact: string | null;
+  created_at: string;
+  rating: string | null;
+  ai_output: AiOutput | null;
+};
+
+export const listVisits = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<VisitListItem[]> => {
+    const { data, error } = await context.supabase
+      .from("visits")
+      .select("id, account_id, created_at, rating, ai_output, accounts:account_id(name, contact)")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) {
+      console.error("[DB error] list visits", error);
+      throw new Error("Could not load visits. Please try again.");
+    }
+    return (data ?? []).map((v: {
+      id: string;
+      account_id: string;
+      created_at: string;
+      rating: string | null;
+      ai_output: unknown;
+      accounts: { name: string; contact: string | null } | { name: string; contact: string | null }[] | null;
+    }) => {
+      const acct = Array.isArray(v.accounts) ? v.accounts[0] : v.accounts;
+      return {
+        id: v.id,
+        account_id: v.account_id,
+        account_name: acct?.name ?? "(unknown)",
+        account_contact: acct?.contact ?? null,
+        created_at: v.created_at,
+        rating: v.rating,
+        ai_output: (v.ai_output as AiOutput | null) ?? null,
+      };
+    });
+  });
+
+export const getVisit = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("visits")
+      .select("id, account_id, created_at, rating, raw_note, supporting_context, ai_output, accounts:account_id(name, contact, memory)")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) {
+      console.error("[DB error] get visit", error);
+      throw new Error("Could not load visit.");
+    }
+    if (!row) return null;
+    const acct = Array.isArray(row.accounts) ? row.accounts[0] : row.accounts;
+    return {
+      id: row.id,
+      account_id: row.account_id,
+      account_name: acct?.name ?? "(unknown)",
+      account_contact: acct?.contact ?? null,
+      account_memory: acct?.memory ?? "",
+      created_at: row.created_at,
+      rating: row.rating as string | null,
+      raw_note: row.raw_note as string,
+      supporting_context: row.supporting_context as string,
+      ai_output: (row.ai_output as AiOutput | null) ?? null,
+    };
   });
