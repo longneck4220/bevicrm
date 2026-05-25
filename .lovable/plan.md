@@ -1,18 +1,19 @@
-## Fix Account search dropdown stacking + polish styling
+## Render account-search dropdown in a portal
 
-The dropdown currently slides under the "New account" card because both `GlassCard`s establish their own stacking contexts (backdrop-blur + opaque background), and the search card has no elevated z-index relative to its sibling.
+The previous z-index fix didn't work because the sibling "New account" `GlassCard` uses `backdrop-filter` (via `.glass` / `gradient-border`), which establishes its own stacking context. Sibling stacking contexts paint in DOM order regardless of the dropdown's `z-50` when the parent search card's positioned context can't propagate above a later sibling's backdrop layer.
+
+The bulletproof fix is to render the dropdown into a **React portal** appended to `document.body`, anchored to the search input via `getBoundingClientRect()`. This escapes every parent stacking context.
 
 ### Changes (single file: `src/features/trial/TrialPage.tsx`)
 
-1. **Stacking fix**
-   - Wrap the Accounts `GlassCard` (the search one) in a container with `relative z-30` so its absolutely-positioned dropdown overlays the sibling "New account" card.
-   - Add `z-40` to the dropdown panel itself (currently `z-20`) for safety.
-   - If `GlassCard` clips with `overflow-hidden`, also pass a wrapper class to let the popover escape — verified by skim, but I'll confirm in build and add `overflow-visible` if needed.
+1. Import `createPortal` from `react-dom`.
+2. In `AccountSearch`:
+   - Add a ref on the search-input wrapper.
+   - Track `anchor` state `{ top, left, width }` computed from the wrapper's bounding rect.
+   - Recompute on `open`, on `window` `resize` and `scroll` (capture phase, passive).
+   - Wrap the existing dropdown JSX in `createPortal(<div style={{position:'fixed', top, left, width, zIndex: 60}}>...</div>, document.body)`.
+3. Keep current styling tokens (`bg-background/80 backdrop-blur-xl`, cyan accents, dividers) — no visual changes other than now sitting above everything.
+4. Revert the `relative z-30 overflow-visible` on the parent `GlassCard` to just `relative` (the portal makes z-index moot).
+5. Outside-click handler keeps working: include both the wrapper ref AND the portal node ref in its check, so clicking inside the dropdown doesn't close it.
 
-2. **Design-aesthetic polish on the dropdown** (match the rest of the app: deep glass + cyan accent, no off-palette dark hex)
-   - Replace the hard-coded `bg-[#0e1117]/95` with a token-driven surface: `bg-background/80 backdrop-blur-xl border-white/10` plus a subtle `shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]` and `ring-1 ring-white/5`.
-   - Highlight row uses `bg-white/[0.06]` (matches existing hover patterns) and the active-account left bar uses `border-[var(--brand-cyan)]` (already there — keep).
-   - Search input border on focus already uses `--brand-cyan`; keep.
-   - Tighten the popover: `rounded-xl`, `mt-1.5`, divide rows with `divide-y divide-white/5`.
-
-No behavior, routing, or data changes. Plan stays scoped to the dropdown layering + visual tokens.
+No data, routing, or other component changes.

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
@@ -237,7 +238,7 @@ export function TrialPage() {
         <div className="grid lg:grid-cols-[280px_minmax(0,1fr)] gap-6">
           {/* Sidebar: accounts */}
           <aside className="space-y-4">
-            <GlassCard className="p-3 relative z-30 overflow-visible">
+            <GlassCard className="p-3 relative">
               <div className="flex items-center gap-2 px-1 pb-2">
                 <BeviMark size={16} animated={false} />
                 <SignalLabel>Accounts</SignalLabel>
@@ -681,6 +682,8 @@ function AccountSearch({
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null);
 
   const active = accounts.find((a) => a.id === activeId);
   const q = query.trim().toLowerCase();
@@ -699,13 +702,32 @@ function AccountSearch({
     setHighlight(0);
   }, [q]);
 
+  useLayoutEffect(() => {
+    if (!open) return;
+    const update = () => {
+      const r = wrapRef.current?.getBoundingClientRect();
+      if (r) setAnchor({ top: r.bottom + 6, left: r.left, width: r.width });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open]);
+
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (wrapRef.current?.contains(t)) return;
+      if (popRef.current?.contains(t)) return;
+      setOpen(false);
     };
     window.addEventListener("mousedown", onDown);
     return () => window.removeEventListener("mousedown", onDown);
   }, []);
+
 
   const pick = (id: string) => {
     onSelect(id);
@@ -762,35 +784,42 @@ function AccountSearch({
         )}
       </div>
 
-      {open && accounts.length > 0 && (
-        <div className="absolute z-50 mt-1.5 w-full max-h-72 overflow-y-auto rounded-xl border border-white/10 ring-1 ring-white/5 bg-background/80 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]">
-          {matches.length === 0 ? (
-            <div className="px-3 py-3 text-xs text-white/50">No venues match "{query}"</div>
-          ) : (
-            <ul className="py-1 divide-y divide-white/5">
-              {matches.map((a, i) => (
-                <li key={a.id}>
-                  <button
-                    type="button"
-                    onMouseEnter={() => setHighlight(i)}
-                    onClick={() => pick(a.id)}
-                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                      i === highlight
-                        ? "bg-white/8 text-white"
-                        : "text-white/80 hover:bg-white/5"
-                    } ${a.id === activeId ? "border-l-2 border-[var(--brand-cyan)]" : ""}`}
-                  >
-                    <div className="font-medium truncate">{a.name}</div>
-                    {a.contact && (
-                      <div className="text-[11px] text-white/50 truncate">{a.contact}</div>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      {open && accounts.length > 0 && anchor && typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={popRef}
+            style={{ position: "fixed", top: anchor.top, left: anchor.left, width: anchor.width, zIndex: 1000 }}
+            className="max-h-72 overflow-y-auto rounded-xl border border-white/10 ring-1 ring-white/5 bg-background/95 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]"
+          >
+            {matches.length === 0 ? (
+              <div className="px-3 py-3 text-xs text-white/50">No venues match "{query}"</div>
+            ) : (
+              <ul className="py-1 divide-y divide-white/5">
+                {matches.map((a, i) => (
+                  <li key={a.id}>
+                    <button
+                      type="button"
+                      onMouseEnter={() => setHighlight(i)}
+                      onClick={() => pick(a.id)}
+                      className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                        i === highlight
+                          ? "bg-white/8 text-white"
+                          : "text-white/80 hover:bg-white/5"
+                      } ${a.id === activeId ? "border-l-2 border-[var(--brand-cyan)]" : ""}`}
+                    >
+                      <div className="font-medium truncate">{a.name}</div>
+                      {a.contact && (
+                        <div className="text-[11px] text-white/50 truncate">{a.contact}</div>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>,
+          document.body,
+        )}
+
 
       {active && !open && (
         <div className="mt-2 px-1 text-[11px] text-white/40">
