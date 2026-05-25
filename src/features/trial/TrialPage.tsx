@@ -667,3 +667,136 @@ interface SpeechRecognitionEvent {
   resultIndex: number;
   results: { [index: number]: { [index: number]: { transcript: string } }; length: number };
 }
+
+function AccountSearch({
+  accounts,
+  activeId,
+  onSelect,
+}: {
+  accounts: Account[];
+  activeId: string | null;
+  onSelect: (id: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  const active = accounts.find((a) => a.id === activeId);
+  const q = query.trim().toLowerCase();
+  const matches = useMemo(() => {
+    if (!q) return accounts.slice(0, 8);
+    return accounts
+      .filter(
+        (a) =>
+          a.name.toLowerCase().includes(q) ||
+          (a.contact ?? "").toLowerCase().includes(q),
+      )
+      .slice(0, 12);
+  }, [q, accounts]);
+
+  useEffect(() => {
+    setHighlight(0);
+  }, [q]);
+
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener("mousedown", onDown);
+    return () => window.removeEventListener("mousedown", onDown);
+  }, []);
+
+  const pick = (id: string) => {
+    onSelect(id);
+    setQuery("");
+    setOpen(false);
+  };
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 focus-within:border-[var(--brand-cyan)] transition-colors">
+        <svg
+          className="h-3.5 w-3.5 text-white/40 shrink-0"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+        <input
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setHighlight((h) => Math.min(h + 1, matches.length - 1));
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setHighlight((h) => Math.max(h - 1, 0));
+            } else if (e.key === "Enter" && matches[highlight]) {
+              e.preventDefault();
+              pick(matches[highlight].id);
+            } else if (e.key === "Escape") {
+              setOpen(false);
+            }
+          }}
+          placeholder={active ? active.name : "Search venue…"}
+          className="w-full bg-transparent text-sm text-white placeholder-white/40 outline-none"
+          aria-label="Search accounts"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="text-[10px] font-mono text-white/40 hover:text-white/70 shrink-0"
+          >
+            clear
+          </button>
+        )}
+      </div>
+
+      {open && accounts.length > 0 && (
+        <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-lg border border-white/10 bg-[#0e1117]/95 backdrop-blur-md shadow-xl">
+          {matches.length === 0 ? (
+            <div className="px-3 py-3 text-xs text-white/50">No venues match "{query}"</div>
+          ) : (
+            <ul className="py-1">
+              {matches.map((a, i) => (
+                <li key={a.id}>
+                  <button
+                    type="button"
+                    onMouseEnter={() => setHighlight(i)}
+                    onClick={() => pick(a.id)}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                      i === highlight
+                        ? "bg-white/8 text-white"
+                        : "text-white/80 hover:bg-white/5"
+                    } ${a.id === activeId ? "border-l-2 border-[var(--brand-cyan)]" : ""}`}
+                  >
+                    <div className="font-medium truncate">{a.name}</div>
+                    {a.contact && (
+                      <div className="text-[11px] text-white/50 truncate">{a.contact}</div>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {active && !open && (
+        <div className="mt-2 px-1 text-[11px] text-white/40">
+          Active · <span className="text-white/70">{active.name}</span>
+        </div>
+      )}
+    </div>
+  );
+}
