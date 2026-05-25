@@ -102,33 +102,8 @@ export function TrialPage() {
     return parts.join("\n\n");
   }
 
-  async function handleFiles(files: FileList | null) {
-    if (!files || files.length === 0) return;
-    setExtracting(true);
-    setError(null);
-    try {
-      for (const file of Array.from(files)) {
-        if (file.size > 20 * 1024 * 1024) {
-          setError(`${file.name} is over 20 MB — skipped.`);
-          continue;
-        }
-        try {
-          const text = await extractFileText(file);
-          setAttachments((prev) => [
-            ...prev,
-            { id: crypto.randomUUID(), name: file.name, size: file.size, text },
-          ]);
-        } catch (e) {
-          setError(
-            `Couldn't read ${file.name}: ${e instanceof Error ? e.message : "unknown error"}`,
-          );
-        }
-      }
-    } finally {
-      setExtracting(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  }
+
+
 
   function removeAttachment(id: string) {
     setAttachments((prev) => prev.filter((a) => a.id !== id));
