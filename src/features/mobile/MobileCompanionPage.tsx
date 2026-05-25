@@ -26,7 +26,7 @@ export function MobileCompanionPage() {
           Open. Record. Act. Leave.
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          One-handed in 30 seconds. Built for the carpark, not the dashboard.
+          Turn your call notes into actionable steps. Faster follow up better engagements
         </p>
 
         {/* Primary action */}
