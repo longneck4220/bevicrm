@@ -763,7 +763,7 @@ function AccountSearch({
       </div>
 
       {open && accounts.length > 0 && (
-        <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-lg border border-white/10 bg-[#0e1117]/95 backdrop-blur-md shadow-xl">
+        <div className="absolute z-50 mt-1.5 w-full max-h-72 overflow-y-auto rounded-xl border border-white/10 ring-1 ring-white/5 bg-background/80 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]">
           {matches.length === 0 ? (
             <div className="px-3 py-3 text-xs text-white/50">No venues match "{query}"</div>
           ) : (
