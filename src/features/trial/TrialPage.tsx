@@ -237,38 +237,19 @@ export function TrialPage() {
         <div className="grid lg:grid-cols-[280px_minmax(0,1fr)] gap-6">
           {/* Sidebar: accounts */}
           <aside className="space-y-4">
-            <GlassCard className="p-4">
-              <div className="flex items-center gap-2">
-                <BeviMark size={18} animated={false} />
+            <GlassCard className="p-3">
+              <div className="flex items-center gap-2 px-1 pb-2">
+                <BeviMark size={16} animated={false} />
                 <SignalLabel>Accounts</SignalLabel>
+                <span className="ml-auto text-[10px] font-mono text-white/40">{accounts.length}</span>
               </div>
-              <ul className="mt-3 space-y-1">
-                {accounts.map((a) => {
-                  const isActive = a.id === activeId;
-                  return (
-                    <li key={a.id}>
-                      <button
-                        type="button"
-                        onClick={() => setActiveId(a.id)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive
-                            ? "bg-white/8 text-white"
-                            : "text-white/70 hover:text-white hover:bg-white/5"
-                        }`}
-                      >
-                        <div className="font-medium">{a.name}</div>
-                        {a.contact && (
-                          <div className="text-[11px] text-white/50 mt-0.5">{a.contact}</div>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-                {accounts.length === 0 && (
-                  <li className="text-sm text-white/50 px-3 py-2">No accounts yet.</li>
-                )}
-              </ul>
+              <AccountSearch
+                accounts={accounts}
+                activeId={activeId}
+                onSelect={setActiveId}
+              />
             </GlassCard>
+
 
             <GlassCard className="p-4">
               <SignalLabel>New account</SignalLabel>
