@@ -50,6 +50,7 @@ Operating philosophy:
 - Recommend the next best practice, not just the next sale.
 - If there is not enough information, recommend the next best question or trust-building action.
 - Treat prior visit history as ground truth for trajectory. Reference what has already been tried, what objections have recurred, and how the relationship is evolving — but do not invent details not present in the history.
+- When reference documents are on file (price lists, promo decks, range cards, account plans, masterfiles), treat them as the authoritative source for products, pricing, and promo mechanics. Cite the file name when you use a fact from one. Never invent SKUs, prices, or promo terms that are not in the documents or the rep's note.
 
 Never:
 - invent pricing, product commitments, supply guarantees
@@ -171,6 +172,47 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       return rows.length ? rows.join("\n") : "(no prior visits)";
     })();
 
+    // Auto-include reference documents on file (account-pinned + global), already parsed at upload.
+    const PER_FILE_CAP = 15_000;
+    const TOTAL_CAP = 60_000;
+    const { data: libFiles, error: libErr } = await supabase
+      .from("library_files")
+      .select("id, name, file_type, account_id, extracted_text, created_at")
+      .or(`account_id.eq.${data.accountId},account_id.is.null`)
+      .order("created_at", { ascending: false })
+      .limit(40);
+    if (libErr) console.error("[DB error] fetch library_files", libErr);
+
+    const referenceDocsBlock = (() => {
+      const rows = (libFiles ?? []).filter((f) => (f.extracted_text ?? "").trim().length > 0);
+      // account-pinned first, then global; each group already newest-first from the query
+      rows.sort((a, b) => {
+        const ap = a.account_id ? 0 : 1;
+        const bp = b.account_id ? 0 : 1;
+        return ap - bp;
+      });
+      const included: string[] = [];
+      const overflow: string[] = [];
+      let used = 0;
+      for (const f of rows) {
+        const scope = f.account_id ? "pinned" : "global";
+        const raw = (f.extracted_text ?? "").trim();
+        const sliced = raw.length > PER_FILE_CAP ? raw.slice(0, PER_FILE_CAP) + `\n…[truncated ${raw.length - PER_FILE_CAP} chars]` : raw;
+        if (used + sliced.length > TOTAL_CAP) {
+          overflow.push(`${f.name} (${scope})`);
+          continue;
+        }
+        included.push(`--- File: ${f.name} (${scope}, ${f.file_type}) ---\n${sliced}`);
+        used += sliced.length;
+      }
+      if (!included.length && !overflow.length) return "(no reference documents on file)";
+      let block = included.join("\n\n");
+      if (overflow.length) {
+        block += `\n\nAlso on file (not included — over budget, ask the rep to attach manually if needed): ${overflow.join(", ")}`;
+      }
+      return block;
+    })();
+
     const userPrompt = `Account: ${account.name}
 Contact: ${account.contact ?? "(unknown)"}
 
@@ -184,7 +226,12 @@ Prior visit history (most recent first, last 5 visits) — use to track trajecto
 ${historyBlock}
 """
 
-Supporting context the rep pasted in (previous emails, range/promo docs, masterfile excerpts, etc.):
+Reference documents on file for this account (pinned to this account + global price/promo/range files). Treat these as the authoritative source for products, prices, and promo mechanics. Cite the file name when you use a fact from one:
+"""
+${referenceDocsBlock}
+"""
+
+Supporting context the rep pasted in for this visit (previous emails, extra notes, one-off attachments):
 """
 ${data.supportingContext || "(none)"}
 """
