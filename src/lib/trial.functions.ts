@@ -285,6 +285,11 @@ Reference documents on file for this account (pinned to this account + global pr
 ${referenceDocsBlock}
 """
 
+Active deals catalog (pre-extracted from uploaded price lists, promo decks, range cards). Use this as the ONLY source for the "targeted_deals" output. Pick deals that genuinely fit this account's profile, history, and current note — leave empty if nothing fits:
+"""
+${dealsBlock}
+"""
+
 Supporting context the rep pasted in for this visit (previous emails, extra notes, one-off attachments):
 """
 ${data.supportingContext || "(none)"}
