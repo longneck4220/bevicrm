@@ -48,6 +48,7 @@ export type Database = {
         Row: {
           account_id: string | null
           created_at: string
+          deals: Json
           extracted_text: string
           file_type: Database["public"]["Enums"]["library_file_type"]
           id: string
@@ -61,6 +62,7 @@ export type Database = {
         Insert: {
           account_id?: string | null
           created_at?: string
+          deals?: Json
           extracted_text?: string
           file_type: Database["public"]["Enums"]["library_file_type"]
           id?: string
@@ -74,6 +76,7 @@ export type Database = {
         Update: {
           account_id?: string | null
           created_at?: string
+          deals?: Json
           extracted_text?: string
           file_type?: Database["public"]["Enums"]["library_file_type"]
           id?: string

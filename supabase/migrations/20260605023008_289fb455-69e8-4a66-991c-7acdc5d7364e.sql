@@ -1,0 +1,1 @@
+ALTER TABLE public.library_files ADD COLUMN IF NOT EXISTS deals jsonb NOT NULL DEFAULT '[]'::jsonb;

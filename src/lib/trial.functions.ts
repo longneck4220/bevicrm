@@ -99,8 +99,37 @@ Return ONLY JSON matching this exact schema:
     "body": string
   },
   "missed_opportunity": string,
-  "updated_account_memory": string
-}`;
+  "updated_account_memory": string,
+  "targeted_deals": [
+    {
+      "product": string,
+      "deal": string,
+      "window": string,
+      "eligibility": string,
+      "why_relevant": string,
+      "pitch_line": string,
+      "source_file": string
+    }
+  ]
+}
+
+Rules for targeted_deals:
+- Only include deals that come directly from the "Active deals catalog" supplied below. Never invent products, prices, dates, or eligibility.
+- Pick the 1-3 deals most relevant to THIS account based on account memory, prior visit history, buying style, and the current note. Skip if nothing is a genuine fit — return [].
+- "pitch_line" must be a single Australian-professional sentence the rep can say at the end of the visit to introduce the deal.
+- "why_relevant" must reference the specific account signal (e.g. "they range Bundaberg Rum and asked about case pricing on 22 May").
+- "window" is the promo dates ("from X until Y"), or "ongoing" if not specified.
+- "source_file" is the file name the deal came from.`;
+
+export type TargetedDeal = {
+  product: string;
+  deal: string;
+  window: string;
+  eligibility: string;
+  why_relevant: string;
+  pitch_line: string;
+  source_file: string;
+};
 
 export type AiOutput = {
   needs_more_info: boolean;
@@ -122,6 +151,7 @@ export type AiOutput = {
   follow_up_email: { subject: string; body: string };
   missed_opportunity: string;
   updated_account_memory: string;
+  targeted_deals?: TargetedDeal[];
 };
 
 export const generateVisitIntelligence = createServerFn({ method: "POST" })
@@ -177,7 +207,7 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
     const TOTAL_CAP = 60_000;
     const { data: libFiles, error: libErr } = await supabase
       .from("library_files")
-      .select("id, name, file_type, account_id, extracted_text, created_at")
+      .select("id, name, file_type, account_id, extracted_text, deals, created_at")
       .or(`account_id.eq.${data.accountId},account_id.is.null`)
       .order("created_at", { ascending: false })
       .limit(40);
@@ -213,6 +243,30 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       return block;
     })();
 
+    // Structured deals catalog (pre-extracted at upload) — primary source for end-of-call deal pitches.
+    const dealsBlock = (() => {
+      type DealRow = {
+        product: string; discount: string; starts_on: string | null; ends_on: string | null;
+        eligibility: string; notes: string;
+      };
+      const lines: string[] = [];
+      for (const f of libFiles ?? []) {
+        const arr = (f.deals as unknown as DealRow[] | null) ?? [];
+        if (!Array.isArray(arr) || !arr.length) continue;
+        const scope = f.account_id ? "pinned" : "global";
+        for (const d of arr) {
+          if (!d?.product || !d?.discount) continue;
+          const window = [d.starts_on, d.ends_on].filter(Boolean).join(" → ") || "ongoing";
+          lines.push(
+            `- [${scope}] ${d.product} — ${d.discount} | window: ${window} | eligibility: ${d.eligibility || "n/a"}${d.notes ? ` | notes: ${d.notes}` : ""} (source: ${f.name})`,
+          );
+        }
+        if (lines.length > 200) break;
+      }
+      return lines.length ? lines.join("\n") : "(no structured deals on file)";
+    })();
+
+
     const userPrompt = `Account: ${account.name}
 Contact: ${account.contact ?? "(unknown)"}
 
@@ -229,6 +283,11 @@ ${historyBlock}
 Reference documents on file for this account (pinned to this account + global price/promo/range files). Treat these as the authoritative source for products, prices, and promo mechanics. Cite the file name when you use a fact from one:
 """
 ${referenceDocsBlock}
+"""
+
+Active deals catalog (pre-extracted from uploaded price lists, promo decks, range cards). Use this as the ONLY source for the "targeted_deals" output. Pick deals that genuinely fit this account's profile, history, and current note — leave empty if nothing fits:
+"""
+${dealsBlock}
 """
 
 Supporting context the rep pasted in for this visit (previous emails, extra notes, one-off attachments):
