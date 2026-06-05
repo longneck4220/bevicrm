@@ -99,8 +99,37 @@ Return ONLY JSON matching this exact schema:
     "body": string
   },
   "missed_opportunity": string,
-  "updated_account_memory": string
-}`;
+  "updated_account_memory": string,
+  "targeted_deals": [
+    {
+      "product": string,
+      "deal": string,
+      "window": string,
+      "eligibility": string,
+      "why_relevant": string,
+      "pitch_line": string,
+      "source_file": string
+    }
+  ]
+}
+
+Rules for targeted_deals:
+- Only include deals that come directly from the "Active deals catalog" supplied below. Never invent products, prices, dates, or eligibility.
+- Pick the 1-3 deals most relevant to THIS account based on account memory, prior visit history, buying style, and the current note. Skip if nothing is a genuine fit — return [].
+- "pitch_line" must be a single Australian-professional sentence the rep can say at the end of the visit to introduce the deal.
+- "why_relevant" must reference the specific account signal (e.g. "they range Bundaberg Rum and asked about case pricing on 22 May").
+- "window" is the promo dates ("from X until Y"), or "ongoing" if not specified.
+- "source_file" is the file name the deal came from.`;
+
+export type TargetedDeal = {
+  product: string;
+  deal: string;
+  window: string;
+  eligibility: string;
+  why_relevant: string;
+  pitch_line: string;
+  source_file: string;
+};
 
 export type AiOutput = {
   needs_more_info: boolean;
@@ -122,6 +151,7 @@ export type AiOutput = {
   follow_up_email: { subject: string; body: string };
   missed_opportunity: string;
   updated_account_memory: string;
+  targeted_deals?: TargetedDeal[];
 };
 
 export const generateVisitIntelligence = createServerFn({ method: "POST" })
