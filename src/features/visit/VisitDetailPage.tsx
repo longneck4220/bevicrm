@@ -170,6 +170,39 @@ export function VisitDetailPage({ id }: { id: string }) {
                 <p className="mt-3 text-sm text-white/85 leading-relaxed">{ai.missed_opportunity}</p>
               </GlassCard>
             )}
+
+            {ai.targeted_deals && ai.targeted_deals.length > 0 && (
+              <GlassCard className="mt-6 p-6">
+                <SignalLabel as="h2">Targeted deals to pitch at end of call</SignalLabel>
+                <ul className="mt-3 space-y-4">
+                  {ai.targeted_deals.map((d, i) => (
+                    <li key={i} className="rounded-lg border border-white/10 bg-white/5 p-4">
+                      <div className="flex items-baseline justify-between flex-wrap gap-2">
+                        <div className="text-white font-semibold">{d.product}</div>
+                        <div className="text-xs text-white/60">{d.window}</div>
+                      </div>
+                      <div className="mt-1 text-sm text-[var(--brand-cyan)]">{d.deal}</div>
+                      {d.eligibility && (
+                        <div className="mt-1 text-xs text-white/60">Eligibility: {d.eligibility}</div>
+                      )}
+                      {d.why_relevant && (
+                        <div className="mt-2 text-xs text-white/70">Why relevant: {d.why_relevant}</div>
+                      )}
+                      {d.pitch_line && (
+                        <div className="mt-3 rounded-md border-l-2 border-[var(--brand-cyan)] bg-white/5 p-3 text-sm text-white/90 italic">
+                          "{d.pitch_line}"
+                        </div>
+                      )}
+                      {d.source_file && (
+                        <div className="mt-2 text-[10px] font-mono uppercase tracking-[0.18em] text-white/40">
+                          Source: {d.source_file}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </GlassCard>
+            )}
           </>
         )}
 
