@@ -190,6 +190,7 @@ export const uploadLibraryFile = createServerFn({ method: "POST" })
     }
 
     const text = await extract(bytes, type, data.name);
+    const deals = await extractDeals(text, data.name);
 
     const { data: row, error: insErr } = await supabase
       .from("library_files")
@@ -203,6 +204,7 @@ export const uploadLibraryFile = createServerFn({ method: "POST" })
         size_bytes: bytes.byteLength,
         mime_type: data.mime || "",
         extracted_text: text,
+        deals: deals as never,
       })
       .select("id, account_id, name, file_type, size_bytes, mime_type, created_at, extracted_text")
       .single();
