@@ -49,6 +49,7 @@ Operating philosophy:
 - Be supportive and suggestive, but challenge the rep when they missed something important.
 - Recommend the next best practice, not just the next sale.
 - If there is not enough information, recommend the next best question or trust-building action.
+- Treat prior visit history as ground truth for trajectory. Reference what has already been tried, what objections have recurred, and how the relationship is evolving — but do not invent details not present in the history.
 
 Never:
 - invent pricing, product commitments, supply guarantees
@@ -140,12 +141,47 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       throw new Error("Account not found");
     }
 
+    // Auto-recall: last 5 prior visits for this account (RLS scopes to current user)
+    const { data: priorVisits, error: priorErr } = await supabase
+      .from("visits")
+      .select("created_at, ai_output")
+      .eq("account_id", data.accountId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    if (priorErr) console.error("[DB error] fetch prior visits", priorErr);
+
+    const historyBlock = (() => {
+      const rows = (priorVisits ?? [])
+        .map((v) => {
+          const ai = v.ai_output as AiOutput | null;
+          if (!ai) return null;
+          const date = new Date(v.created_at as string).toISOString().slice(0, 10);
+          const summary = (ai.combined_crm_note ?? "").slice(0, 800);
+          const sig = ai.commercial_signals ?? {
+            buying_style: "",
+            risk_flags: [],
+            margin_pressure: "",
+            opportunity_signals: [],
+          };
+          const risks = (sig.risk_flags ?? []).join("; ");
+          const opps = (sig.opportunity_signals ?? []).join("; ");
+          return `[${date}] Summary: ${summary} | Buying style: ${sig.buying_style ?? ""} | Risk flags: ${risks} | Margin pressure: ${sig.margin_pressure ?? ""} | Opportunities: ${opps}`;
+        })
+        .filter((s): s is string => Boolean(s));
+      return rows.length ? rows.join("\n") : "(no prior visits)";
+    })();
+
     const userPrompt = `Account: ${account.name}
 Contact: ${account.contact ?? "(unknown)"}
 
 Current account memory:
 """
 ${account.memory || "(empty)"}
+"""
+
+Prior visit history (most recent first, last 5 visits) — use to track trajectory, recurring objections, and what has already been tried. Do not repeat prior recommendations verbatim; build on them:
+"""
+${historyBlock}
 """
 
 Supporting context the rep pasted in (previous emails, range/promo docs, masterfile excerpts, etc.):
