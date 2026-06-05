@@ -243,6 +243,30 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       return block;
     })();
 
+    // Structured deals catalog (pre-extracted at upload) — primary source for end-of-call deal pitches.
+    const dealsBlock = (() => {
+      type DealRow = {
+        product: string; discount: string; starts_on: string | null; ends_on: string | null;
+        eligibility: string; notes: string;
+      };
+      const lines: string[] = [];
+      for (const f of libFiles ?? []) {
+        const arr = (f.deals as unknown as DealRow[] | null) ?? [];
+        if (!Array.isArray(arr) || !arr.length) continue;
+        const scope = f.account_id ? "pinned" : "global";
+        for (const d of arr) {
+          if (!d?.product || !d?.discount) continue;
+          const window = [d.starts_on, d.ends_on].filter(Boolean).join(" → ") || "ongoing";
+          lines.push(
+            `- [${scope}] ${d.product} — ${d.discount} | window: ${window} | eligibility: ${d.eligibility || "n/a"}${d.notes ? ` | notes: ${d.notes}` : ""} (source: ${f.name})`,
+          );
+        }
+        if (lines.length > 200) break;
+      }
+      return lines.length ? lines.join("\n") : "(no structured deals on file)";
+    })();
+
+
     const userPrompt = `Account: ${account.name}
 Contact: ${account.contact ?? "(unknown)"}
 
