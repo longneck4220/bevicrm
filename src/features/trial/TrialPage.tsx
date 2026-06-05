@@ -34,6 +34,15 @@ type AiOutput = {
   follow_up_email: { subject: string; body: string };
   missed_opportunity: string;
   updated_account_memory: string;
+  targeted_deals?: Array<{
+    product: string;
+    deal: string;
+    window: string;
+    eligibility: string;
+    why_relevant: string;
+    pitch_line: string;
+    source_file: string;
+  }>;
 };
 
 export function TrialPage() {
