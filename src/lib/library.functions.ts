@@ -43,7 +43,7 @@ async function extractDeals(text: string, fileName: string): Promise<LibraryDeal
     const arr = Array.isArray(parsed?.deals) ? parsed.deals : [];
     return arr
       .filter((d: unknown): d is Record<string, unknown> => !!d && typeof d === "object")
-      .map((d) => ({
+      .map((d: Record<string, unknown>) => ({
         product: String(d.product ?? "").slice(0, 300),
         discount: String(d.discount ?? "").slice(0, 300),
         starts_on: d.starts_on == null ? null : String(d.starts_on).slice(0, 60),
@@ -51,7 +51,7 @@ async function extractDeals(text: string, fileName: string): Promise<LibraryDeal
         eligibility: String(d.eligibility ?? "").slice(0, 500),
         notes: String(d.notes ?? "").slice(0, 500),
       }))
-      .filter((d) => d.product && d.discount)
+      .filter((d: LibraryDeal) => d.product && d.discount)
       .slice(0, 100);
   } catch (e) {
     console.error("[deal extract] failed", fileName, e);
