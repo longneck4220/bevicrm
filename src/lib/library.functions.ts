@@ -3,6 +3,64 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
+export type LibraryDeal = {
+  product: string;
+  discount: string;
+  starts_on: string | null;
+  ends_on: string | null;
+  eligibility: string;
+  notes: string;
+};
+
+async function extractDeals(text: string, fileName: string): Promise<LibraryDeal[]> {
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey || !text.trim()) return [];
+  const trimmed = text.length > 40_000 ? text.slice(0, 40_000) : text;
+  try {
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content:
+              "Extract structured product / promotional deal data from beverage industry sales documents (price lists, promo decks, range cards). Return ONLY JSON: {\"deals\":[{\"product\":string,\"discount\":string,\"starts_on\":string|null,\"ends_on\":string|null,\"eligibility\":string,\"notes\":string}]}. If no clear product+discount pairs exist, return {\"deals\":[]}. Never invent products, prices, dates, or eligibility rules — only extract what is literally in the document. starts_on / ends_on should be ISO date YYYY-MM-DD when possible, otherwise the raw phrase, otherwise null.",
+          },
+          { role: "user", content: `File: ${fileName}\n\n---\n${trimmed}` },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (!resp.ok) {
+      console.error("[deal extract] gateway", resp.status, (await resp.text()).slice(0, 500));
+      return [];
+    }
+    const payload = await resp.json();
+    const content: string = payload?.choices?.[0]?.message?.content ?? "{}";
+    const parsed = JSON.parse(content);
+    const arr = Array.isArray(parsed?.deals) ? parsed.deals : [];
+    return arr
+      .filter((d: unknown): d is Record<string, unknown> => !!d && typeof d === "object")
+      .map((d) => ({
+        product: String(d.product ?? "").slice(0, 300),
+        discount: String(d.discount ?? "").slice(0, 300),
+        starts_on: d.starts_on == null ? null : String(d.starts_on).slice(0, 60),
+        ends_on: d.ends_on == null ? null : String(d.ends_on).slice(0, 60),
+        eligibility: String(d.eligibility ?? "").slice(0, 500),
+        notes: String(d.notes ?? "").slice(0, 500),
+      }))
+      .filter((d) => d.product && d.discount)
+      .slice(0, 100);
+  } catch (e) {
+    console.error("[deal extract] failed", fileName, e);
+    return [];
+  }
+}
+
+
+
 const MAX_BYTES = 20 * 1024 * 1024;
 const MAX_CHARS = 120_000;
 
