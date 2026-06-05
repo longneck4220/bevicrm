@@ -207,7 +207,7 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
     const TOTAL_CAP = 60_000;
     const { data: libFiles, error: libErr } = await supabase
       .from("library_files")
-      .select("id, name, file_type, account_id, extracted_text, created_at")
+      .select("id, name, file_type, account_id, extracted_text, deals, created_at")
       .or(`account_id.eq.${data.accountId},account_id.is.null`)
       .order("created_at", { ascending: false })
       .limit(40);
