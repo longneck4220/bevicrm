@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { ParticleField } from "@/features/shared/ParticleField";
-import { GlassCard, SignalLabel, Sparkline } from "@/features/shared/primitives";
+import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
