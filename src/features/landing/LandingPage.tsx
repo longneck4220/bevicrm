@@ -128,27 +128,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* SIGNAL BAR */}
-      <section className="relative mx-auto max-w-7xl px-6 mt-28">
-        <GlassCard tone="strong" className="p-2">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/5">
-            {[
-              { label: "Conversations parsed", value: "184,902", spark: [4, 8, 6, 10, 12, 9, 14, 16] },
-              { label: "Signals surfaced today", value: "12,447", spark: [6, 5, 9, 8, 12, 14, 11, 18] },
-              { label: "Avg. response window", value: "38 min", spark: [12, 10, 8, 9, 7, 5, 6, 4] },
-              { label: "Deals advanced", value: "+312 / wk", spark: [2, 4, 5, 7, 8, 11, 13, 15] },
-            ].map((m) => (
-              <div key={m.label} className="px-6 py-5 flex items-center justify-between gap-4">
-                <div>
-                  <SignalLabel>{m.label}</SignalLabel>
-                  <div className="text-xl font-semibold text-white mt-1">{m.value}</div>
-                </div>
-                <Sparkline values={m.spark} />
-              </div>
-            ))}
-          </div>
-        </GlassCard>
-      </section>
 
       {/* CAPABILITIES */}
       <section className="relative mx-auto max-w-7xl px-6 mt-32">
