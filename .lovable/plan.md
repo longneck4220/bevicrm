@@ -1,6 +1,11 @@
-Remove the metrics strip (Conversations parsed / Signals surfaced / Avg. response window / Deals advanced) from the landing page. The numbers are placeholder data and add no value.
+### What's happening
+In `src/features/shared/TopNav.tsx`, the email and the Admin badge are wrapped in the same `<span>` that has `truncate max-w-[160px]`. CSS truncation applies to the whole span's text, so "Admin" gets clipped to "AD…".
 
-### Changes
-- `src/features/landing/LandingPage.tsx`: delete the stats section (the third `<section>` containing the four-stat grid with sparkline SVGs) and any helper data/imports used only by it.
+### Fix
+Split into two siblings inside a flex container:
+- `<span>` (truncates) → email only
+- `<span>` (no truncate, `shrink-0`) → Admin pill, rendered only when `isAdmin`
 
-No other pages reference these stats.
+Result: the email truncates with an ellipsis if too long; the Admin pill always renders in full.
+
+No other changes.
