@@ -179,6 +179,17 @@ export const uploadLibraryFile = createServerFn({ method: "POST" })
     const fileId = crypto.randomUUID();
     const storagePath = `${userId}/${fileId}.${ext}`;
 
+    if (data.accountId) {
+      const { data: account, error: accountErr } = await supabase
+        .from("accounts")
+        .select("id")
+        .eq("id", data.accountId)
+        .maybeSingle();
+      if (accountErr || !account) {
+        throw new Error("Account not found.");
+      }
+    }
+
     const { error: upErr } = await supabase.storage
       .from("library")
       .upload(storagePath, bytes, {
