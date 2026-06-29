@@ -117,8 +117,9 @@ async function extract(bytes: Uint8Array, type: LibraryFileType, name: string): 
     }
     if (type === "docx") {
       const mammoth = await import("mammoth");
-      const arrayBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-      const res = await mammoth.extractRawText({ arrayBuffer });
+      const ab = new ArrayBuffer(bytes.byteLength);
+      new Uint8Array(ab).set(bytes);
+      const res = await mammoth.extractRawText({ arrayBuffer: ab });
       return clamp(res.value ?? "");
     }
     if (type === "xlsx") {
