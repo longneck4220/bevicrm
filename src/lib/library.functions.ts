@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type LibraryDeal = {
   product: string;
@@ -118,7 +117,8 @@ async function extract(bytes: Uint8Array, type: LibraryFileType, name: string): 
     }
     if (type === "docx") {
       const mammoth = await import("mammoth");
-      const res = await mammoth.extractRawText({ buffer: Buffer.from(bytes) });
+      const arrayBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+      const res = await mammoth.extractRawText({ arrayBuffer });
       return clamp(res.value ?? "");
     }
     if (type === "xlsx") {
@@ -178,7 +178,7 @@ export const uploadLibraryFile = createServerFn({ method: "POST" })
     const fileId = crypto.randomUUID();
     const storagePath = `${userId}/${fileId}.${ext}`;
 
-    const { error: upErr } = await supabaseAdmin.storage
+    const { error: upErr } = await supabase.storage
       .from("library")
       .upload(storagePath, bytes, {
         contentType: data.mime || "application/octet-stream",
@@ -210,7 +210,7 @@ export const uploadLibraryFile = createServerFn({ method: "POST" })
       .single();
     if (insErr || !row) {
       console.error("[library insert]", insErr);
-      await supabaseAdmin.storage.from("library").remove([storagePath]);
+      await supabase.storage.from("library").remove([storagePath]);
       throw new Error("Could not save file record. Please try again.");
     }
 
@@ -285,7 +285,7 @@ export const deleteLibraryFile = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (getErr || !row) throw new Error("File not found.");
-    await supabaseAdmin.storage.from("library").remove([row.storage_path]);
+    await context.supabase.storage.from("library").remove([row.storage_path]);
     const { error: delErr } = await context.supabase.from("library_files").delete().eq("id", data.id);
     if (delErr) {
       console.error("[library delete]", delErr);

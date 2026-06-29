@@ -60,6 +60,8 @@ export function TrialPage() {
   const [newContact, setNewContact] = useState("");
   const [recognizing, setRecognizing] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const transcriptBaseRef = useRef("");
 
   const generate = useServerFn(generateVisitIntelligence);
   const saveMemory = useServerFn(updateAccountMemory);
@@ -85,6 +87,13 @@ export function TrialPage() {
 
   useEffect(() => {
     loadAccounts();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -181,24 +190,48 @@ export function TrialPage() {
       return;
     }
     if (recognizing) {
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
       setRecognizing(false);
       return;
     }
     const rec = new Ctor();
     rec.continuous = true;
-    rec.interimResults = false;
+    rec.interimResults = true;
     rec.lang = "en-AU";
+    transcriptBaseRef.current = rawNote.trim();
     rec.onresult = (e: SpeechRecognitionEvent) => {
-      let txt = "";
+      let finalText = "";
+      let interimText = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        txt += e.results[i][0].transcript + " ";
+        const transcript = e.results[i][0].transcript.trim();
+        if (e.results[i].isFinal) finalText += `${transcript} `;
+        else interimText += `${transcript} `;
       }
-      setRawNote((prev) => (prev ? prev + " " : "") + txt.trim());
+      if (finalText.trim()) {
+        transcriptBaseRef.current = [transcriptBaseRef.current, finalText.trim()].filter(Boolean).join(" ");
+      }
+      setRawNote([transcriptBaseRef.current, interimText.trim()].filter(Boolean).join(" "));
     };
-    rec.onend = () => setRecognizing(false);
-    rec.onerror = () => setRecognizing(false);
-    rec.start();
-    setRecognizing(true);
+    rec.onend = () => {
+      recognitionRef.current = null;
+      setRecognizing(false);
+    };
+    rec.onerror = (event) => {
+      recognitionRef.current = null;
+      setRecognizing(false);
+      setError(event?.error === "not-allowed" ? "Microphone permission was blocked." : "Dictation stopped. Try again or type the note.");
+    };
+    try {
+      recognitionRef.current = rec;
+      rec.start();
+      setError(null);
+      setRecognizing(true);
+    } catch {
+      recognitionRef.current = null;
+      setRecognizing(false);
+      setError("Could not start dictation. Try again or type the note.");
+    }
   }
 
   return (
@@ -398,7 +431,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={async () => {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(normalizeCopyText(text));
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       }}
@@ -407,6 +440,15 @@ function CopyButton({ text }: { text: string }) {
       {copied ? "Copied ✓" : "Copy"}
     </button>
   );
+}
+
+function normalizeCopyText(text: string) {
+  if (!/%[0-9A-Fa-f]{2}/.test(text)) return text;
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return text;
+  }
 }
 
 function OutputPanel({
@@ -677,11 +719,14 @@ interface SpeechRecognitionLike {
   stop(): void;
   onresult: ((e: SpeechRecognitionEvent) => void) | null;
   onend: (() => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((e: SpeechRecognitionErrorEvent) => void) | null;
 }
 interface SpeechRecognitionEvent {
   resultIndex: number;
-  results: { [index: number]: { [index: number]: { transcript: string } }; length: number };
+  results: { [index: number]: { [index: number]: { transcript: string }; isFinal: boolean }; length: number };
+}
+interface SpeechRecognitionErrorEvent {
+  error?: string;
 }
 
 function AccountSearch({

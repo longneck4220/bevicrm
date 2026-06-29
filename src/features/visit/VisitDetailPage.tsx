@@ -34,7 +34,7 @@ export function VisitDetailPage({ id }: { id: string }) {
   const created = new Date(data.created_at).toLocaleString();
 
   async function copy(text: string, which: "note" | "email") {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(normalizeCopyText(text));
     setCopied(which);
     setTimeout(() => setCopied(null), 1500);
   }
@@ -227,4 +227,13 @@ export function VisitDetailPage({ id }: { id: string }) {
       </div>
     </main>
   );
+}
+
+function normalizeCopyText(text: string) {
+  if (!/%[0-9A-Fa-f]{2}/.test(text)) return text;
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return text;
+  }
 }
