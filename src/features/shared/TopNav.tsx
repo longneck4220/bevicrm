@@ -54,8 +54,18 @@ export function TopNav() {
             {user ? (
               <>
                 <div className="hidden sm:flex items-center gap-2 min-w-0">
-                  <span className="text-xs text-white/60 truncate max-w-[160px]">
-                    {user.email}
+                  <span className="text-xs text-white/60 truncate max-w-[180px]">
+                    {(() => {
+                      const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+                      const name =
+                        (meta.full_name as string) ||
+                        (meta.name as string) ||
+                        (meta.first_name as string) ||
+                        (user.email ? user.email.split("@")[0] : "there");
+                      const first = String(name).split(" ")[0];
+                      const pretty = first.charAt(0).toUpperCase() + first.slice(1);
+                      return `Hi ${pretty}`;
+                    })()}
                   </span>
                   {isAdmin && (
                     <span
