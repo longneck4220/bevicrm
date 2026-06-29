@@ -4,13 +4,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 
+const TITLE = "Sign in · BEVI";
+const DESCRIPTION =
+  "Sign in to BEVI to review post-visit intelligence, follow-ups, and the next best move for every account in your territory.";
+const URL = "https://bevicrm.lovable.app/login";
+
 export const Route = createFileRoute("/login")({
   component: LoginPage,
   head: () => ({
     meta: [
-      { title: "Sign in · BEVI" },
-      { name: "description", content: "Sign in to BEVI." },
+      { title: TITLE },
+      { name: "description", content: DESCRIPTION },
+      { property: "og:title", content: TITLE },
+      { property: "og:description", content: DESCRIPTION },
+      { property: "og:url", content: URL },
+      { name: "twitter:title", content: TITLE },
+      { name: "twitter:description", content: DESCRIPTION },
     ],
+    links: [{ rel: "canonical", href: URL }],
   }),
 });
 

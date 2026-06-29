@@ -77,15 +77,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "BEVI — Sales Intelligence" },
       { name: "description", content: "BEVI senses, understands, and acts across every sales conversation — surfacing the one next move that matters." },
       { name: "author", content: "BEVI" },
-      { property: "og:title", content: "BEVI — Sales Intelligence" },
-      { property: "og:description", content: "BEVI senses, understands, and acts across every sales conversation — surfacing the one next move that matters." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "BEVI" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "BEVI — Sales Intelligence" },
-      { name: "twitter:description", content: "BEVI senses, understands, and acts across every sales conversation — surfacing the one next move that matters." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/80fbf211-cdbf-44f9-ae74-73f6b784302e" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/80fbf211-cdbf-44f9-ae74-73f6b784302e" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -97,6 +92,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "BEVI",
+              url: "https://bevicrm.lovable.app",
+              logo: "https://bevicrm.lovable.app/favicon.png",
+            },
+            {
+              "@type": "WebSite",
+              name: "BEVI",
+              url: "https://bevicrm.lovable.app",
+            },
+          ],
+        }),
       },
     ],
   }),
