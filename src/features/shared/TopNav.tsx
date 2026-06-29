@@ -53,17 +53,19 @@ export function TopNav() {
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <span className="hidden sm:inline text-xs text-white/60 truncate max-w-[160px]">
-                  {user.email}
+                <div className="hidden sm:flex items-center gap-2 min-w-0">
+                  <span className="text-xs text-white/60 truncate max-w-[160px]">
+                    {user.email}
+                  </span>
                   {isAdmin && (
                     <span
-                      className="ml-2 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider"
+                      className="shrink-0 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider"
                       style={{ background: "var(--brand-cyan)", color: "#000" }}
                     >
                       Admin
                     </span>
                   )}
-                </span>
+                </div>
                 <button
                   onClick={async () => {
                     await signOut();
