@@ -127,8 +127,9 @@ export function TrialPage() {
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   }
 
-  async function handleGenerate() {
-    if (!active || !rawNote.trim()) return;
+  async function handleGenerate(noteOverride?: string) {
+    const noteToSubmit = noteOverride ?? rawNote;
+    if (!active || !noteToSubmit.trim()) return;
     setLoading(true);
     setError(null);
     setOutput(null);
@@ -138,7 +139,7 @@ export function TrialPage() {
         setMemoryDirty(false);
       }
       const res = await generate({
-        data: { accountId: active.id, rawNote, supportingContext: buildSupportingContext() },
+        data: { accountId: active.id, rawNote: noteToSubmit, supportingContext: buildSupportingContext() },
       });
       setOutput(res.output);
       setVisitId(res.visitId);
@@ -232,6 +233,23 @@ export function TrialPage() {
       setRecognizing(false);
       setError("Could not start dictation. Try again or type the note.");
     }
+  }
+
+  async function handleClarifyingAnswers(answers: string[]) {
+    if (!output) return;
+    const lines = output.clarifying_questions
+      .map((question, index) => ({ question, answer: answers[index]?.trim() ?? "" }))
+      .filter(({ answer }) => answer)
+      .map(({ question, answer }) => `Q: ${question}\nA: ${answer}`);
+
+    if (!lines.length) {
+      setError("Add at least one answer so BEVI has more signal.");
+      return;
+    }
+
+    const noteWithAnswers = `${rawNote.trim()}\n\nClarifying answers:\n${lines.join("\n\n")}`;
+    setRawNote(noteWithAnswers);
+    await handleGenerate(noteWithAnswers);
   }
 
   return (
@@ -407,7 +425,7 @@ export function TrialPage() {
                 {error && <span className="text-sm text-[var(--signal-risk)]">{error}</span>}
                 <button
                   type="button"
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate()}
                   disabled={!active || !rawNote.trim() || loading}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-primary-foreground disabled:opacity-40 ambient-glow"
                   style={{ background: "var(--gradient-signal)" }}
@@ -418,7 +436,15 @@ export function TrialPage() {
             </GlassCard>
 
             {/* Output */}
-            {output && <OutputPanel output={output} onAdoptMemory={handleAdoptMemory} onRate={handleRate} />}
+            {output && (
+              <OutputPanel
+                output={output}
+                onAdoptMemory={handleAdoptMemory}
+                onRate={handleRate}
+                onClarifyingAnswers={handleClarifyingAnswers}
+                loading={loading}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -455,28 +481,64 @@ function OutputPanel({
   output,
   onAdoptMemory,
   onRate,
+  onClarifyingAnswers,
+  loading,
 }: {
   output: AiOutput;
   onAdoptMemory: () => void;
   onRate: (r: "good" | "needs_edit") => void;
+  onClarifyingAnswers: (answers: string[]) => void;
+  loading: boolean;
 }) {
   const [rated, setRated] = useState<"good" | "needs_edit" | null>(null);
+  const [clarifyingAnswers, setClarifyingAnswers] = useState<string[]>(() =>
+    output.clarifying_questions.map(() => ""),
+  );
+
+  useEffect(() => {
+    setClarifyingAnswers(output.clarifying_questions.map(() => ""));
+  }, [output.clarifying_questions]);
 
   if (output.needs_more_info) {
+    const hasAnswer = clarifyingAnswers.some((answer) => answer.trim());
+
     return (
       <GlassCard tone="strong" className="p-6">
         <SignalLabel as="h2">Need a bit more to be useful</SignalLabel>
         <p className="text-white/80 mt-2 text-sm">
           The note is light. Answer one or two of these and BEVI will draft the full pack.
         </p>
-        <ul className="mt-4 space-y-2">
+        <div className="mt-4 space-y-3">
           {output.clarifying_questions.map((q, i) => (
-            <li key={i} className="text-sm text-white flex gap-2">
-              <span style={{ color: "var(--brand-cyan)" }}>{i + 1}.</span>
-              {q}
-            </li>
+            <label key={i} className="block text-sm text-white">
+              <span className="flex gap-2">
+                <span style={{ color: "var(--brand-cyan)" }}>{i + 1}.</span>
+                {q}
+              </span>
+              <textarea
+                value={clarifyingAnswers[i] ?? ""}
+                onChange={(event) => {
+                  const next = [...clarifyingAnswers];
+                  next[i] = event.target.value;
+                  setClarifyingAnswers(next);
+                }}
+                placeholder="Answer if known"
+                className="mt-2 w-full min-h-[64px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
+              />
+            </label>
           ))}
-        </ul>
+        </div>
+        <div className="mt-5 flex justify-end">
+          <button
+            type="button"
+            onClick={() => onClarifyingAnswers(clarifyingAnswers)}
+            disabled={!hasAnswer || loading}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-primary-foreground disabled:opacity-40 ambient-glow"
+            style={{ background: "var(--gradient-signal)" }}
+          >
+            {loading ? "Generating..." : "Generate with answers"}
+          </button>
+        </div>
       </GlassCard>
     );
   }
