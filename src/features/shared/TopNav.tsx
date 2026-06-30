@@ -18,7 +18,8 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
   );
 }
 
-const baseLinks: { to: "/trial" | "/dashboard" | "/mobile"; label: string }[] = [
+const baseLinks: { to: "/how-it-works" | "/trial" | "/dashboard" | "/mobile"; label: string }[] = [
+  { to: "/how-it-works", label: "How it works" },
   { to: "/trial", label: "Trial" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/mobile", label: "Mobile" },
