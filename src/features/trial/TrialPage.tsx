@@ -54,6 +54,8 @@ export function TrialPage() {
   const [rawNote, setRawNote] = useState("");
   const [output, setOutput] = useState<AiOutput | null>(null);
   const [visitId, setVisitId] = useState<string | null>(null);
+  const [memorySaved, setMemorySaved] = useState(false);
+  const [adoptedMemory, setAdoptedMemory] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
@@ -106,6 +108,8 @@ export function TrialPage() {
       setSupportingContext("");
       setAttachments([]);
       setError(null);
+      setMemorySaved(false);
+      setAdoptedMemory(false);
     }
   }, [activeId]);
 
@@ -143,6 +147,7 @@ export function TrialPage() {
       });
       setOutput(res.output);
       setVisitId(res.visitId);
+      setAdoptedMemory(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -157,12 +162,17 @@ export function TrialPage() {
     setAccounts((prev) =>
       prev.map((a) => (a.id === active.id ? { ...a, memory: output.updated_account_memory } : a)),
     );
+    setMemoryDirty(false);
+    setMemorySaved(false);
+    setAdoptedMemory(true);
   }
 
   async function handleSaveMemory() {
     if (!active) return;
     await saveMemory({ data: { accountId: active.id, memory: memoryDraft } });
     setMemoryDirty(false);
+    setMemorySaved(true);
+    setAdoptedMemory(false);
     setAccounts((prev) => prev.map((a) => (a.id === active.id ? { ...a, memory: memoryDraft } : a)));
   }
 
@@ -326,12 +336,17 @@ export function TrialPage() {
                     {active?.contact && <span className="text-white/50"> · {active.contact}</span>}
                   </div>
                 </div>
-                {memoryDirty && (
+                {(memoryDirty || memorySaved) && (
                   <button
                     onClick={handleSaveMemory}
-                    className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white"
+                    disabled={!memoryDirty}
+                    className={`text-xs px-3 py-1.5 rounded-md text-white transition-colors ${
+                      memoryDirty
+                        ? "bg-white/10 hover:bg-white/15"
+                        : "bg-[var(--brand-cyan)]/20 border border-[var(--brand-cyan)]/40 text-[var(--brand-cyan)] cursor-default"
+                    }`}
                   >
-                    Save memory
+                    {memoryDirty ? "Save memory" : "Saved"}
                   </button>
                 )}
               </div>
@@ -340,6 +355,8 @@ export function TrialPage() {
                 onChange={(e) => {
                   setMemoryDraft(e.target.value);
                   setMemoryDirty(true);
+                  setMemorySaved(false);
+                  setAdoptedMemory(false);
                 }}
                 disabled={!active}
                 placeholder="What BEVI already knows about this venue and contact. You can paste prior conversations or email context here too."
@@ -443,6 +460,7 @@ export function TrialPage() {
                 onRate={handleRate}
                 onClarifyingAnswers={handleClarifyingAnswers}
                 loading={loading}
+                adoptedMemory={adoptedMemory}
               />
             )}
           </div>
@@ -483,12 +501,14 @@ function OutputPanel({
   onRate,
   onClarifyingAnswers,
   loading,
+  adoptedMemory,
 }: {
   output: AiOutput;
   onAdoptMemory: () => void;
   onRate: (r: "good" | "needs_edit") => void;
   onClarifyingAnswers: (answers: string[]) => void;
   loading: boolean;
+  adoptedMemory: boolean;
 }) {
   const [rated, setRated] = useState<"good" | "needs_edit" | null>(null);
   const [clarifyingAnswers, setClarifyingAnswers] = useState<string[]>(() =>
@@ -653,9 +673,14 @@ function OutputPanel({
           <SignalLabel as="h2">Post-visit Note</SignalLabel>
           <button
             onClick={onAdoptMemory}
-            className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white"
+            disabled={adoptedMemory}
+            className={`text-xs px-3 py-1.5 rounded-md text-white transition-colors ${
+              adoptedMemory
+                ? "bg-[var(--brand-cyan)]/20 border border-[var(--brand-cyan)]/40 text-[var(--brand-cyan)] cursor-default"
+                : "bg-white/10 hover:bg-white/15"
+            }`}
           >
-            Adopt as new memory
+            {adoptedMemory ? "Memory updated" : "Adopt as new memory"}
           </button>
         </div>
         <pre className="text-[13px] text-white/80 whitespace-pre-wrap font-sans leading-relaxed">
