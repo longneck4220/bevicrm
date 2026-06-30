@@ -160,9 +160,9 @@ export function LandingPage() {
               ring: "var(--brand-blue)",
             },
             {
-              tag: "Act",
+              tag: "BEVI ACTS",
               title: "Move",
-              body: "Generate a CRM-ready note, follow-up email, updated account memory and one practical commercial action to take next.",
+              body: "Generate a CRM-ready note, follow-up email, automatic updated account memory and one practical commercial action to take next.",
               ring: "var(--brand-violet)",
             },
           ].map((c, i) => (
