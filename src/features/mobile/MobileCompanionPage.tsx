@@ -26,7 +26,7 @@ export function MobileCompanionPage() {
           Open. Record. Act. Leave.
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Turn your call notes into actionable steps. Faster follow up better engagements
+          A CRM stores, a transcriber captures words, BEVI interprets the next best move. Delivers faster follow up and smarter engagements
         </p>
 
         {/* Primary action */}
