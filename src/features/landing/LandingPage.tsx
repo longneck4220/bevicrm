@@ -149,20 +149,20 @@ export function LandingPage() {
           {[
             {
               tag: "BEVI SENSES OPPORTUNITY",
-              title: "Raw post visit capture",
-              body: "Every call, email, and thread flows in. No bots, no recording prompts, no friction.",
+              title: "Capture",
+              body: "Dictate or type the rough notes, buyer cues, pricing tension, product talk and promises before they get lost.",
               ring: "var(--brand-cyan)",
             },
             {
               tag: "UNDERSTANDS SALES CONTEXT",
-              title: "Signal extraction",
-              body: "Intent, risk, objections, stakeholder shifts — surfaced with weight and provenance.",
+              title: "Signal\u00A0",
+              body: "BEVI identifies intent, objections, margin pressure, opportunity quality, missed details and what matters for the next call.",
               ring: "var(--brand-blue)",
             },
             {
               tag: "Act",
-              title: "Next-move engine",
-              body: "One tactical recommendation, ranked by impact and effort. No dashboard fatigue.",
+              title: "Move",
+              body: "Generate a CRM-ready note, follow-up email, updated account memory and one practical commercial action to take next.",
               ring: "var(--brand-violet)",
             },
           ].map((c, i) => (
