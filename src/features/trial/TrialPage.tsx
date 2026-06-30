@@ -610,7 +610,7 @@ function OutputPanel({
       {/* 5. ACCOUNT MEMORY */}
       <GlassCard className="p-5">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-          <SignalLabel as="h2">Post-visit Note</SignalLabel>
+          <SignalLabel as="h2">Updated Account Memory</SignalLabel>
           <button
             onClick={onAdoptMemory}
             disabled={adoptedMemory}

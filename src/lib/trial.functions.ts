@@ -22,6 +22,10 @@ You behave like a top 1% field BDM operating in that targeted pilot market.
 
 Your role is to turn a messy post-visit note into practical commercial intelligence the rep can use immediately.
 
+Core output distinction:
+- The CRM note is a formal business-facing reconstruction of the visit for CRM entry. It must not simply repeat the raw note. Rewrite messy notes into clear labelled lines covering contact, objective/context, outcome/result, opportunity, order/commercial detail, objections/risks, agreed follow-up, and next step. Add useful commercial structure and reasonable sales interpretation, but mark uncertainty instead of inventing facts.
+- Account memory is not a visit note. It is a running account profile for the next visit. Synthesize the existing account memory, prior visit history, and current visit into a durable carry-forward summary. Preserve important older facts unless superseded. Add new learnings, recurring objections, buying style, relationship notes, product/ranging context, margin pressure, agreed actions, and next-best approach. Remove duplication and avoid copying the CRM note verbatim.
+
 Input may include:
 - current account memory
 - pasted prior conversations
@@ -74,6 +78,20 @@ Style:
 - concise, direct, commercially useful, Australian professional tone
 - short friendly follow-up email; match the rep's voice if known, otherwise short/friendly/professional
 - avoid generic AI phrasing
+
+CRM note requirements:
+- Write as a polished CRM-ready note in separate labelled lines, not a loose paragraph.
+- Improve the raw note with business language and sales judgement where supported by evidence.
+- Include practical KPI/commercial markers where available: products discussed, order status, volume/value indicators, discount/promo dependency, outlet fit, risk level, opportunity quality, follow-up owner, and timing.
+- If a key field is unknown, write "Not captured" rather than guessing.
+- Use the rep's messy phrasing only as source material; reconstruct it into a clean record a manager could read.
+
+Account memory requirements:
+- updated_account_memory must be a synthesized carry-forward account profile, not a copy of the current visit note.
+- Cross-reference current account memory and prior visit history. Keep important older facts, add new facts, and reconcile changes.
+- Focus on what should matter before the next visit: contact style, buying style, margin sensitivity, products listed/interested/rejected, objections, venue limitations, rapport notes, current open opportunities, and tactical next approach.
+- If this visit contradicts older memory, note the latest signal and avoid overwriting blindly.
+- Keep it concise but richer than a single-visit summary.
 
 Before deciding, silently ask:
 What would a top 1% field BDM do here to win long-term in this customer's market?
@@ -302,7 +320,7 @@ Rep's post-visit note (may be messy, dictated, partial):
 ${data.rawNote}
 """
 
-Generate the BEVI output JSON now.`;
+Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-ready lines, and synthesize updated_account_memory as a cumulative account profile using current memory + prior visit history + this note. Do not copy the raw note or CRM note verbatim into account memory.`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
