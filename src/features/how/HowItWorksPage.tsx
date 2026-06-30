@@ -37,8 +37,8 @@ const pricingPlans = [
   },
   {
     name: "Founding 50",
-    price: "A$31.33",
-    annualPrice: "A$313",
+    price: "A$32",
+    annualPrice: "A$320",
     detail: "/ user / month",
     annualDetail: "/ user / year",
     body: "Early-user pricing for the first 50 reps. Includes saved account memory, CRM-ready notes, follow-up drafts and next-move intelligence.",
