@@ -48,8 +48,6 @@ type AiOutput = {
 export function TrialPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [memoryDraft, setMemoryDraft] = useState("");
-  const [memoryDirty, setMemoryDirty] = useState(false);
   const [supportingContext, setSupportingContext] = useState("");
   const [rawNote, setRawNote] = useState("");
   const [output, setOutput] = useState<AiOutput | null>(null);
