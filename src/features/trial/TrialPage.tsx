@@ -402,10 +402,10 @@ export function TrialPage() {
                 loading={loading}
                 adoptedMemory={adoptedMemory}
               />
-            )}
-          </div>
+          )}
         </div>
       </div>
+
     </main>
   );
 }
