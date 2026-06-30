@@ -68,17 +68,18 @@ export function LandingPage() {
             >
               <Link
                 to="/trial"
-                className="group relative inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
+                className="group relative inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide text-primary-foreground ambient-glow border border-white/15 shadow-lg shadow-black/30 hover:shadow-xl transition-shadow"
                 style={{ background: "var(--gradient-signal)" }}
               >
-                Try A Visit Note&nbsp;<br /><br />
+                Try a Visit Note
                 <span className="transition-transform group-hover:translate-x-0.5">→</span>
               </Link>
               <Link
                 to="/mobile"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm glass hover:bg-white/5 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide glass border border-white/15 hover:bg-white/5 transition-colors"
               >
-                See Example Output&nbsp;
+                See Example Output
+                <span>→</span>
               </Link>
             </motion.div>
 
