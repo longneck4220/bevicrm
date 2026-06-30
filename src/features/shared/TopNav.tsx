@@ -18,11 +18,12 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
   );
 }
 
-const links: { to: "/trial" | "/dashboard" | "/mobile"; label: string }[] = [
+const baseLinks: { to: "/trial" | "/dashboard" | "/mobile"; label: string }[] = [
   { to: "/trial", label: "Trial" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/mobile", label: "Mobile" },
 ];
+const adminLink = { to: "/admin" as const, label: "Admin" };
 
 export function TopNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -35,7 +36,7 @@ export function TopNav() {
         <div className="glass-strong rounded-2xl px-4 py-3 flex items-center justify-between ambient-glow">
           <BeviLogo />
           <nav className="hidden md:flex items-center gap-1">
-            {links.map((l) => {
+            {[...baseLinks, ...(isAdmin ? [adminLink] : [])].map((l) => {
               const active = path === l.to || path.startsWith(l.to);
               return (
                 <Link
