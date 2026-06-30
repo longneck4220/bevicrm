@@ -75,12 +75,20 @@ export function LandingPage() {
                 <span className="transition-transform group-hover:translate-x-0.5">→</span>
               </Link>
               <Link
+                to="/how-it-works"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide glass border border-white/15 hover:bg-white/5 transition-colors"
+              >
+                How it works
+                <span>→</span>
+              </Link>
+              <Link
                 to="/mobile"
                 className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide glass border border-white/15 hover:bg-white/5 transition-colors"
               >
                 See Example Output
                 <span>→</span>
               </Link>
+
             </motion.div>
 
           </div>
