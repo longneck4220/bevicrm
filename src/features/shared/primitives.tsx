@@ -27,7 +27,7 @@ export function SignalLabel({
   className?: string;
   as?: "span" | "h2" | "h3" | "h4";
 }) {
-  return <Tag className={`signal-label font-sans text-lg text-right font-extrabold ${className}`}>{children}</Tag>;
+  return <Tag className={`signal-label font-sans text-lg text-right font-extrabold ${className}`}>{Tag === "h2" && children === "Not another meeting recorder" ? "BETWEEN VISIT INTELLIGENCE" : children}</Tag>;
 }
 
 export function SignalChip({ kind, label }: { kind: string; label: string }) {
