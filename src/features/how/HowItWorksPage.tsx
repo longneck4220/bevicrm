@@ -241,7 +241,16 @@ export function HowItWorksPage() {
 
           <div className="mt-8 grid lg:grid-cols-3 gap-5">
             {pricingPlans.map((plan) => (
-              <GlassCard key={plan.name} tone={plan.name === "Founding 50" ? "strong" : "default"} className="p-6 flex flex-col">
+              <GlassCard
+                key={plan.name}
+                tone={plan.name === "Founding 50" ? "strong" : "default"}
+                className="p-6 flex flex-col relative bg-black/55"
+                style={{
+                  boxShadow:
+                    "0 30px 80px -20px rgba(0,0,0,0.85), 0 12px 40px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.4)",
+                }}
+              >
+
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-white font-semibold">{plan.name}</div>
