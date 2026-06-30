@@ -259,9 +259,9 @@ export function TrialPage() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-[280px_minmax(0,1fr)] gap-6">
-          {/* Sidebar: accounts */}
-          <aside className="space-y-4">
+        <div className="space-y-6 min-w-0">
+          {/* Accounts + New account */}
+          <div className="grid md:grid-cols-2 gap-4">
             <GlassCard className="p-3 relative">
               <div className="flex items-center gap-2 px-1 pb-2">
                 <BeviMark size={16} animated={false} />
@@ -274,7 +274,6 @@ export function TrialPage() {
                 onSelect={setActiveId}
               />
             </GlassCard>
-
 
             <GlassCard className="p-4">
               <SignalLabel>New account</SignalLabel>
@@ -302,47 +301,8 @@ export function TrialPage() {
                 </button>
               </div>
             </GlassCard>
-          </aside>
+          </div>
 
-          {/* Main column */}
-          <div className="space-y-6 min-w-0">
-            {/* Account memory */}
-            <GlassCard className="p-5">
-              <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-                <div>
-                  <SignalLabel>Account memory</SignalLabel>
-                  <div className="text-white font-medium mt-1">
-                    {active?.name ?? "Select an account"}
-                    {active?.contact && <span className="text-white/50"> · {active.contact}</span>}
-                  </div>
-                </div>
-                {(memoryDirty || memorySaved) && (
-                  <button
-                    onClick={handleSaveMemory}
-                    disabled={!memoryDirty}
-                    className={`text-xs px-3 py-1.5 rounded-md text-white transition-colors ${
-                      memoryDirty
-                        ? "bg-white/10 hover:bg-white/15"
-                        : "bg-[var(--brand-cyan)]/20 border border-[var(--brand-cyan)]/40 text-[var(--brand-cyan)] cursor-default"
-                    }`}
-                  >
-                    {memoryDirty ? "Save memory" : "Saved"}
-                  </button>
-                )}
-              </div>
-              <textarea
-                value={memoryDraft}
-                onChange={(e) => {
-                  setMemoryDraft(e.target.value);
-                  setMemoryDirty(true);
-                  setMemorySaved(false);
-                  setAdoptedMemory(false);
-                }}
-                disabled={!active}
-                placeholder="What BEVI already knows about this venue and contact. You can paste prior conversations or email context here too."
-                className="w-full min-h-[110px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
-              />
-            </GlassCard>
 
             {/* File library */}
             <LibraryPanel
