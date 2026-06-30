@@ -45,7 +45,7 @@ export function LandingPage() {
               className="text-[clamp(2.8rem,6.4vw,5.5rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-white"
             >
               Win the <br className="hidden sm:block" />
-              next call.
+              <span className="text-gradient">next call.</span>
             </motion.h1>
 
             <motion.p
