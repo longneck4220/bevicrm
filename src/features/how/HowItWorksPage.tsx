@@ -52,7 +52,7 @@ const pricingPlans = [
     detail: "/ user / month",
     annualDetail: "/ user / year",
     body: "For reps using BEVI regularly to keep account memory live, tighten follow-up and prepare the next call faster.",
-    badge: "2 months free",
+    badge: "MONTH FREE",
     cta: "Start memory trial",
   },
   {
@@ -73,8 +73,8 @@ const phoneSteps = [
     title: "Enter the messy visit",
     status: "Live note",
     tone: "var(--brand-cyan)",
-    main: "Aaron happy with Byron. Cinzano support lapsed. Wants Italian menu stuff. Mount Gay not right. Follow up training.",
-    rows: ["Buyer cue: Italian menu direction", "Risk: lapsed Cinzano support", "Follow-up: training may help"],
+    main: "Aaron happy with using Byron. Pricing support has lapsed. Wants assistance with staff performance. Follow up training booked for next month.",
+    rows: ["Buyer cue: Needs Staff direction", "Risk: lapsed pricing support", "Follow-up: training may help"],
     button: "Generate intelligence",
   },
   {
@@ -92,7 +92,7 @@ const phoneSteps = [
     status: "Ready",
     tone: "var(--brand-violet)",
     main: "CRM note rebuilt. Follow-up email drafted. Account memory updated for the next visit.",
-    rows: ["Next move: reconfirm Cinzano support", "Email: short, friendly, specific", "Memory: Aaron prefers practical fit"],
+    rows: ["Next move: reconfirm price support", "Email: short, friendly, specific", "Memory: Aaron prefers practical fit"],
     button: "Copy CRM note",
   },
 ];
@@ -298,12 +298,12 @@ export function HowItWorksPage() {
 
         <section className="mt-16">
           <GlassCard tone="strong" className="p-8">
-            <SignalLabel as="h2">Not another meeting recorder</SignalLabel>
+            <SignalLabel as="h2">BETWEEN VISIT INTELLIGENCE</SignalLabel>
             <h2 className="mt-4 text-3xl md:text-4xl font-semibold tracking-tight text-white">
               BEVI sits after the field visit, where sales value is either captured or lost.
             </h2>
             <p className="mt-5 text-muted-foreground leading-relaxed">
-              Transcription tools capture what was said. CRMs store what happened. BEVI helps the rep decide what matters next: the formal note, the follow-up, the account memory and the next move.
+              Transcription tools capture what was said. CRMs store what happened. BEVI helps the rep decide what matters next: the formal note, the follow-up, the account memory and the best next move.
             </p>
             <Link
               to="/trial"
