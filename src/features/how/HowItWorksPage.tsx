@@ -175,13 +175,8 @@ export function HowItWorksPage() {
         </section>
 
         <section id="example" className="mt-16">
-          <div className="max-w-2xl">
-            <SignalLabel as="h2">Before and after</SignalLabel>
-            <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-white">From road-note mess to usable sales action.</h2>
-            <p className="mt-4 text-muted-foreground leading-relaxed">
-              The rep captures the rough note on mobile, BEVI extracts the commercial signals, then the phone view rolls into CRM copy, follow-up and memory.
-            </p>
-          </div>
+
+
 
           <GlassCard tone="strong" className="mt-8 overflow-hidden p-5 md:p-7">
             <div className="relative rounded-[2rem] border border-white/10 bg-gradient-to-br from-cyan-500/10 via-white/[0.025] to-violet-500/10 px-3 py-8 md:px-7">
