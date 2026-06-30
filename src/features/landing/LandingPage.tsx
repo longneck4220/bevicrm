@@ -33,7 +33,7 @@ export function LandingPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
               <SignalLabel className="text-left leading-tight">
                 POST VISIT SALES INTELLIGENCE<br />
-                FOR FIELD MANAGERS&nbsp;
+                &nbsp; FOR FIELD MANAGERS&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
               </SignalLabel>
             </motion.div>
 
@@ -45,7 +45,7 @@ export function LandingPage() {
               className="text-[clamp(2.8rem,6.4vw,5.5rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-white"
             >
               Win the <br className="hidden sm:block" />
-              <span className="text-gradient">next call.</span>
+              next call.
             </motion.h1>
 
             <motion.p
@@ -71,7 +71,7 @@ export function LandingPage() {
                 className="group relative inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
                 style={{ background: "var(--gradient-signal)" }}
               >
-                Try A Visit Note&nbsp;<br />
+                Try A Visit Note&nbsp;<br /><br />
                 <span className="transition-transform group-hover:translate-x-0.5">→</span>
               </Link>
               <Link
@@ -113,9 +113,9 @@ export function LandingPage() {
       <section className="relative mx-auto max-w-7xl px-6 mt-24">
         <div className="grid sm:grid-cols-3 gap-4">
           {[
-            { label: "Senses opportunity", tone: "var(--brand-cyan)" },
-            { label: "Understands context", tone: "var(--brand-blue)" },
-            { label: "Delivers the next move", tone: "var(--brand-violet)" },
+            { label: "BEVI SENSES OPPORTUNITY", tone: "var(--brand-cyan)" },
+            { label: "BEVI UNDERSTANDS CONTEXT", tone: "var(--brand-blue)" },
+            { label: "BEVI DELIVERS THE NEXT MOVE", tone: "var(--brand-violet)" },
           ].map((p) => (
             <div
               key={p.label}
@@ -148,13 +148,13 @@ export function LandingPage() {
         <div className="mt-12 grid md:grid-cols-3 gap-6">
           {[
             {
-              tag: "Sense",
-              title: "Ambient capture",
+              tag: "BEVI SENSES OPPORTUNITY",
+              title: "Raw post visit capture",
               body: "Every call, email, and thread flows in. No bots, no recording prompts, no friction.",
               ring: "var(--brand-cyan)",
             },
             {
-              tag: "Understand",
+              tag: "UNDERSTANDS SALES CONTEXT",
               title: "Signal extraction",
               body: "Intent, risk, objections, stakeholder shifts — surfaced with weight and provenance.",
               ring: "var(--brand-blue)",
