@@ -149,23 +149,12 @@ export function TrialPage() {
   async function handleAdoptMemory() {
     if (!active || !output) return;
     await saveMemory({ data: { accountId: active.id, memory: output.updated_account_memory } });
-    setMemoryDraft(output.updated_account_memory);
     setAccounts((prev) =>
       prev.map((a) => (a.id === active.id ? { ...a, memory: output.updated_account_memory } : a)),
     );
-    setMemoryDirty(false);
-    setMemorySaved(false);
     setAdoptedMemory(true);
   }
 
-  async function handleSaveMemory() {
-    if (!active) return;
-    await saveMemory({ data: { accountId: active.id, memory: memoryDraft } });
-    setMemoryDirty(false);
-    setMemorySaved(true);
-    setAdoptedMemory(false);
-    setAccounts((prev) => prev.map((a) => (a.id === active.id ? { ...a, memory: memoryDraft } : a)));
-  }
 
   async function handleCreate() {
     if (!newName.trim()) return;
