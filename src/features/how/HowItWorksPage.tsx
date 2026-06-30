@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
@@ -24,40 +25,81 @@ const workflow = [
   },
 ];
 
-const beviOutputs = [
-  "CRM-ready note with labelled sales detail",
-  "Next best move with specific ask",
-  "Short follow-up email draft",
-  "Updated account memory for the next visit",
-];
-
 const pricingPlans = [
   {
-    name: "Free",
+    name: "Free Test Run",
     price: "A$0",
-    detail: "No saved memory",
-    body: "Enter a visit, generate the output, then the call is forgotten. Useful for testing the workflow without building account history.",
+    annualPrice: "A$0",
+    detail: "No card required",
+    annualDetail: "No saved memory",
+    body: "Try BEVI on a real visit note. Generate the output, copy what you need, then the call is forgotten.",
     cta: "Try a Visit Note",
   },
   {
     name: "Founding 50",
     price: "A$31.33",
+    annualPrice: "A$313",
     detail: "/ user / month",
-    body: "Discounted early-user plan for the first 50 reps. Includes saved account memory, CRM-ready notes, follow-up drafts and next-move intelligence.",
+    annualDetail: "/ user / year",
+    body: "Early-user pricing for the first 50 reps. Includes saved account memory, CRM-ready notes, follow-up drafts and next-move intelligence.",
     badge: "Early access",
     cta: "Start pilot",
   },
   {
-    name: "Enterprise base",
+    name: "Field Pro",
+    price: "A$44",
+    annualPrice: "A$440",
+    detail: "/ user / month",
+    annualDetail: "/ user / year",
+    body: "For reps using BEVI regularly to keep account memory live, tighten follow-up and prepare the next call faster.",
+    badge: "2 months free",
+    cta: "Start memory trial",
+  },
+  {
+    name: "Team Pilot",
     price: "A$750",
+    annualPrice: "A$7,500",
     detail: "/ month",
-    body: "Base team layer for up to 20 seats, with workflow setup, feedback-led improvements and use-case tailoring for the sales team.",
+    annualDetail: "/ year",
+    body: "For up to 20 seats, with workflow setup, feedback-led improvements and use-case tailoring for the sales team.",
     badge: "20 seats",
     cta: "Discuss team pilot",
   },
 ];
 
+const phoneSteps = [
+  {
+    label: "Capture",
+    title: "Enter the messy visit",
+    status: "Live note",
+    tone: "var(--brand-cyan)",
+    main: "Aaron happy with Byron. Cinzano support lapsed. Wants Italian menu stuff. Mount Gay not right. Follow up training.",
+    rows: ["Buyer cue: Italian menu direction", "Risk: lapsed Cinzano support", "Follow-up: training may help"],
+    button: "Generate intelligence",
+  },
+  {
+    label: "Extract",
+    title: "BEVI finds the signals",
+    status: "Processing",
+    tone: "var(--brand-blue)",
+    main: "Commercial signals extracted from the note and account context.",
+    rows: ["Buying style: practical menu-led", "Margin pressure: support must be clear", "Missed opportunity: Italian activation"],
+    button: "Build output",
+  },
+  {
+    label: "Act",
+    title: "Copy the next move",
+    status: "Ready",
+    tone: "var(--brand-violet)",
+    main: "CRM note rebuilt. Follow-up email drafted. Account memory updated for the next visit.",
+    rows: ["Next move: reconfirm Cinzano support", "Email: short, friendly, specific", "Memory: Aaron prefers practical fit"],
+    button: "Copy CRM note",
+  },
+];
+
 export function HowItWorksPage() {
+  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
+
   return (
     <main className="relative pt-28 pb-24 min-h-screen">
       <ParticleField count={28} />
@@ -137,85 +179,55 @@ export function HowItWorksPage() {
             <SignalLabel as="h2">Before and after</SignalLabel>
             <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-white">From road-note mess to usable sales action.</h2>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              The rep can capture a rough note on mobile, then review the cleaner CRM note, next move and account memory on a tablet or desktop before follow-up.
+              The rep captures the rough note on mobile, BEVI extracts the commercial signals, then the phone view rolls into CRM copy, follow-up and memory.
             </p>
           </div>
 
           <GlassCard tone="strong" className="mt-8 overflow-hidden p-5 md:p-7">
-            <div className="grid lg:grid-cols-[0.72fr_1.28fr] gap-6 items-center">
-              <div className="mx-auto w-full max-w-[285px] rounded-[2.1rem] border border-white/15 bg-[#050917] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-                <div className="rounded-[1.55rem] border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-4 min-h-[520px]">
-                  <div className="flex items-center justify-between text-[10px] text-white/45">
-                    <span>9:41</span>
-                    <span>BEVI</span>
-                  </div>
-                  <div className="mt-7 flex items-center justify-between">
-                    <SignalLabel>Mobile capture</SignalLabel>
-                    <span className="rounded-full bg-[var(--brand-cyan)]/20 px-2 py-1 text-[10px] text-[var(--brand-cyan)]">Draft</span>
-                  </div>
-                  <h3 className="mt-5 text-xl font-semibold text-white">Raw visit note</h3>
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <p className="text-sm leading-relaxed text-white/78">
-                      Met Aaron. Happy with Byron. Cinzano deal lapsed. Wants Italian stuff. Did not want Mount Gay. Need follow-up maybe training.
-                    </p>
-                  </div>
-                  <div className="mt-5 space-y-2 text-xs text-muted-foreground">
-                    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">Buyer cue: likes Italian menu direction</div>
-                    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">Risk: lapsed Cinzano agreement</div>
-                    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">Follow-up: training may help</div>
-                  </div>
-                  <div className="mt-7 h-11 rounded-xl text-sm font-medium text-primary-foreground grid place-items-center" style={{ background: "var(--gradient-signal)" }}>
-                    Generate intelligence
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-[1.75rem] border border-white/12 bg-[#07111f] p-3 shadow-[0_24px_90px_rgba(0,0,0,0.35)]">
-                <div className="rounded-[1.25rem] border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.035] to-white/[0.02] p-5 md:p-6">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <SignalLabel>Tablet review</SignalLabel>
-                      <h3 className="mt-2 text-2xl font-semibold text-white">BEVI output</h3>
-                    </div>
-                    <div className="flex gap-2 text-[10px] uppercase tracking-[0.16em] text-white/55">
-                      <span className="rounded-full border border-[var(--brand-cyan)]/35 px-3 py-1 text-[var(--brand-cyan)]">CRM</span>
-                      <span className="rounded-full border border-[var(--brand-violet)]/35 px-3 py-1 text-[var(--brand-violet)]">Next move</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 grid md:grid-cols-[1.1fr_0.9fr] gap-4">
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                      <SignalLabel as="h4">CRM-ready note</SignalLabel>
-                      <p className="mt-3 text-sm leading-relaxed text-white/82">
-                        Aaron is positive on Byron and interested in Italian-led menu items. Cinzano support has lapsed and should be resolved before the next order window. Mount Gay was rejected for this call. Training may help convert Italian cocktail interest into a practical menu activation.
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      {beviOutputs.map((output) => (
-                        <div key={output} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3">
-                          <span className="mt-1.5 w-2 h-2 rounded-full bg-[var(--brand-cyan)] shadow-[0_0_12px_var(--brand-cyan)] shrink-0" />
-                          <span className="text-sm text-white/85 leading-relaxed">{output}</span>
+            <div className="relative rounded-[2rem] border border-white/10 bg-gradient-to-br from-cyan-500/10 via-white/[0.025] to-violet-500/10 px-3 py-8 md:px-7">
+              <div className="absolute inset-x-10 top-1/2 hidden h-px bg-gradient-to-r from-transparent via-[var(--brand-cyan)]/40 to-transparent lg:block" aria-hidden />
+              <div className="relative grid gap-5 md:grid-cols-3 md:items-center">
+                {phoneSteps.map((step, index) => (
+                  <div
+                    key={step.title}
+                    className={`mx-auto w-full max-w-[285px] rounded-[2.1rem] border border-white/15 bg-[#050917] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.45)] ${
+                      index === 1 ? "md:-mt-8" : "md:mt-8"
+                    }`}
+                  >
+                    <div className="min-h-[500px] overflow-hidden rounded-[1.55rem] border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-4">
+                      <div className="flex items-center justify-between text-[10px] text-white/45">
+                        <span>9:41</span>
+                        <span className="h-4 w-16 rounded-full bg-black/70" />
+                        <span>5G</span>
+                      </div>
+                      <div className="mt-6 flex items-center justify-between">
+                        <SignalLabel>{step.label}</SignalLabel>
+                        <span className="rounded-full px-2 py-1 text-[10px]" style={{ background: `color-mix(in oklab, ${step.tone} 18%, transparent)`, color: step.tone }}>
+                          {step.status}
+                        </span>
+                      </div>
+                      <h3 className="mt-4 text-xl font-semibold text-white">{step.title}</h3>
+                      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
+                        <div className="h-full rounded-full" style={{ width: `${38 + index * 28}%`, background: step.tone, boxShadow: `0 0 18px ${step.tone}` }} />
+                      </div>
+                      <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4">
+                        <p className="text-sm leading-relaxed text-white/80">{step.main}</p>
+                      </div>
+                      <div className="mt-5 max-h-[152px] space-y-2 overflow-hidden">
+                        <div className={index === 1 ? "animate-pulse space-y-2" : "space-y-2"}>
+                          {step.rows.map((row) => (
+                            <div key={row} className="rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-xs text-muted-foreground">
+                              {row}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
+                      <div className="mt-6 h-11 rounded-xl text-sm font-medium text-primary-foreground grid place-items-center" style={{ background: index === 1 ? "rgba(255,255,255,0.08)" : "var(--gradient-signal)", border: index === 1 ? `1px solid ${step.tone}` : undefined }}>
+                        {step.button}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="mt-4 grid md:grid-cols-2 gap-4">
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                      <SignalLabel as="h4">Next best move</SignalLabel>
-                      <p className="mt-3 text-sm text-white/80 leading-relaxed">
-                        Reconfirm Cinzano support, then offer a short Italian cocktail training session tied to Aaron's menu direction.
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                      <SignalLabel as="h4">Memory carried forward</SignalLabel>
-                      <p className="mt-3 text-sm text-white/80 leading-relaxed">
-                        Aaron likes practical menu ideas, rejects poor-fit rum pushes, and responds to clear support on Italian category opportunities.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </GlassCard>
@@ -227,19 +239,29 @@ export function HowItWorksPage() {
               <SignalLabel as="h2">Pilot pricing</SignalLabel>
               <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-white">Start simple, then carry memory forward.</h2>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                Pricing should match the maturity of the user. A free run proves the output. Paid plans unlock remembered account intelligence and team rollout.
+                Try the output first. Start a memory trial when you want BEVI to remember accounts, shape follow-up and carry the next call forward.
               </p>
             </div>
-            <Link
-              to="/trial"
-              className="inline-flex w-fit items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
-              style={{ background: "var(--gradient-signal)" }}
-            >
-              Try a Visit Note <span>-&gt;</span>
-            </Link>
+            <div className="flex w-fit rounded-2xl border border-white/10 bg-white/[0.035] p-1">
+              {(["monthly", "annual"] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setBilling(option)}
+                  className={`rounded-xl px-4 py-2 text-sm transition-colors ${billing === option ? "text-white" : "text-muted-foreground hover:text-white"}`}
+                  style={billing === option ? { background: "var(--gradient-signal)" } : undefined}
+                >
+                  {option === "monthly" ? "Monthly" : "Annual"}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="mt-8 grid lg:grid-cols-3 gap-5">
+          <div className="mt-4 text-sm text-muted-foreground">
+            Annual billing shows the discounted rate, roughly two months free on paid plans.
+          </div>
+
+          <div className="mt-8 grid lg:grid-cols-4 gap-5">
             {pricingPlans.map((plan) => (
               <GlassCard
                 key={plan.name}
@@ -255,7 +277,8 @@ export function HowItWorksPage() {
                   <div>
                     <div className="text-white font-semibold">{plan.name}</div>
                     <div className="mt-3 text-4xl font-semibold text-white">
-                      {plan.price}<span className="text-sm text-muted-foreground font-normal"> {plan.detail}</span>
+                      {billing === "annual" ? plan.annualPrice : plan.price}
+                      <span className="text-sm text-muted-foreground font-normal"> {billing === "annual" ? plan.annualDetail : plan.detail}</span>
                     </div>
                   </div>
                   {plan.badge && (
