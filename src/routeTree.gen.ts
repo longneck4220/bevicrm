@@ -15,7 +15,6 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTrialRouteImport } from './routes/_authenticated/trial'
 import { Route as AuthenticatedMobileRouteImport } from './routes/_authenticated/mobile'
-import { Route as AuthenticatedHowItWorksRouteImport } from './routes/_authenticated/how-it-works'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedVisitIdRouteImport } from './routes/_authenticated/visit.$id'
@@ -50,11 +49,6 @@ const AuthenticatedMobileRoute = AuthenticatedMobileRouteImport.update({
   path: '/mobile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedHowItWorksRoute = AuthenticatedHowItWorksRouteImport.update({
-  id: '/how-it-works',
-  path: '/how-it-works',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -83,7 +77,6 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/how-it-works': typeof AuthenticatedHowItWorksRoute
   '/mobile': typeof AuthenticatedMobileRoute
   '/trial': typeof AuthenticatedTrialRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
@@ -95,7 +88,6 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/how-it-works': typeof AuthenticatedHowItWorksRoute
   '/mobile': typeof AuthenticatedMobileRoute
   '/trial': typeof AuthenticatedTrialRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
@@ -109,7 +101,6 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/how-it-works': typeof AuthenticatedHowItWorksRoute
   '/_authenticated/mobile': typeof AuthenticatedMobileRoute
   '/_authenticated/trial': typeof AuthenticatedTrialRoute
   '/_authenticated/conversation/$id': typeof AuthenticatedConversationIdRoute
@@ -123,7 +114,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/dashboard'
-    | '/how-it-works'
     | '/mobile'
     | '/trial'
     | '/conversation/$id'
@@ -135,7 +125,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/dashboard'
-    | '/how-it-works'
     | '/mobile'
     | '/trial'
     | '/conversation/$id'
@@ -148,7 +137,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
-    | '/_authenticated/how-it-works'
     | '/_authenticated/mobile'
     | '/_authenticated/trial'
     | '/_authenticated/conversation/$id'
@@ -206,13 +194,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMobileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/how-it-works': {
-      id: '/_authenticated/how-it-works'
-      path: '/how-it-works'
-      fullPath: '/how-it-works'
-      preLoaderRoute: typeof AuthenticatedHowItWorksRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -247,7 +228,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedHowItWorksRoute: typeof AuthenticatedHowItWorksRoute
   AuthenticatedMobileRoute: typeof AuthenticatedMobileRoute
   AuthenticatedTrialRoute: typeof AuthenticatedTrialRoute
   AuthenticatedConversationIdRoute: typeof AuthenticatedConversationIdRoute
@@ -257,7 +237,6 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedHowItWorksRoute: AuthenticatedHowItWorksRoute,
   AuthenticatedMobileRoute: AuthenticatedMobileRoute,
   AuthenticatedTrialRoute: AuthenticatedTrialRoute,
   AuthenticatedConversationIdRoute: AuthenticatedConversationIdRoute,
@@ -277,13 +256,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
