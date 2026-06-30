@@ -97,15 +97,12 @@ export function TrialPage() {
 
   useEffect(() => {
     if (active) {
-      setMemoryDraft(active.memory);
-      setMemoryDirty(false);
       setOutput(null);
       setVisitId(null);
       setRawNote("");
       setSupportingContext("");
       setAttachments([]);
       setError(null);
-      setMemorySaved(false);
       setAdoptedMemory(false);
     }
   }, [activeId]);
