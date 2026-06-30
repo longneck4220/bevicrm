@@ -100,6 +100,14 @@ function clamp(s: string): string {
   return s.length <= MAX_CHARS ? s : s.slice(0, MAX_CHARS) + `\n\n…[truncated ${s.length - MAX_CHARS} chars]`;
 }
 
+function noTextFallback(name: string, type: LibraryFileType): string {
+  return [
+    `File uploaded but no text was extracted: ${name}`,
+    `File type: ${type.toUpperCase()}`,
+    "Use the file name as context only. Ask the rep to paste the relevant text, pricing, product list, deal mechanics, or customer detail before relying on this document.",
+  ].join("\n");
+}
+
 function b64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);
@@ -201,8 +209,9 @@ export const uploadLibraryFile = createServerFn({ method: "POST" })
       throw new Error("Could not store the file. Please try again.");
     }
 
-    const text = await extract(bytes, type, data.name);
-    const deals = await extractDeals(text, data.name);
+    const extractedText = await extract(bytes, type, data.name);
+    const text = extractedText.trim() ? extractedText : noTextFallback(data.name, type);
+    const deals = await extractDeals(extractedText, data.name);
 
     const { data: row, error: insErr } = await supabase
       .from("library_files")
@@ -280,11 +289,12 @@ export const getLibraryFileText = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("library_files")
-      .select("id, name, extracted_text")
+      .select("id, name, file_type, extracted_text")
       .eq("id", data.id)
       .maybeSingle();
     if (error || !row) throw new Error("File not found.");
-    return { id: row.id, name: row.name, text: row.extracted_text ?? "" };
+    const type = row.file_type as LibraryFileType;
+    return { id: row.id, name: row.name, text: (row.extracted_text ?? "").trim() || noTextFallback(row.name, type) };
   });
 
 export const deleteLibraryFile = createServerFn({ method: "POST" })

@@ -121,10 +121,6 @@ export function LibraryPanel({
     setAttachingId(f.id);
     try {
       const { text } = await getText({ data: { id: f.id } });
-      if (!text) {
-        setError(`${f.name} has no extracted text yet.`);
-        return;
-      }
       onAttach({ id: f.id, name: f.name, text });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not attach file.");
@@ -250,7 +246,7 @@ export function LibraryPanel({
               <button
                 type="button"
                 onClick={() => handleAttach(f)}
-                disabled={attachingId === f.id || !f.has_text}
+                disabled={attachingId === f.id}
                 className="text-[11px] px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white disabled:opacity-40"
               >
                 {attachingId === f.id ? "…" : "Attach"}
