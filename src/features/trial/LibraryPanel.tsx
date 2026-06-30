@@ -38,6 +38,16 @@ async function fileToBase64(file: File): Promise<string> {
   return btoa(bin);
 }
 
+function friendlyError(e: unknown, fallback: string): string {
+  if (!(e instanceof Error)) return fallback;
+  const message = e.message.trim();
+  if (!message) return fallback;
+  if (message.includes("<!DOCTYPE html") || message.includes("STATIC_PREVIEW_NOT_FOUND")) {
+    return "BEVI preview is still building or unavailable. Try again shortly.";
+  }
+  return message.length > 240 ? fallback : message;
+}
+
 export function LibraryPanel({
   activeAccountId,
   activeAccountName,
@@ -66,7 +76,7 @@ export function LibraryPanel({
       const rows = await list({ data: { type, accountId: activeAccountId ?? null, search } });
       setFiles(rows);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load library.");
+      setError(friendlyError(e, "Could not load library."));
     }
   }
 
@@ -110,7 +120,7 @@ export function LibraryPanel({
       }
       await refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed.");
+      setError(friendlyError(e, "Upload failed."));
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -123,7 +133,7 @@ export function LibraryPanel({
       const { text } = await getText({ data: { id: f.id } });
       onAttach({ id: f.id, name: f.name, text });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not attach file.");
+      setError(friendlyError(e, "Could not attach file."));
     } finally {
       setAttachingId(null);
     }
@@ -135,7 +145,7 @@ export function LibraryPanel({
       await del({ data: { id: f.id } });
       setFiles((prev) => prev.filter((x) => x.id !== f.id));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not delete file.");
+      setError(friendlyError(e, "Could not delete file."));
     }
   }
 
