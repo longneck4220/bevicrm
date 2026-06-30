@@ -173,7 +173,7 @@ export function VisitDetailPage({ id }: { id: string }) {
 
             {ai.targeted_deals && ai.targeted_deals.length > 0 && (
               <GlassCard className="mt-6 p-6">
-                <SignalLabel as="h2">Targeted deals to pitch at end of call</SignalLabel>
+                <SignalLabel as="h2">TARGETED DEALS TO PITCH NEXT CALL</SignalLabel>
                 <ul className="mt-3 space-y-4">
                   {ai.targeted_deals.map((d, i) => (
                     <li key={i} className="rounded-lg border border-white/10 bg-white/5 p-4">

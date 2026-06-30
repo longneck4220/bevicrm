@@ -640,7 +640,7 @@ function OutputPanel({
       {output.targeted_deals && output.targeted_deals.length > 0 && (
         <GlassCard tone="strong" className="p-6">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <SignalLabel as="h2">Targeted deals to pitch at end of call</SignalLabel>
+            <SignalLabel as="h2">TARGETED DEALS TO PITCH NEXT CALL</SignalLabel>
             <span
               className="text-[10px] font-mono uppercase tracking-[0.18em] px-2 py-1 rounded-md"
               style={{
