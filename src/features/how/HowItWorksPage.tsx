@@ -13,7 +13,7 @@ const workflow = [
   },
   {
     label: "Reconstruct",
-    title: "Reconstruct the sales record",
+    title: "Reconstruct the record",
     body: "BEVI turns the mess into a CRM-ready note, commercial signals, missed opportunity and a practical next best move.",
     tone: "var(--brand-blue)",
   },
@@ -110,7 +110,7 @@ export function HowItWorksPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass mb-7">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
-              <SignalLabel>Post-visit intelligence</SignalLabel>
+              <SignalLabel>FOR FEILD AGENTS</SignalLabel>
             </div>
             <h1 className="text-5xl md:text-7xl leading-[0.98] font-semibold text-white">
               How BEVI <span className="text-gradient">works.</span>
@@ -139,15 +139,15 @@ export function HowItWorksPage() {
             <div className="flex items-center gap-4 mb-6">
               <BeviMark size={54} />
               <div>
-                <SignalLabel>Reason for being</SignalLabel>
-                <div className="text-white text-xl font-semibold mt-1">The gap after the visit</div>
+                <SignalLabel>FORWARD LOOKING INTERGRATION</SignalLabel>
+                <div className="text-white text-xl font-semibold mt-1">FORWARD LOOKING INTERGRATION</div>
               </div>
             </div>
             <p className="text-white/80 leading-relaxed">
               Reps do not lose deals because they forget the meeting. They lose momentum in the gap after it.
             </p>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              BEVI turns what just happened into what should happen next, before buyer cues, pricing tension and follow-up promises go cold.
+              BEVI turns what just happened into what should happen next. Before pricing tension and follow-up promises go cold.&nbsp;
             </p>
           </GlassCard>
         </section>
