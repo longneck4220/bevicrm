@@ -31,6 +31,32 @@ const beviOutputs = [
   "Updated account memory for the next visit",
 ];
 
+const pricingPlans = [
+  {
+    name: "Free",
+    price: "A$0",
+    detail: "No saved memory",
+    body: "Enter a visit, generate the output, then the call is forgotten. Useful for testing the workflow without building account history.",
+    cta: "Try a Visit Note",
+  },
+  {
+    name: "Founding 50",
+    price: "A$31.33",
+    detail: "/ user / month",
+    body: "Discounted early-user plan for the first 50 reps. Includes saved account memory, CRM-ready notes, follow-up drafts and next-move intelligence.",
+    badge: "Early access",
+    cta: "Start pilot",
+  },
+  {
+    name: "Enterprise base",
+    price: "A$750",
+    detail: "/ month",
+    body: "Base team layer for up to 20 seats, with workflow setup, feedback-led improvements and use-case tailoring for the sales team.",
+    badge: "20 seats",
+    cta: "Discuss team pilot",
+  },
+];
+
 export function HowItWorksPage() {
   return (
     <main className="relative pt-28 pb-24 min-h-screen">
@@ -106,56 +132,139 @@ export function HowItWorksPage() {
           </div>
         </section>
 
-        <section id="example" className="mt-16 grid lg:grid-cols-2 gap-5 items-stretch">
-          <GlassCard className="p-6">
-            <SignalLabel as="h2">Raw field note</SignalLabel>
-            <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-5">
-              <p className="text-sm text-white/75 leading-relaxed">
-                Met Aaron. Happy with Byron. Cinzano deal lapsed. Wants Italian stuff. Did not want Mount Gay. Need follow-up maybe training.
-              </p>
-            </div>
-            <p className="mt-4 text-xs text-muted-foreground">
-              The note is useful, but it is not yet manager-readable, CRM-ready or ready for the next call.
+        <section id="example" className="mt-16">
+          <div className="max-w-2xl">
+            <SignalLabel as="h2">Before and after</SignalLabel>
+            <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-white">From road-note mess to usable sales action.</h2>
+            <p className="mt-4 text-muted-foreground leading-relaxed">
+              The rep can capture a rough note on mobile, then review the cleaner CRM note, next move and account memory on a tablet or desktop before follow-up.
             </p>
-          </GlassCard>
+          </div>
 
-          <GlassCard tone="strong" className="p-6">
-            <SignalLabel as="h2">BEVI output</SignalLabel>
-            <div className="mt-5 space-y-3">
-              {beviOutputs.map((output) => (
-                <div key={output} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3">
-                  <span className="mt-1.5 w-2 h-2 rounded-full bg-[var(--brand-cyan)] shadow-[0_0_12px_var(--brand-cyan)] shrink-0" />
-                  <span className="text-sm text-white/85 leading-relaxed">{output}</span>
+          <GlassCard tone="strong" className="mt-8 overflow-hidden p-5 md:p-7">
+            <div className="grid lg:grid-cols-[0.72fr_1.28fr] gap-6 items-center">
+              <div className="mx-auto w-full max-w-[285px] rounded-[2.1rem] border border-white/15 bg-[#050917] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+                <div className="rounded-[1.55rem] border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-4 min-h-[520px]">
+                  <div className="flex items-center justify-between text-[10px] text-white/45">
+                    <span>9:41</span>
+                    <span>BEVI</span>
+                  </div>
+                  <div className="mt-7 flex items-center justify-between">
+                    <SignalLabel>Mobile capture</SignalLabel>
+                    <span className="rounded-full bg-[var(--brand-cyan)]/20 px-2 py-1 text-[10px] text-[var(--brand-cyan)]">Draft</span>
+                  </div>
+                  <h3 className="mt-5 text-xl font-semibold text-white">Raw visit note</h3>
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <p className="text-sm leading-relaxed text-white/78">
+                      Met Aaron. Happy with Byron. Cinzano deal lapsed. Wants Italian stuff. Did not want Mount Gay. Need follow-up maybe training.
+                    </p>
+                  </div>
+                  <div className="mt-5 space-y-2 text-xs text-muted-foreground">
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">Buyer cue: likes Italian menu direction</div>
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">Risk: lapsed Cinzano agreement</div>
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">Follow-up: training may help</div>
+                  </div>
+                  <div className="mt-7 h-11 rounded-xl text-sm font-medium text-primary-foreground grid place-items-center" style={{ background: "var(--gradient-signal)" }}>
+                    Generate intelligence
+                  </div>
                 </div>
-              ))}
+              </div>
+
+              <div className="rounded-[1.75rem] border border-white/12 bg-[#07111f] p-3 shadow-[0_24px_90px_rgba(0,0,0,0.35)]">
+                <div className="rounded-[1.25rem] border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.035] to-white/[0.02] p-5 md:p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <SignalLabel>Tablet review</SignalLabel>
+                      <h3 className="mt-2 text-2xl font-semibold text-white">BEVI output</h3>
+                    </div>
+                    <div className="flex gap-2 text-[10px] uppercase tracking-[0.16em] text-white/55">
+                      <span className="rounded-full border border-[var(--brand-cyan)]/35 px-3 py-1 text-[var(--brand-cyan)]">CRM</span>
+                      <span className="rounded-full border border-[var(--brand-violet)]/35 px-3 py-1 text-[var(--brand-violet)]">Next move</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 grid md:grid-cols-[1.1fr_0.9fr] gap-4">
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <SignalLabel as="h4">CRM-ready note</SignalLabel>
+                      <p className="mt-3 text-sm leading-relaxed text-white/82">
+                        Aaron is positive on Byron and interested in Italian-led menu items. Cinzano support has lapsed and should be resolved before the next order window. Mount Gay was rejected for this call. Training may help convert Italian cocktail interest into a practical menu activation.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      {beviOutputs.map((output) => (
+                        <div key={output} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3">
+                          <span className="mt-1.5 w-2 h-2 rounded-full bg-[var(--brand-cyan)] shadow-[0_0_12px_var(--brand-cyan)] shrink-0" />
+                          <span className="text-sm text-white/85 leading-relaxed">{output}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid md:grid-cols-2 gap-4">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      <SignalLabel as="h4">Next best move</SignalLabel>
+                      <p className="mt-3 text-sm text-white/80 leading-relaxed">
+                        Reconfirm Cinzano support, then offer a short Italian cocktail training session tied to Aaron's menu direction.
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      <SignalLabel as="h4">Memory carried forward</SignalLabel>
+                      <p className="mt-3 text-sm text-white/80 leading-relaxed">
+                        Aaron likes practical menu ideas, rejects poor-fit rum pushes, and responds to clear support on Italian category opportunities.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">
-              BEVI reconstructs the visit into a usable sales record and a next action the rep can actually take.
-            </p>
           </GlassCard>
         </section>
 
-        <section className="mt-16 grid lg:grid-cols-[0.9fr_1.1fr] gap-5 items-start">
-          <GlassCard className="p-6">
-            <SignalLabel as="h2">Pilot pricing</SignalLabel>
-            <div className="mt-5 space-y-4">
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
-                <div className="text-white font-semibold">Field Pilot</div>
-                <div className="mt-2 text-3xl font-semibold text-white">A$39<span className="text-sm text-muted-foreground font-normal"> / user / month</span></div>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                  For reps who need faster CRM notes, cleaner follow-up and better account memory.
-                </p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
-                <div className="text-white font-semibold">Team Pilot</div>
-                <div className="mt-2 text-3xl font-semibold text-white">A$750<span className="text-sm text-muted-foreground font-normal"> / month</span></div>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                  Up to 20 users, core workflow and feedback-led improvements during pilot testing.
-                </p>
-              </div>
+        <section className="mt-16">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <SignalLabel as="h2">Pilot pricing</SignalLabel>
+              <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-white">Start simple, then carry memory forward.</h2>
+              <p className="mt-4 text-muted-foreground leading-relaxed">
+                Pricing should match the maturity of the user. A free run proves the output. Paid plans unlock remembered account intelligence and team rollout.
+              </p>
             </div>
-          </GlassCard>
+            <Link
+              to="/trial"
+              className="inline-flex w-fit items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
+              style={{ background: "var(--gradient-signal)" }}
+            >
+              Try a Visit Note <span>-&gt;</span>
+            </Link>
+          </div>
 
+          <div className="mt-8 grid lg:grid-cols-3 gap-5">
+            {pricingPlans.map((plan) => (
+              <GlassCard key={plan.name} tone={plan.name === "Founding 50" ? "strong" : "default"} className="p-6 flex flex-col">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-white font-semibold">{plan.name}</div>
+                    <div className="mt-3 text-4xl font-semibold text-white">
+                      {plan.price}<span className="text-sm text-muted-foreground font-normal"> {plan.detail}</span>
+                    </div>
+                  </div>
+                  {plan.badge && (
+                    <span className="rounded-full border border-[var(--brand-cyan)]/35 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[var(--brand-cyan)]">
+                      {plan.badge}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-5 text-sm text-muted-foreground leading-relaxed flex-1">{plan.body}</p>
+                <Link to="/trial" className="mt-6 inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white hover:bg-white/[0.08] transition-colors">
+                  {plan.cta}
+                </Link>
+              </GlassCard>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-16">
           <GlassCard tone="strong" className="p-8">
             <SignalLabel as="h2">Not another meeting recorder</SignalLabel>
             <h2 className="mt-4 text-3xl md:text-4xl font-semibold tracking-tight text-white">
