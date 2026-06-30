@@ -21,12 +21,14 @@ export function MobileCompanionPage() {
   return (
     <main className="relative pt-28 pb-16">
       <div className="mx-auto max-w-md px-5">
-        <SignalLabel>Field</SignalLabel>
+        <SignalLabel>FIELD NOTES&nbsp;</SignalLabel>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
           Open. Record. Act. Leave.
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          A CRM stores, a transcriber captures words, BEVI interprets the next best move. Delivers faster follow up and smarter engagements
+        <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">
+          A CRM stores the account, a transcriber captures words.&nbsp;{"\n"}
+          BEVI interprets the next best move.&nbsp;{"\n"}
+          Delivers faster follow up and smarter engagements
         </p>
 
         {/* Primary action */}
