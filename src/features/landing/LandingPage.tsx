@@ -31,7 +31,10 @@ export function LandingPage() {
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass mb-8"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
-              <SignalLabel>Ambient Sales Intelligence · v2.4</SignalLabel>
+              <SignalLabel className="text-left leading-tight">
+                POST VISIT SALES INTELLIGENCE<br />
+                FOR FIELD MANAGERS&nbsp;
+              </SignalLabel>
             </motion.div>
 
             <motion.h1
@@ -52,8 +55,8 @@ export function LandingPage() {
               custom={2}
               className="mt-6 max-w-xl text-lg text-muted-foreground leading-relaxed"
             >
-              BEVI turns post-visit thinking into CRM notes, account memory
-              and the next commercial move.
+              BEVI turns post-visit thinking into CRM ready notes, account memory
+              and the next best commercial move.
             </motion.p>
 
             <motion.div
@@ -68,14 +71,14 @@ export function LandingPage() {
                 className="group relative inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
                 style={{ background: "var(--gradient-signal)" }}
               >
-                Try the agent
+                Try A Visit Note&nbsp;<br />
                 <span className="transition-transform group-hover:translate-x-0.5">→</span>
               </Link>
               <Link
                 to="/mobile"
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm glass hover:bg-white/5 transition-colors"
               >
-                See mobile companion
+                See Example Output&nbsp;
               </Link>
             </motion.div>
 
