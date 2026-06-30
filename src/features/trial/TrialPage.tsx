@@ -132,10 +132,7 @@ export function TrialPage() {
     setError(null);
     setOutput(null);
     try {
-      if (memoryDirty) {
-        await saveMemory({ data: { accountId: active.id, memory: memoryDraft } });
-        setMemoryDirty(false);
-      }
+
       const res = await generate({
         data: { accountId: active.id, rawNote: noteToSubmit, supportingContext: buildSupportingContext() },
       });
