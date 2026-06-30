@@ -18,11 +18,12 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
   );
 }
 
-const links: { to: "/trial" | "/dashboard" | "/mobile"; label: string }[] = [
+const baseLinks: { to: "/trial" | "/dashboard" | "/mobile"; label: string }[] = [
   { to: "/trial", label: "Trial" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/mobile", label: "Mobile" },
 ];
+const adminLink = { to: "/admin" as const, label: "Admin" };
 
 export function TopNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
