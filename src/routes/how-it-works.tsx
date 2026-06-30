@@ -6,7 +6,7 @@ const DESCRIPTION =
   "See how BEVI turns messy field visit notes into CRM-ready records, follow-up, account memory and the next best commercial move.";
 const URL = "https://bevicrm.lovable.app/how-it-works";
 
-export const Route = createFileRoute("/_authenticated/how-it-works")({
+export const Route = createFileRoute("/how-it-works")({
   component: HowItWorksPage,
   head: () => ({
     meta: [

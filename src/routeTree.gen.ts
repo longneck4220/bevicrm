@@ -11,11 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTrialRouteImport } from './routes/_authenticated/trial'
 import { Route as AuthenticatedMobileRouteImport } from './routes/_authenticated/mobile'
-import { Route as AuthenticatedHowItWorksRouteImport } from './routes/_authenticated/how-it-works'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedVisitIdRouteImport } from './routes/_authenticated/visit.$id'
@@ -29,6 +29,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -48,11 +53,6 @@ const AuthenticatedTrialRoute = AuthenticatedTrialRouteImport.update({
 const AuthenticatedMobileRoute = AuthenticatedMobileRouteImport.update({
   id: '/mobile',
   path: '/mobile',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedHowItWorksRoute = AuthenticatedHowItWorksRouteImport.update({
-  id: '/how-it-works',
-  path: '/how-it-works',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -79,11 +79,11 @@ const AuthenticatedConversationIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/how-it-works': typeof AuthenticatedHowItWorksRoute
   '/mobile': typeof AuthenticatedMobileRoute
   '/trial': typeof AuthenticatedTrialRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
@@ -91,11 +91,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/how-it-works': typeof AuthenticatedHowItWorksRoute
   '/mobile': typeof AuthenticatedMobileRoute
   '/trial': typeof AuthenticatedTrialRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
@@ -105,11 +105,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/how-it-works': typeof AuthenticatedHowItWorksRoute
   '/_authenticated/mobile': typeof AuthenticatedMobileRoute
   '/_authenticated/trial': typeof AuthenticatedTrialRoute
   '/_authenticated/conversation/$id': typeof AuthenticatedConversationIdRoute
@@ -119,11 +119,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/how-it-works'
     | '/login'
     | '/sitemap.xml'
     | '/admin'
     | '/dashboard'
-    | '/how-it-works'
     | '/mobile'
     | '/trial'
     | '/conversation/$id'
@@ -131,11 +131,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/how-it-works'
     | '/login'
     | '/sitemap.xml'
     | '/admin'
     | '/dashboard'
-    | '/how-it-works'
     | '/mobile'
     | '/trial'
     | '/conversation/$id'
@@ -144,11 +144,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/how-it-works'
     | '/login'
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
-    | '/_authenticated/how-it-works'
     | '/_authenticated/mobile'
     | '/_authenticated/trial'
     | '/_authenticated/conversation/$id'
@@ -158,6 +158,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
@@ -176,6 +177,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -204,13 +212,6 @@ declare module '@tanstack/react-router' {
       path: '/mobile'
       fullPath: '/mobile'
       preLoaderRoute: typeof AuthenticatedMobileRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/how-it-works': {
-      id: '/_authenticated/how-it-works'
-      path: '/how-it-works'
-      fullPath: '/how-it-works'
-      preLoaderRoute: typeof AuthenticatedHowItWorksRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
@@ -247,7 +248,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedHowItWorksRoute: typeof AuthenticatedHowItWorksRoute
   AuthenticatedMobileRoute: typeof AuthenticatedMobileRoute
   AuthenticatedTrialRoute: typeof AuthenticatedTrialRoute
   AuthenticatedConversationIdRoute: typeof AuthenticatedConversationIdRoute
@@ -257,7 +257,6 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedHowItWorksRoute: AuthenticatedHowItWorksRoute,
   AuthenticatedMobileRoute: AuthenticatedMobileRoute,
   AuthenticatedTrialRoute: AuthenticatedTrialRoute,
   AuthenticatedConversationIdRoute: AuthenticatedConversationIdRoute,
@@ -271,19 +270,10 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -1,19 +1,29 @@
-### Goal
-On `/trial`, remove the large **Account memory** card and the left sidebar. Put the **Accounts** search card and the **New account** card side-by-side in the slot where Account memory used to be. Keep all existing functionality (search/select, add account).
+## Goal
 
-### Changes — `src/features/trial/TrialPage.tsx`
+Surface the existing **How BEVI Works** page so visitors can reach it without signing in, and add it to the landing page navigation/CTA flow.
 
-1. Drop the two-column grid wrapper (`grid lg:grid-cols-[280px_minmax(0,1fr)]`) and the `<aside>` sidebar.
-2. Drop the **Account memory** `GlassCard` (lines ~320–348). Also drop the related state plumbing that's now unused on this page: `memoryDraft`, `memoryDirty`, `handleSaveMemory`, the memory-related effect reset, and the `memoryDirty` save-before-generate branch in `handleGenerate`. (Server `updateAccountMemory` is still used by `handleAdoptMemory` after intelligence runs — keep that.)
-3. In the main column, render a new top row:
-   ```
-   grid md:grid-cols-2 gap-4
-     ├─ Accounts card  (existing GlassCard with AccountSearch — unchanged internals)
-     └─ New account card (existing GlassCard with name/contact inputs + Add account button — unchanged internals)
-   ```
-4. Keep everything below unchanged in order: **File library → Supporting context → Post-visit note → Output**.
-5. Header (BeviMark + "Post-visit intelligence" + H1) stays as-is.
+## Changes
 
-### Out of scope
-- No copy changes, no styling overhaul, no changes to LibraryPanel, AccountSearch, or the AI pipeline.
-- Account memory editing UI is removed from this page; the field still exists in DB and is still updated via "Adopt memory" after generation.
+1. **Move the route out of the auth gate**
+   - Delete `src/routes/_authenticated/how-it-works.tsx`.
+   - Create `src/routes/how-it-works.tsx` with the same `head()` metadata (title, description, OG/Twitter, canonical) and `component: HowItWorksPage`.
+   - Routes auto-regenerate; nothing else to wire.
+
+2. **Link it from the landing page**
+   - In `src/features/landing/LandingPage.tsx`, add a secondary CTA in the hero next to "Try a Visit Note" → `<Link to="/how-it-works">How it works →</Link>` styled to match the existing ghost button.
+   - Add a "How it works" link in the footer/secondary nav area if present.
+
+3. **Top nav exposure for logged-out users**
+   - `src/features/shared/TopNav.tsx` already lists `/how-it-works` in `baseLinks`; confirm it renders for unauthenticated users too (it does — links render regardless of auth). No change needed beyond verifying the route is now public.
+
+4. **Sitemap + SEO**
+   - Add `{ path: "/how-it-works", changefreq: "monthly", priority: "0.8" }` to `src/routes/sitemap[.]xml.ts` so the public page is indexable.
+
+5. **Internal "Try" CTAs on the page**
+   - `HowItWorksPage` links to `/trial` (auth-gated). Leave as-is — unauthenticated clicks will redirect to login via `_authenticated` layout, which is the desired conversion flow.
+
+## Out of scope
+
+- No content rewrite of the How It Works page itself.
+- No design system changes.
+- No new auth/role logic.
