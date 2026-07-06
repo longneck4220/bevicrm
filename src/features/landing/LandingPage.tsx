@@ -124,7 +124,7 @@ export function LandingPage() {
           {[
             { label: "BEVI SENSES OPPORTUNITY", tone: "var(--brand-cyan)" },
             { label: "BEVI UNDERSTANDS CONTEXT", tone: "var(--brand-blue)" },
-            { label: "BEVI DELIVERS THE NEXT MOVE", tone: "var(--brand-violet)" },
+            { label: "DELIVERS THE NEXT MOVE", tone: "var(--brand-violet)" },
           ].map((p) => (
             <div
               key={p.label}
