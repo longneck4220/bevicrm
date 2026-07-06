@@ -63,7 +63,7 @@ async function extractDeals(text: string, fileName: string): Promise<LibraryDeal
 const MAX_BYTES = 20 * 1024 * 1024;
 const MAX_CHARS = 120_000;
 
-export type LibraryFileType = "pdf" | "xlsx" | "pptx" | "docx" | "other";
+export type LibraryFileType = "pdf" | "xlsx" | "pptx" | "docx" | "image" | "other";
 
 export type LibraryFile = {
   id: string;
@@ -92,6 +92,17 @@ function detectType(name: string, mime: string): LibraryFileType {
     mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
     n.endsWith(".docx")
   ) return "docx";
+  if (
+    mime.startsWith("image/") ||
+    n.endsWith(".png") ||
+    n.endsWith(".jpg") ||
+    n.endsWith(".jpeg") ||
+    n.endsWith(".webp") ||
+    n.endsWith(".gif") ||
+    n.endsWith(".heic") ||
+    n.endsWith(".heif") ||
+    n.endsWith(".bmp")
+  ) return "image";
   return "other";
 }
 
@@ -101,6 +112,14 @@ function clamp(s: string): string {
 }
 
 function noTextFallback(name: string, type: LibraryFileType): string {
+  if (type === "image") {
+    return [
+      `Image uploaded: ${name}`,
+      "File type: IMAGE",
+      "This image is available in the file library, but BEVI has not extracted visible text from it. Ask the rep to paste any important sales data, pricing, or account detail before relying on the image.",
+    ].join("\n");
+  }
+
   return [
     `File uploaded but no text was extracted: ${name}`,
     `File type: ${type.toUpperCase()}`,
@@ -117,6 +136,7 @@ function b64ToBytes(b64: string): Uint8Array {
 
 async function extract(bytes: Uint8Array, type: LibraryFileType, name: string): Promise<string> {
   try {
+    if (type === "image") return "";
     if (type === "pdf") {
       const { extractText, getDocumentProxy } = await import("unpdf");
       const doc = await getDocumentProxy(bytes);
@@ -249,7 +269,7 @@ export const uploadLibraryFile = createServerFn({ method: "POST" })
   });
 
 const ListInput = z.object({
-  type: z.enum(["pdf", "xlsx", "pptx", "docx", "other", "all"]).optional().default("all"),
+  type: z.enum(["pdf", "xlsx", "pptx", "docx", "image", "other", "all"]).optional().default("all"),
   accountId: z.string().uuid().nullable().optional(),
   search: z.string().max(200).optional().default(""),
 });
@@ -303,10 +323,13 @@ export const deleteLibraryFile = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: row, error: getErr } = await context.supabase
       .from("library_files")
-      .select("storage_path")
+      .select("owner_id, storage_path")
       .eq("id", data.id)
       .maybeSingle();
     if (getErr || !row) throw new Error("File not found.");
+    if (row.owner_id !== context.userId) {
+      throw new Error("Only the file owner can delete this file.");
+    }
     await context.supabase.storage.from("library").remove([row.storage_path]);
     const { error: delErr } = await context.supabase.from("library_files").delete().eq("id", data.id);
     if (delErr) {

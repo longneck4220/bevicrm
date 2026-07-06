@@ -16,6 +16,7 @@ const TYPE_TABS: { id: "all" | LibraryFileType; label: string }[] = [
   { id: "xlsx", label: "Excel" },
   { id: "pptx", label: "PPTX" },
   { id: "docx", label: "Word" },
+  { id: "image", label: "Image" },
 ];
 
 const TYPE_TONE: Record<LibraryFileType, string> = {
@@ -23,6 +24,7 @@ const TYPE_TONE: Record<LibraryFileType, string> = {
   xlsx: "var(--signal-positive)",
   pptx: "var(--brand-violet)",
   docx: "var(--brand-cyan)",
+  image: "var(--brand-blue)",
   other: "var(--brand-blue)",
 };
 
@@ -163,7 +165,7 @@ export function LibraryPanel({
             ref={inputRef}
             type="file"
             multiple
-            accept=".pdf,.docx,.xlsx,.xls,.csv,.pptx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,text/*"
+            accept=".pdf,.docx,.xlsx,.xls,.csv,.pptx,.txt,.md,.png,.jpg,.jpeg,.webp,.gif,.heic,.heif,.bmp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,text/*,image/*"
             onChange={(e) => handleFiles(e.target.files)}
             disabled={uploading}
             className="hidden"
