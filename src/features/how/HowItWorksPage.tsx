@@ -293,7 +293,7 @@ export function HowItWorksPage() {
 
         <section className="mt-16">
           <GlassCard tone="strong" className="p-8">
-            <SignalLabel as="h2">BETWEEN VISIT INTELLIGENCE</SignalLabel>
+            <SignalLabel as="h2">DELIVERS THE NEXT MOVE</SignalLabel>
             <h2 className="mt-4 text-3xl md:text-4xl font-semibold tracking-tight text-white">
               BEVI sits after the field visit, where sales value is either captured or lost.
             </h2>
