@@ -201,7 +201,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
-      library_file_type: "pdf" | "xlsx" | "pptx" | "docx" | "image" | "other"
+      library_file_type: "pdf" | "xlsx" | "pptx" | "docx" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -330,7 +330,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
-      library_file_type: ["pdf", "xlsx", "pptx", "docx", "image", "other"],
+      library_file_type: ["pdf", "xlsx", "pptx", "docx", "other"],
     },
   },
 } as const
