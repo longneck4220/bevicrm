@@ -5,6 +5,7 @@ import { useState } from "react";
 import { GlassCard, SignalLabel, SignalChip } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { getVisit } from "@/lib/trial.functions";
+import { copyToClipboard } from "@/lib/clipboard";
 
 export function VisitDetailPage({ id }: { id: string }) {
   const fetchVisit = useServerFn(getVisit);
@@ -34,8 +35,8 @@ export function VisitDetailPage({ id }: { id: string }) {
   const created = new Date(data.created_at).toLocaleString();
 
   async function copy(text: string, which: "note" | "email") {
-    await navigator.clipboard.writeText(normalizeCopyText(text));
-    setCopied(which);
+    const ok = await copyToClipboard(text);
+    setCopied(ok ? which : null);
     setTimeout(() => setCopied(null), 1500);
   }
 
@@ -229,11 +230,3 @@ export function VisitDetailPage({ id }: { id: string }) {
   );
 }
 
-function normalizeCopyText(text: string) {
-  if (!/%[0-9A-Fa-f]{2}/.test(text)) return text;
-  try {
-    return decodeURIComponent(text);
-  } catch {
-    return text;
-  }
-}
