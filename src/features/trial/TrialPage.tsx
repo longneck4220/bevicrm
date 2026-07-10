@@ -471,28 +471,19 @@ export function TrialPage() {
 }
 
 function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
   return (
     <button
       onClick={async () => {
-        await navigator.clipboard.writeText(normalizeCopyText(text));
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
+        const ok = await copyToClipboard(text);
+        setStatus(ok ? "copied" : "failed");
+        setTimeout(() => setStatus("idle"), 1800);
       }}
       className="text-xs px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white"
     >
-      {copied ? "Copied ✓" : "Copy"}
+      {status === "copied" ? "Copied ✓" : status === "failed" ? "Couldn't copy — select manually" : "Copy"}
     </button>
   );
-}
-
-function normalizeCopyText(text: string) {
-  if (!/%[0-9A-Fa-f]{2}/.test(text)) return text;
-  try {
-    return decodeURIComponent(text);
-  } catch {
-    return text;
-  }
 }
 
 function OutputPanel({
