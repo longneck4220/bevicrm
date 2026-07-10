@@ -60,14 +60,17 @@ export function TrialPage() {
   const [newName, setNewName] = useState("");
   const [newContact, setNewContact] = useState("");
   const [recognizing, setRecognizing] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  const transcriptBaseRef = useRef("");
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const generate = useServerFn(generateVisitIntelligence);
   const saveMemory = useServerFn(updateAccountMemory);
   const addAccount = useServerFn(createAccount);
   const rate = useServerFn(rateVisit);
+  const transcribe = useServerFn(transcribeAudio);
 
   const active = useMemo(() => accounts.find((a) => a.id === activeId) ?? null, [accounts, activeId]);
 
