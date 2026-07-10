@@ -8,6 +8,62 @@ const GenerateInput = z.object({
   supportingContext: z.string().max(400000).optional().default(""),
 });
 
+const TranscribeInput = z.object({
+  base64: z.string().min(1),
+  mime: z.string().min(1).max(100),
+});
+
+export const transcribeAudio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => TranscribeInput.parse(d))
+  .handler(async ({ data }): Promise<{ text: string }> => {
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
+
+    // Decode base64 -> bytes -> Blob (Workers runtime supports atob + Blob)
+    const bin = atob(data.base64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    if (bytes.byteLength < 512) throw new Error("Recording was empty. Please try again.");
+    if (bytes.byteLength > 25 * 1024 * 1024) throw new Error("Recording is over 25 MB. Try shorter clips.");
+
+    // Pick a filename extension that matches the actual container so the
+    // upstream model doesn't reject with "Audio file might be corrupted".
+    const mime = (data.mime || "").split(";")[0].trim().toLowerCase();
+    const extMap: Record<string, string> = {
+      "audio/webm": "webm",
+      "audio/ogg": "ogg",
+      "audio/mp4": "mp4",
+      "audio/x-m4a": "m4a",
+      "audio/mpeg": "mp3",
+      "audio/wav": "wav",
+      "audio/x-wav": "wav",
+    };
+    const ext = extMap[mime] ?? "webm";
+    const blob = new Blob([bytes], { type: mime || "audio/webm" });
+
+    const form = new FormData();
+    form.append("model", "openai/gpt-4o-transcribe");
+    form.append("file", blob, `recording.${ext}`);
+
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: form,
+    });
+
+    if (resp.status === 429) throw new Error("Rate limit — please try again in a moment.");
+    if (resp.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
+    if (!resp.ok) {
+      const txt = await resp.text();
+      console.error("[STT gateway error]", resp.status, txt.slice(0, 500));
+      throw new Error("Transcription failed. Please try again.");
+    }
+    const payload = await resp.json();
+    const text: string = payload?.text ?? "";
+    return { text: text.trim() };
+  });
+
 const SYSTEM_PROMPT = `You are BEVI, a post-visit intelligence agent for field BDMs and field sales teams.
 
 BEVI's product role:
