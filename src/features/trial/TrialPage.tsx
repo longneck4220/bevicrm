@@ -421,13 +421,14 @@ export function TrialPage() {
                 <button
                   type="button"
                   onClick={toggleDictation}
-                  className={`text-xs px-3 py-1.5 rounded-md ${
+                  disabled={transcribing}
+                  className={`text-xs px-3 py-1.5 rounded-md disabled:opacity-60 ${
                     recognizing
                       ? "bg-[var(--signal-risk)]/20 text-[var(--signal-risk)]"
                       : "bg-white/10 text-white hover:bg-white/15"
                   }`}
                 >
-                  {recognizing ? "● Listening — tap to stop" : "🎙 Dictate"}
+                  {transcribing ? "Transcribing…" : recognizing ? "● Listening — tap to stop" : "🎙 Dictate"}
                 </button>
               </div>
               <textarea
