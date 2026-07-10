@@ -240,7 +240,7 @@ export const uploadLibraryFile = createServerFn({ method: "POST" })
         owner_id: userId,
         account_id: data.accountId ?? null,
         name: data.name,
-        file_type: type,
+        file_type: type as never,
         storage_path: storagePath,
         size_bytes: bytes.byteLength,
         mime_type: data.mime || "",
@@ -283,7 +283,7 @@ export const listLibraryFiles = createServerFn({ method: "POST" })
       .select("id, account_id, name, file_type, size_bytes, mime_type, created_at, extracted_text")
       .order("created_at", { ascending: false })
       .limit(500);
-    if (data.type !== "all") q = q.eq("file_type", data.type);
+    if (data.type !== "all") q = q.eq("file_type", data.type as never);
     if (data.accountId) q = q.or(`account_id.is.null,account_id.eq.${data.accountId}`);
     if (data.search) q = q.ilike("name", `%${data.search}%`);
     const { data: rows, error } = await q;
