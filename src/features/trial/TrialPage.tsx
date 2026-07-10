@@ -95,8 +95,10 @@ export function TrialPage() {
 
   useEffect(() => {
     return () => {
-      recognitionRef.current?.stop();
-      recognitionRef.current = null;
+      try { mediaRecorderRef.current?.stop(); } catch { /* noop */ }
+      mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+      mediaRecorderRef.current = null;
+      mediaStreamRef.current = null;
     };
   }, []);
 
