@@ -788,24 +788,6 @@ function SignalBlock({
   );
 }
 
-// Minimal Web Speech API types (browser-only, optional API)
-interface SpeechRecognitionLike {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start(): void;
-  stop(): void;
-  onresult: ((e: SpeechRecognitionEvent) => void) | null;
-  onend: (() => void) | null;
-  onerror: ((e: SpeechRecognitionErrorEvent) => void) | null;
-}
-interface SpeechRecognitionEvent {
-  resultIndex: number;
-  results: { [index: number]: { [index: number]: { transcript: string }; isFinal: boolean }; length: number };
-}
-interface SpeechRecognitionErrorEvent {
-  error?: string;
-}
 
 function AccountSearch({
   accounts,
