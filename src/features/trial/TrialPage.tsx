@@ -176,58 +176,110 @@ export function TrialPage() {
     await rate({ data: { visitId, rating } });
   }
 
-  function toggleDictation() {
-    // Lightweight Web Speech API integration; graceful fallback if unsupported
-    const w = window as unknown as {
-      SpeechRecognition?: new () => SpeechRecognitionLike;
-      webkitSpeechRecognition?: new () => SpeechRecognitionLike;
-    };
-    const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
-    if (!Ctor) {
-      setError("Dictation is not supported in this browser. Type the note instead.");
-      return;
-    }
+  async function toggleDictation() {
+    // If currently recording, stop — onstop handler uploads + transcribes.
     if (recognizing) {
-      recognitionRef.current?.stop();
-      recognitionRef.current = null;
-      setRecognizing(false);
+      try { mediaRecorderRef.current?.stop(); } catch { /* noop */ }
       return;
     }
-    const rec = new Ctor();
-    rec.continuous = true;
-    rec.interimResults = true;
-    rec.lang = "en-AU";
-    transcriptBaseRef.current = rawNote.trim();
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      let finalText = "";
-      let interimText = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const transcript = e.results[i][0].transcript.trim();
-        if (e.results[i].isFinal) finalText += `${transcript} `;
-        else interimText += `${transcript} `;
-      }
-      if (finalText.trim()) {
-        transcriptBaseRef.current = [transcriptBaseRef.current, finalText.trim()].filter(Boolean).join(" ");
-      }
-      setRawNote([transcriptBaseRef.current, interimText.trim()].filter(Boolean).join(" "));
-    };
-    rec.onend = () => {
-      recognitionRef.current = null;
-      setRecognizing(false);
-    };
-    rec.onerror = (event) => {
-      recognitionRef.current = null;
-      setRecognizing(false);
-      setError(event?.error === "not-allowed" ? "Microphone permission was blocked." : "Dictation stopped. Try again or type the note.");
-    };
+
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setError("Dictation isn't supported here. Open the app in a normal browser tab and try again.");
+      return;
+    }
+
+    let stream: MediaStream;
     try {
-      recognitionRef.current = rec;
-      rec.start();
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+      const name = (e as { name?: string })?.name;
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        setError("Microphone permission was blocked. In the preview, open in a new tab to allow the mic.");
+      } else if (name === "NotFoundError") {
+        setError("No microphone detected on this device.");
+      } else {
+        setError("Could not access the microphone. Try again or type the note.");
+      }
+      return;
+    }
+
+    // Pick a mimeType the browser actually supports so the container is valid.
+    // Order matters: Safari only supports mp4; Chrome/Firefox produce webm.
+    const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/mpeg"];
+    let mimeType = "";
+    for (const c of candidates) {
+      if (typeof MediaRecorder.isTypeSupported === "function" && MediaRecorder.isTypeSupported(c)) {
+        mimeType = c;
+        break;
+      }
+    }
+    let rec: MediaRecorder;
+    try {
+      rec = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+    } catch {
+      stream.getTracks().forEach((t) => t.stop());
+      setError("Could not start recording. Try again or type the note.");
+      return;
+    }
+
+    audioChunksRef.current = [];
+    mediaRecorderRef.current = rec;
+    mediaStreamRef.current = stream;
+
+    rec.ondataavailable = (ev) => {
+      if (ev.data && ev.data.size > 0) audioChunksRef.current.push(ev.data);
+    };
+    rec.onerror = () => {
+      setError("Recording failed. Try again.");
+    };
+    rec.onstop = async () => {
+      const chunks = audioChunksRef.current;
+      audioChunksRef.current = [];
+      stream.getTracks().forEach((t) => t.stop());
+      mediaRecorderRef.current = null;
+      mediaStreamRef.current = null;
+      setRecognizing(false);
+
+      const type = chunks[0]?.type || rec.mimeType || "audio/webm";
+      const blob = new Blob(chunks, { type });
+      if (blob.size < 2048) {
+        setError("That recording was empty — please try again.");
+        return;
+      }
+      setTranscribing(true);
+      try {
+        const buf = await blob.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        // base64 encode in chunks to avoid stack overflow on large inputs
+        let bin = "";
+        const CHUNK = 0x8000;
+        for (let i = 0; i < bytes.length; i += CHUNK) {
+          bin += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+        }
+        const base64 = btoa(bin);
+        const res = await transcribe({ data: { base64, mime: type } });
+        const text = (res.text ?? "").trim();
+        if (!text) {
+          setError("Didn't catch any speech. Try again.");
+          return;
+        }
+        setRawNote((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
+        setError(null);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Transcription failed.");
+      } finally {
+        setTranscribing(false);
+      }
+    };
+
+    try {
+      rec.start(); // no timeslice: emit one complete container on stop
       setError(null);
       setRecognizing(true);
     } catch {
-      recognitionRef.current = null;
-      setRecognizing(false);
+      stream.getTracks().forEach((t) => t.stop());
+      mediaRecorderRef.current = null;
+      mediaStreamRef.current = null;
       setError("Could not start dictation. Try again or type the note.");
     }
   }
