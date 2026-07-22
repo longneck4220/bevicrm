@@ -4,11 +4,7 @@ export function OctopusOrb({ size = 220 }: { size?: number }) {
   // Stylized signal-orb mark: concentric arms + sensing pulses
   const arms = Array.from({ length: 8 });
   return (
-    <div
-      className="relative"
-      style={{ width: size, height: size }}
-      aria-hidden
-    >
+    <div className="relative" style={{ width: size, height: size }} aria-hidden>
       {/* aurora bed */}
       <div
         className="absolute inset-0 rounded-full blur-2xl opacity-70"

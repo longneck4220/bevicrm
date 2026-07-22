@@ -9,7 +9,10 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
       {!compact && (
         <div className="leading-none">
           <div className="text-[16px] font-semibold tracking-[0.18em] text-white">BEVI</div>
-          <div className="signal-label font-sans font-bold text-lg !text-[9px] mt-1" style={{ color: "var(--brand-cyan)" }}>
+          <div
+            className="signal-label font-sans font-bold text-lg !text-[9px] mt-1"
+            style={{ color: "var(--brand-cyan)" }}
+          >
             Win the next call
           </div>
         </div>
@@ -60,6 +63,7 @@ export function TopNav() {
                     {(() => {
                       const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
                       const name =
+                        (meta.display_name as string) ||
                         (meta.full_name as string) ||
                         (meta.name as string) ||
                         (meta.first_name as string) ||

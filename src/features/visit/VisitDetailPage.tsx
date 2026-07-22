@@ -17,7 +17,9 @@ export function VisitDetailPage({ id }: { id: string }) {
 
   if (isLoading) {
     return (
-      <main className="pt-28 pb-24 max-w-3xl mx-auto px-6 text-sm text-white/50">Loading visit…</main>
+      <main className="pt-28 pb-24 max-w-3xl mx-auto px-6 text-sm text-white/50">
+        Loading visit…
+      </main>
     );
   }
   if (error || !data) {
@@ -43,16 +45,21 @@ export function VisitDetailPage({ id }: { id: string }) {
   return (
     <main className="relative pt-28 pb-24">
       <div className="mx-auto max-w-3xl px-6">
-        <Link to="/dashboard" className="text-xs text-white/60 hover:text-white">← Back to dashboard</Link>
+        <Link to="/dashboard" className="text-xs text-white/60 hover:text-white">
+          ← Back to dashboard
+        </Link>
 
         <header className="mt-4 flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <BeviMark size={28} animated={false} />
             <div>
               <SignalLabel>Visit intelligence</SignalLabel>
-              <h1 className="mt-1 text-3xl font-semibold tracking-tight text-white">{data.account_name}</h1>
+              <h1 className="mt-1 text-3xl font-semibold tracking-tight text-white">
+                {data.account_name}
+              </h1>
               <p className="text-xs text-white/50 mt-1">
-                {data.account_contact ? `${data.account_contact} · ` : ""}{created}
+                {data.account_contact ? `${data.account_contact} · ` : ""}
+                {created}
               </p>
             </div>
           </div>
@@ -89,7 +96,9 @@ export function VisitDetailPage({ id }: { id: string }) {
               )}
               {ai.next_best_move.specific_ask && (
                 <div className="mt-4 p-3 rounded-lg bg-white/5 border border-white/10">
-                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40">Specific ask</div>
+                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40">
+                    Specific ask
+                  </div>
                   <div className="mt-1 text-sm text-white">{ai.next_best_move.specific_ask}</div>
                 </div>
               )}
@@ -100,17 +109,27 @@ export function VisitDetailPage({ id }: { id: string }) {
               <SignalLabel as="h2">Commercial signals</SignalLabel>
               <dl className="mt-4 grid sm:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <dt className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40">Buying style</dt>
-                  <dd className="mt-1 text-white/90">{ai.commercial_signals.buying_style || "—"}</dd>
+                  <dt className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40">
+                    Buying style
+                  </dt>
+                  <dd className="mt-1 text-white/90">
+                    {ai.commercial_signals.buying_style || "—"}
+                  </dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40">Margin pressure</dt>
-                  <dd className="mt-1 text-white/90">{ai.commercial_signals.margin_pressure || "—"}</dd>
+                  <dt className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40">
+                    Margin pressure
+                  </dt>
+                  <dd className="mt-1 text-white/90">
+                    {ai.commercial_signals.margin_pressure || "—"}
+                  </dd>
                 </div>
               </dl>
               {ai.commercial_signals.risk_flags?.length > 0 && (
                 <div className="mt-4">
-                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40 mb-2">Risk flags</div>
+                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40 mb-2">
+                    Risk flags
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {ai.commercial_signals.risk_flags.map((r, i) => (
                       <SignalChip key={i} kind="risk" label={r} />
@@ -120,7 +139,9 @@ export function VisitDetailPage({ id }: { id: string }) {
               )}
               {ai.commercial_signals.opportunity_signals?.length > 0 && (
                 <div className="mt-4">
-                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40 mb-2">Opportunities</div>
+                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40 mb-2">
+                    Opportunities
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {ai.commercial_signals.opportunity_signals.map((r, i) => (
                       <SignalChip key={i} kind="buying" label={r} />
@@ -152,7 +173,10 @@ export function VisitDetailPage({ id }: { id: string }) {
                 <SignalLabel as="h2">Follow-up email</SignalLabel>
                 <button
                   onClick={() =>
-                    copy(`Subject: ${ai.follow_up_email.subject}\n\n${ai.follow_up_email.body}`, "email")
+                    copy(
+                      `Subject: ${ai.follow_up_email.subject}\n\n${ai.follow_up_email.body}`,
+                      "email",
+                    )
                   }
                   className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white"
                 >
@@ -161,14 +185,18 @@ export function VisitDetailPage({ id }: { id: string }) {
               </div>
               <div className="mt-3 text-sm text-white/85">
                 <div className="text-white font-medium">{ai.follow_up_email.subject}</div>
-                <p className="mt-2 whitespace-pre-wrap leading-relaxed">{ai.follow_up_email.body}</p>
+                <p className="mt-2 whitespace-pre-wrap leading-relaxed">
+                  {ai.follow_up_email.body}
+                </p>
               </div>
             </GlassCard>
 
             {ai.missed_opportunity && (
               <GlassCard className="mt-6 p-6">
                 <SignalLabel as="h2">Missed opportunity</SignalLabel>
-                <p className="mt-3 text-sm text-white/85 leading-relaxed">{ai.missed_opportunity}</p>
+                <p className="mt-3 text-sm text-white/85 leading-relaxed">
+                  {ai.missed_opportunity}
+                </p>
               </GlassCard>
             )}
 
@@ -184,10 +212,14 @@ export function VisitDetailPage({ id }: { id: string }) {
                       </div>
                       <div className="mt-1 text-sm text-[var(--brand-cyan)]">{d.deal}</div>
                       {d.eligibility && (
-                        <div className="mt-1 text-xs text-white/60">Eligibility: {d.eligibility}</div>
+                        <div className="mt-1 text-xs text-white/60">
+                          Eligibility: {d.eligibility}
+                        </div>
                       )}
                       {d.why_relevant && (
-                        <div className="mt-2 text-xs text-white/70">Why relevant: {d.why_relevant}</div>
+                        <div className="mt-2 text-xs text-white/70">
+                          Why relevant: {d.why_relevant}
+                        </div>
                       )}
                       {d.pitch_line && (
                         <div className="mt-3 rounded-md border-l-2 border-[var(--brand-cyan)] bg-white/5 p-3 text-sm text-white/90 italic">
@@ -213,14 +245,18 @@ export function VisitDetailPage({ id }: { id: string }) {
             Show raw note & supporting context
           </summary>
           <GlassCard className="mt-3 p-5">
-            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40">Raw note</div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40">
+              Raw note
+            </div>
             <p className="mt-1 whitespace-pre-wrap text-sm text-white/80">{data.raw_note}</p>
             {data.supporting_context && (
               <>
                 <div className="mt-4 text-[10px] font-mono uppercase tracking-[0.18em] text-white/40">
                   Supporting context
                 </div>
-                <p className="mt-1 whitespace-pre-wrap text-xs text-white/60">{data.supporting_context}</p>
+                <p className="mt-1 whitespace-pre-wrap text-xs text-white/60">
+                  {data.supporting_context}
+                </p>
               </>
             )}
           </GlassCard>
@@ -229,4 +265,3 @@ export function VisitDetailPage({ id }: { id: string }) {
     </main>
   );
 }
-

@@ -32,15 +32,17 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setNotice(null);
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -49,6 +51,15 @@ function LoginPage() {
           },
         });
         if (error) throw error;
+        if (!data.session) {
+          // Email confirmation is required — there's no session yet, so
+          // navigating to /dashboard would just bounce straight back to
+          // /login with no explanation. Tell the user what's happening instead.
+          setNotice("Check your email to confirm your account, then sign in.");
+          setMode("signin");
+          setLoading(false);
+          return;
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -102,6 +113,7 @@ function LoginPage() {
               placeholder="Password"
               className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)]"
             />
+            {notice && <div className="text-sm text-[var(--signal-positive)]">{notice}</div>}
             {error && <div className="text-sm text-[var(--signal-risk)]">{error}</div>}
             <button
               type="submit"
@@ -118,6 +130,7 @@ function LoginPage() {
             onClick={() => {
               setMode(mode === "signin" ? "signup" : "signin");
               setError(null);
+              setNotice(null);
             }}
             className="mt-5 w-full text-xs text-white/60 hover:text-white"
           >

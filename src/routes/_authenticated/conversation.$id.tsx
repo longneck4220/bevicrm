@@ -5,7 +5,10 @@ export const Route = createFileRoute("/_authenticated/conversation/$id")({
   head: () => ({
     meta: [
       { title: "Conversation · BEVI" },
-      { name: "description", content: "Signal moments, stakeholder map, and AI-recommended next moves." },
+      {
+        name: "description",
+        content: "Signal moments, stakeholder map, and AI-recommended next moves.",
+      },
     ],
   }),
   component: RouteComponent,

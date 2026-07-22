@@ -63,7 +63,9 @@ export function MobileCompanionPage() {
           <SignalLabel>Recent visits</SignalLabel>
           <div className="mt-3 space-y-2.5">
             {today.length === 0 && (
-              <div className="text-xs text-white/50 px-1">No visits yet — record your first one above.</div>
+              <div className="text-xs text-white/50 px-1">
+                No visits yet — record your first one above.
+              </div>
             )}
             {today.map((v) => (
               <Link key={v.id} to="/visit/$id" params={{ id: v.id }}>

@@ -25,7 +25,8 @@ export const transcribeAudio = createServerFn({ method: "POST" })
     const bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     if (bytes.byteLength < 512) throw new Error("Recording was empty. Please try again.");
-    if (bytes.byteLength > 25 * 1024 * 1024) throw new Error("Recording is over 25 MB. Try shorter clips.");
+    if (bytes.byteLength > 25 * 1024 * 1024)
+      throw new Error("Recording is over 25 MB. Try shorter clips.");
 
     // Pick a filename extension that matches the actual container so the
     // upstream model doesn't reject with "Audio file might be corrupted".
@@ -53,7 +54,8 @@ export const transcribeAudio = createServerFn({ method: "POST" })
     });
 
     if (resp.status === 429) throw new Error("Rate limit — please try again in a moment.");
-    if (resp.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
+    if (resp.status === 402)
+      throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
     if (!resp.ok) {
       const txt = await resp.text();
       console.error("[STT gateway error]", resp.status, txt.slice(0, 500));
@@ -304,7 +306,10 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       for (const f of rows) {
         const scope = f.account_id ? "pinned" : "global";
         const raw = (f.extracted_text ?? "").trim();
-        const sliced = raw.length > PER_FILE_CAP ? raw.slice(0, PER_FILE_CAP) + `\n…[truncated ${raw.length - PER_FILE_CAP} chars]` : raw;
+        const sliced =
+          raw.length > PER_FILE_CAP
+            ? raw.slice(0, PER_FILE_CAP) + `\n…[truncated ${raw.length - PER_FILE_CAP} chars]`
+            : raw;
         if (used + sliced.length > TOTAL_CAP) {
           overflow.push(`${f.name} (${scope})`);
           continue;
@@ -323,8 +328,12 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
     // Structured deals catalog (pre-extracted at upload) — primary source for end-of-call deal pitches.
     const dealsBlock = (() => {
       type DealRow = {
-        product: string; discount: string; starts_on: string | null; ends_on: string | null;
-        eligibility: string; notes: string;
+        product: string;
+        discount: string;
+        starts_on: string | null;
+        ends_on: string | null;
+        eligibility: string;
+        notes: string;
       };
       const lines: string[] = [];
       for (const f of libFiles ?? []) {
@@ -342,7 +351,6 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       }
       return lines.length ? lines.join("\n") : "(no structured deals on file)";
     })();
-
 
     const userPrompt = `Account: ${account.name}
 Contact: ${account.contact ?? "(unknown)"}
@@ -396,7 +404,8 @@ Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-re
     });
 
     if (resp.status === 429) throw new Error("Rate limit — please try again in a moment.");
-    if (resp.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
+    if (resp.status === 402)
+      throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
     if (!resp.ok) {
       const txt = await resp.text();
       console.error("[AI gateway error]", resp.status, txt.slice(0, 1000));
@@ -477,7 +486,12 @@ export const createAccount = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("accounts")
-      .insert({ name: data.name, contact: data.contact || null, memory: "", owner_id: context.userId })
+      .insert({
+        name: data.name,
+        contact: data.contact || null,
+        memory: "",
+        owner_id: context.userId,
+      })
       .select("id")
       .single();
     if (error) {
@@ -509,25 +523,30 @@ export const listVisits = createServerFn({ method: "GET" })
       console.error("[DB error] list visits", error);
       throw new Error("Could not load visits. Please try again.");
     }
-    return (data ?? []).map((v: {
-      id: string;
-      account_id: string;
-      created_at: string;
-      rating: string | null;
-      ai_output: unknown;
-      accounts: { name: string; contact: string | null } | { name: string; contact: string | null }[] | null;
-    }) => {
-      const acct = Array.isArray(v.accounts) ? v.accounts[0] : v.accounts;
-      return {
-        id: v.id,
-        account_id: v.account_id,
-        account_name: acct?.name ?? "(unknown)",
-        account_contact: acct?.contact ?? null,
-        created_at: v.created_at,
-        rating: v.rating,
-        ai_output: (v.ai_output as AiOutput | null) ?? null,
-      };
-    });
+    return (data ?? []).map(
+      (v: {
+        id: string;
+        account_id: string;
+        created_at: string;
+        rating: string | null;
+        ai_output: unknown;
+        accounts:
+          | { name: string; contact: string | null }
+          | { name: string; contact: string | null }[]
+          | null;
+      }) => {
+        const acct = Array.isArray(v.accounts) ? v.accounts[0] : v.accounts;
+        return {
+          id: v.id,
+          account_id: v.account_id,
+          account_name: acct?.name ?? "(unknown)",
+          account_contact: acct?.contact ?? null,
+          created_at: v.created_at,
+          rating: v.rating,
+          ai_output: (v.ai_output as AiOutput | null) ?? null,
+        };
+      },
+    );
   });
 
 export const getVisit = createServerFn({ method: "GET" })
@@ -536,7 +555,9 @@ export const getVisit = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("visits")
-      .select("id, account_id, created_at, rating, raw_note, supporting_context, ai_output, accounts:account_id(name, contact, memory)")
+      .select(
+        "id, account_id, created_at, rating, raw_note, supporting_context, ai_output, accounts:account_id(name, contact, memory)",
+      )
       .eq("id", data.id)
       .maybeSingle();
     if (error) {

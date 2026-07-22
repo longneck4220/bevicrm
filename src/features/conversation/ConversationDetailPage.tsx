@@ -1,7 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { conversations } from "@/features/intelligence/data";
-import { GlassCard, MomentumBadge, RiskDot, SignalLabel, SignalChip } from "@/features/shared/primitives";
+import {
+  GlassCard,
+  MomentumBadge,
+  RiskDot,
+  SignalLabel,
+  SignalChip,
+} from "@/features/shared/primitives";
 
 export function ConversationDetailPage({ id }: { id: string }) {
   const conv = conversations.find((c) => c.id === id) ?? conversations[0];
@@ -10,7 +16,10 @@ export function ConversationDetailPage({ id }: { id: string }) {
   return (
     <main className="relative pt-28 pb-24">
       <div className="mx-auto max-w-7xl px-6">
-        <Link to="/dashboard" className="signal-label font-sans font-bold text-lg hover:!text-white transition">
+        <Link
+          to="/dashboard"
+          className="signal-label font-sans font-bold text-lg hover:!text-white transition"
+        >
           ← Command Center
         </Link>
 
@@ -19,7 +28,8 @@ export function ConversationDetailPage({ id }: { id: string }) {
             <div className="flex items-center gap-3 flex-wrap">
               <RiskDot risk={conv.risk} />
               <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
-                {conv.channel} · {conv.when} · {conv.durationMin > 0 ? `${conv.durationMin}m` : "thread"}
+                {conv.channel} · {conv.when} ·{" "}
+                {conv.durationMin > 0 ? `${conv.durationMin}m` : "thread"}
               </span>
               <MomentumBadge momentum={conv.momentum} />
             </div>
@@ -32,7 +42,9 @@ export function ConversationDetailPage({ id }: { id: string }) {
           <GlassCard className="px-5 py-4 text-right">
             <SignalLabel>MAT Value</SignalLabel>
             <div className="text-3xl font-semibold text-white">{fmt$(conv.dealValue)}</div>
-            <div className="signal-label font-sans font-bold text-lg !text-[10px] mt-0.5">{conv.stage}</div>
+            <div className="signal-label font-sans font-bold text-lg !text-[10px] mt-0.5">
+              {conv.stage}
+            </div>
           </GlassCard>
         </header>
 
@@ -113,7 +125,10 @@ export function ConversationDetailPage({ id }: { id: string }) {
               <SignalLabel>Recommendation stack</SignalLabel>
               <div className="mt-4 space-y-3">
                 {conv.nextMoves.map((nm) => (
-                  <div key={nm.id} className="flex gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div
+                    key={nm.id}
+                    className="flex gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/5"
+                  >
                     <div className="shrink-0">
                       <ConfidenceRing value={nm.confidence} size={56} />
                     </div>
@@ -121,7 +136,9 @@ export function ConversationDetailPage({ id }: { id: string }) {
                       <div className="text-[15px] font-medium text-white">{nm.title}</div>
                       <p className="mt-1 text-sm text-muted-foreground">{nm.rationale}</p>
                       <div className="mt-2 flex items-center gap-3">
-                        <span className="signal-label font-sans font-bold text-lg">effort · {nm.effort}</span>
+                        <span className="signal-label font-sans font-bold text-lg">
+                          effort · {nm.effort}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -217,7 +234,14 @@ function ConfidenceRing({ value, size = 80 }: { value: number; size?: number }) 
   return (
     <div className="relative inline-flex" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="oklch(0.97 0.01 250 / 0.08)" strokeWidth="3" fill="none" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke="oklch(0.97 0.01 250 / 0.08)"
+          strokeWidth="3"
+          fill="none"
+        />
         <defs>
           <linearGradient id={`cring-${size}`} x1="0" x2="1">
             <stop offset="0" stopColor="oklch(0.74 0.13 195)" />

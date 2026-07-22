@@ -66,10 +66,38 @@ export const conversations: Conversation[] = [
       { speaker: "Maya", text: "Procurement asked for SOC2 by end of week.", tag: "action" },
     ],
     signals: [
-      { id: "s1", kind: "buying", label: "Budget unlocked", detail: "CFO sign-off referenced 2x", weight: 92, at: "10:31" },
-      { id: "s2", kind: "risk", label: "DPA redlines incoming", detail: "Legal raised EU data residency", weight: 68, at: "10:38" },
-      { id: "s3", kind: "intent", label: "Pilot scoping language", detail: "14-day proof requested", weight: 81, at: "10:42" },
-      { id: "s4", kind: "stakeholder", label: "Procurement engaged", detail: "New stakeholder surfaced", weight: 55, at: "10:50" },
+      {
+        id: "s1",
+        kind: "buying",
+        label: "Budget unlocked",
+        detail: "CFO sign-off referenced 2x",
+        weight: 92,
+        at: "10:31",
+      },
+      {
+        id: "s2",
+        kind: "risk",
+        label: "DPA redlines incoming",
+        detail: "Legal raised EU data residency",
+        weight: 68,
+        at: "10:38",
+      },
+      {
+        id: "s3",
+        kind: "intent",
+        label: "Pilot scoping language",
+        detail: "14-day proof requested",
+        weight: 81,
+        at: "10:42",
+      },
+      {
+        id: "s4",
+        kind: "stakeholder",
+        label: "Procurement engaged",
+        detail: "New stakeholder surfaced",
+        weight: 55,
+        at: "10:50",
+      },
     ],
     stakeholders: [
       { name: "Maya Chen", role: "VP RevOps", alignment: 88, sentiment: "champion" },
@@ -116,12 +144,30 @@ export const conversations: Conversation[] = [
     summary:
       "Idris validated the APAC rollout case. Wants a joint QBR with their COO before signing. No pricing friction; the lever is timing.",
     transcriptHighlights: [
-      { speaker: "Idris", text: "COO wants to see the operational impact slide.", tag: "stakeholder" },
+      {
+        speaker: "Idris",
+        text: "COO wants to see the operational impact slide.",
+        tag: "stakeholder",
+      },
       { speaker: "Idris", text: "We're aligned on price — it's timing.", tag: "buying" },
     ],
     signals: [
-      { id: "s1", kind: "buying", label: "Price unobjected", detail: "No pushback on uplift", weight: 86, at: "16:18" },
-      { id: "s2", kind: "stakeholder", label: "COO involvement", detail: "Exec sponsor surfaced", weight: 74, at: "16:30" },
+      {
+        id: "s1",
+        kind: "buying",
+        label: "Price unobjected",
+        detail: "No pushback on uplift",
+        weight: 86,
+        at: "16:18",
+      },
+      {
+        id: "s2",
+        kind: "stakeholder",
+        label: "COO involvement",
+        detail: "Exec sponsor surfaced",
+        weight: 74,
+        at: "16:30",
+      },
     ],
     stakeholders: [
       { name: "Idris Okafor", role: "Dir. Sales", alignment: 90, sentiment: "champion" },
@@ -155,8 +201,22 @@ export const conversations: Conversation[] = [
       { speaker: "Sara", text: "We still need clarity on SCIM provisioning scope.", tag: "risk" },
     ],
     signals: [
-      { id: "s1", kind: "risk", label: "Champion silence", detail: "6 days, no reply", weight: 88, at: "—" },
-      { id: "s2", kind: "objection", label: "SCIM scope unclear", detail: "Open since first review", weight: 71, at: "—" },
+      {
+        id: "s1",
+        kind: "risk",
+        label: "Champion silence",
+        detail: "6 days, no reply",
+        weight: 88,
+        at: "—",
+      },
+      {
+        id: "s2",
+        kind: "objection",
+        label: "SCIM scope unclear",
+        detail: "Open since first review",
+        weight: 71,
+        at: "—",
+      },
     ],
     stakeholders: [
       { name: "Sara Patel", role: "Head of IT", alignment: 38, sentiment: "neutral" },

@@ -74,7 +74,11 @@ const phoneSteps = [
     status: "Live note",
     tone: "var(--brand-cyan)",
     main: "Aaron happy with using Byron. Pricing support has lapsed. Wants assistance with staff performance. Follow up training booked for next month.",
-    rows: ["Buyer cue: Needs Staff direction", "Risk: lapsed pricing support", "Follow-up: training may help"],
+    rows: [
+      "Buyer cue: Needs Staff direction",
+      "Risk: lapsed pricing support",
+      "Follow-up: training may help",
+    ],
     button: "Generate intelligence",
   },
   {
@@ -83,7 +87,11 @@ const phoneSteps = [
     status: "Processing",
     tone: "var(--brand-blue)",
     main: "Commercial signals extracted from the note and account context.",
-    rows: ["Buying style: practical menu-led", "Margin pressure: support must be clear", "Missed opportunity: Italian activation"],
+    rows: [
+      "Buying style: practical menu-led",
+      "Margin pressure: support must be clear",
+      "Missed opportunity: Italian activation",
+    ],
     button: "Build output",
   },
   {
@@ -92,7 +100,11 @@ const phoneSteps = [
     status: "Ready",
     tone: "var(--brand-violet)",
     main: "CRM note rebuilt. Follow-up email drafted. Account memory updated for the next visit.",
-    rows: ["Next move: reconfirm price support", "Email: short, friendly, specific", "Memory: Aaron prefers practical fit"],
+    rows: [
+      "Next move: reconfirm price support",
+      "Email: short, friendly, specific",
+      "Memory: Aaron prefers practical fit",
+    ],
     button: "Copy CRM note",
   },
 ];
@@ -110,13 +122,14 @@ export function HowItWorksPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass mb-7">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
-              <SignalLabel>FOR FEILD AGENTS</SignalLabel>
+              <SignalLabel>FOR FIELD AGENTS</SignalLabel>
             </div>
             <h1 className="text-5xl md:text-7xl leading-[0.98] font-semibold text-white">
               How BEVI <span className="text-gradient">works.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-muted-foreground leading-relaxed">
-              BEVI turns messy field visit notes into CRM-ready records, follow-up, account memory and the next best commercial move.
+              BEVI turns messy field visit notes into CRM-ready records, follow-up, account memory
+              and the next best commercial move.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link
@@ -139,15 +152,19 @@ export function HowItWorksPage() {
             <div className="flex items-center gap-4 mb-6">
               <BeviMark size={54} />
               <div>
-                <SignalLabel>FORWARD LOOKING INTERGRATION</SignalLabel>
-                <div className="text-white text-xl font-semibold mt-1">FORWARD LOOKING INTERGRATION</div>
+                <SignalLabel>THE GAP AFTER THE VISIT</SignalLabel>
+                <div className="text-white text-xl font-semibold mt-1">
+                  Momentum dies between visits.
+                </div>
               </div>
             </div>
             <p className="text-white/80 leading-relaxed">
-              Reps do not lose deals because they forget the meeting. They lose momentum in the gap after it.
+              Reps do not lose deals because they forget the meeting. They lose momentum in the gap
+              after it.
             </p>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              BEVI turns what just happened into what should happen next. Before pricing tension and follow-up promises go cold.&nbsp;
+              BEVI turns what just happened into what should happen next. Before pricing tension and
+              follow-up promises go cold.&nbsp;
             </p>
           </GlassCard>
         </section>
@@ -164,7 +181,10 @@ export function HowItWorksPage() {
                     background: `color-mix(in oklab, ${item.tone} 12%, transparent)`,
                   }}
                 >
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: item.tone, boxShadow: `0 0 14px ${item.tone}` }} />
+                  <span
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ background: item.tone, boxShadow: `0 0 14px ${item.tone}` }}
+                  />
                 </div>
                 <SignalLabel as="h3">{item.label}</SignalLabel>
                 <h3 className="mt-4 text-2xl font-semibold text-white">{item.title}</h3>
@@ -175,12 +195,12 @@ export function HowItWorksPage() {
         </section>
 
         <section id="example" className="mt-16">
-
-
-
           <GlassCard tone="strong" className="mt-8 overflow-hidden p-5 md:p-7">
             <div className="relative rounded-[2rem] border border-white/10 bg-gradient-to-br from-cyan-500/10 via-white/[0.025] to-violet-500/10 px-3 py-8 md:px-7">
-              <div className="absolute inset-x-10 top-1/2 hidden h-px bg-gradient-to-r from-transparent via-[var(--brand-cyan)]/40 to-transparent lg:block" aria-hidden />
+              <div
+                className="absolute inset-x-10 top-1/2 hidden h-px bg-gradient-to-r from-transparent via-[var(--brand-cyan)]/40 to-transparent lg:block"
+                aria-hidden
+              />
               <div className="relative grid gap-5 md:grid-cols-3 md:items-center">
                 {phoneSteps.map((step, index) => (
                   <div
@@ -197,13 +217,26 @@ export function HowItWorksPage() {
                       </div>
                       <div className="mt-6 flex items-center justify-between">
                         <SignalLabel>{step.label}</SignalLabel>
-                        <span className="rounded-full px-2 py-1 text-[10px]" style={{ background: `color-mix(in oklab, ${step.tone} 18%, transparent)`, color: step.tone }}>
+                        <span
+                          className="rounded-full px-2 py-1 text-[10px]"
+                          style={{
+                            background: `color-mix(in oklab, ${step.tone} 18%, transparent)`,
+                            color: step.tone,
+                          }}
+                        >
                           {step.status}
                         </span>
                       </div>
                       <h3 className="mt-4 text-xl font-semibold text-white">{step.title}</h3>
                       <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
-                        <div className="h-full rounded-full" style={{ width: `${38 + index * 28}%`, background: step.tone, boxShadow: `0 0 18px ${step.tone}` }} />
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${38 + index * 28}%`,
+                            background: step.tone,
+                            boxShadow: `0 0 18px ${step.tone}`,
+                          }}
+                        />
                       </div>
                       <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4">
                         <p className="text-sm leading-relaxed text-white/80">{step.main}</p>
@@ -211,13 +244,23 @@ export function HowItWorksPage() {
                       <div className="mt-5 max-h-[152px] space-y-2 overflow-hidden">
                         <div className={index === 1 ? "animate-pulse space-y-2" : "space-y-2"}>
                           {step.rows.map((row) => (
-                            <div key={row} className="rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-xs text-muted-foreground">
+                            <div
+                              key={row}
+                              className="rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-xs text-muted-foreground"
+                            >
                               {row}
                             </div>
                           ))}
                         </div>
                       </div>
-                      <div className="mt-6 h-11 rounded-xl text-sm font-medium text-primary-foreground grid place-items-center" style={{ background: index === 1 ? "rgba(255,255,255,0.08)" : "var(--gradient-signal)", border: index === 1 ? `1px solid ${step.tone}` : undefined }}>
+                      <div
+                        className="mt-6 h-11 rounded-xl text-sm font-medium text-primary-foreground grid place-items-center"
+                        style={{
+                          background:
+                            index === 1 ? "rgba(255,255,255,0.08)" : "var(--gradient-signal)",
+                          border: index === 1 ? `1px solid ${step.tone}` : undefined,
+                        }}
+                      >
                         {step.button}
                       </div>
                     </div>
@@ -232,9 +275,12 @@ export function HowItWorksPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
               <SignalLabel as="h2">Pilot pricing</SignalLabel>
-              <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-white">Start simple, then carry memory forward.</h2>
+              <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-white">
+                Start simple, then carry memory forward.
+              </h2>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                Try the output first. Start a memory trial when you want BEVI to remember accounts, shape follow-up and carry the next call forward.
+                Try the output first. Start a memory trial when you want BEVI to remember accounts,
+                shape follow-up and carry the next call forward.
               </p>
             </div>
             <div className="flex w-fit rounded-2xl border border-white/10 bg-white/[0.035] p-1">
@@ -267,13 +313,15 @@ export function HowItWorksPage() {
                     "0 30px 80px -20px rgba(0,0,0,0.85), 0 12px 40px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.4)",
                 }}
               >
-
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-white font-semibold">{plan.name}</div>
                     <div className="mt-3 text-4xl font-semibold text-white">
                       {billing === "annual" ? plan.annualPrice : plan.price}
-                      <span className="text-sm text-muted-foreground font-normal"> {billing === "annual" ? plan.annualDetail : plan.detail}</span>
+                      <span className="text-sm text-muted-foreground font-normal">
+                        {" "}
+                        {billing === "annual" ? plan.annualDetail : plan.detail}
+                      </span>
                     </div>
                   </div>
                   {plan.badge && (
@@ -282,8 +330,13 @@ export function HowItWorksPage() {
                     </span>
                   )}
                 </div>
-                <p className="mt-5 text-sm text-muted-foreground leading-relaxed flex-1">{plan.body}</p>
-                <Link to="/trial" className="mt-6 inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white hover:bg-white/[0.08] transition-colors">
+                <p className="mt-5 text-sm text-muted-foreground leading-relaxed flex-1">
+                  {plan.body}
+                </p>
+                <Link
+                  to="/trial"
+                  className="mt-6 inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white hover:bg-white/[0.08] transition-colors"
+                >
                   {plan.cta}
                 </Link>
               </GlassCard>
@@ -298,7 +351,9 @@ export function HowItWorksPage() {
               BEVI sits after the field visit, where sales value is either captured or lost.
             </h2>
             <p className="mt-5 text-muted-foreground leading-relaxed">
-              Transcription tools capture what was said. CRMs store what happened. BEVI helps the rep decide what matters next: the formal note, the follow-up, the account memory and the best next move.
+              Transcription tools capture what was said. CRMs store what happened. BEVI helps the
+              rep decide what matters next: the formal note, the follow-up, the account memory and
+              the best next move.
             </p>
             <Link
               to="/trial"

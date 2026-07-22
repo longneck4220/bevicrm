@@ -8,11 +8,7 @@ export const GlassCard = forwardRef<HTMLDivElement, Props>(function GlassCard(
 ) {
   const base = tone === "strong" ? "glass-strong" : "glass";
   return (
-    <div
-      ref={ref}
-      className={`${base} gradient-border rounded-2xl ${className}`}
-      {...rest}
-    >
+    <div ref={ref} className={`${base} gradient-border rounded-2xl ${className}`} {...rest}>
       {children}
     </div>
   );
@@ -27,7 +23,11 @@ export function SignalLabel({
   className?: string;
   as?: "span" | "h2" | "h3" | "h4";
 }) {
-  return <Tag className={`signal-label font-sans text-lg text-right font-extrabold ${className}`}>{children}</Tag>;
+  return (
+    <Tag className={`signal-label font-sans text-lg text-right font-extrabold ${className}`}>
+      {children}
+    </Tag>
+  );
 }
 
 export function SignalChip({ kind, label }: { kind: string; label: string }) {
@@ -56,7 +56,11 @@ export function SignalChip({ kind, label }: { kind: string; label: string }) {
 
 export function RiskDot({ risk }: { risk: "low" | "medium" | "high" }) {
   const color =
-    risk === "low" ? "var(--signal-positive)" : risk === "medium" ? "var(--signal-warning)" : "var(--signal-risk)";
+    risk === "low"
+      ? "var(--signal-positive)"
+      : risk === "medium"
+        ? "var(--signal-warning)"
+        : "var(--signal-risk)";
   return (
     <span className="relative inline-flex w-2 h-2">
       <span className="absolute inset-0 rounded-full ring-pulse" style={{ background: color }} />
@@ -83,7 +87,13 @@ export function MomentumBadge({ momentum }: { momentum: "accelerating" | "steady
   );
 }
 
-export function Sparkline({ values, color = "var(--brand-cyan)" }: { values: number[]; color?: string }) {
+export function Sparkline({
+  values,
+  color = "var(--brand-cyan)",
+}: {
+  values: number[];
+  color?: string;
+}) {
   const w = 120;
   const h = 32;
   const max = Math.max(...values);
@@ -94,8 +104,20 @@ export function Sparkline({ values, color = "var(--brand-cyan)" }: { values: num
     .join(" ");
   return (
     <svg width={w} height={h} className="overflow-visible">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={w} cy={h - ((values[values.length - 1] - min) / range) * h} r="2.5" fill={color} />
+      <polyline
+        points={pts}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx={w}
+        cy={h - ((values[values.length - 1] - min) / range) * h}
+        r="2.5"
+        fill={color}
+      />
     </svg>
   );
 }

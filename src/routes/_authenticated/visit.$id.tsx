@@ -5,7 +5,10 @@ export const Route = createFileRoute("/_authenticated/visit/$id")({
   head: () => ({
     meta: [
       { title: "Visit · BEVI" },
-      { name: "description", content: "Saved post-visit intelligence: next move, signals, CRM note and follow-up email." },
+      {
+        name: "description",
+        content: "Saved post-visit intelligence: next move, signals, CRM note and follow-up email.",
+      },
     ],
   }),
   component: RouteComponent,

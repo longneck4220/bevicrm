@@ -1,8 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
-async function assertAdmin(supabase: any, userId: string) {
+async function assertAdmin(supabase: SupabaseClient<Database>, userId: string) {
   const { data, error } = await supabase.rpc("has_role", {
     _user_id: userId,
     _role: "admin",
@@ -42,9 +44,7 @@ export const listUsersForAdmin = createServerFn({ method: "GET" })
       .order("created_at", { ascending: true });
     if (pErr) throw new Error("Failed to load users");
 
-    const { data: roles } = await supabaseAdmin
-      .from("user_roles")
-      .select("user_id, role");
+    const { data: roles } = await supabaseAdmin.from("user_roles").select("user_id, role");
     const adminIds = new Set((roles ?? []).filter((r) => r.role === "admin").map((r) => r.user_id));
 
     const { data: accounts, error: aErr } = await supabaseAdmin
@@ -92,9 +92,7 @@ export const listUsersForAdmin = createServerFn({ method: "GET" })
 
 export const adminDeleteAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
-    z.object({ accountId: z.string().uuid() }).parse(data),
-  )
+  .inputValidator((data: unknown) => z.object({ accountId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

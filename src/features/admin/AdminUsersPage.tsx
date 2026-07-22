@@ -5,7 +5,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { ChevronDown, ChevronRight, Search, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
-import { listUsersForAdmin, adminDeleteAccount, type AdminUser, type AdminAccount } from "@/lib/admin.functions";
+import {
+  listUsersForAdmin,
+  adminDeleteAccount,
+  type AdminUser,
+  type AdminAccount,
+} from "@/lib/admin.functions";
 
 export function AdminUsersPage() {
   const { isAdmin, loading } = useAuth();
@@ -28,7 +33,7 @@ export function AdminUsersPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
   });
 
-  const users: AdminUser[] = data?.users ?? [];
+  const users: AdminUser[] = useMemo(() => data?.users ?? [], [data]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -37,9 +42,7 @@ export function AdminUsersPage() {
       .map((u) => ({
         ...u,
         accounts: u.accounts.filter(
-          (a) =>
-            a.name.toLowerCase().includes(q) ||
-            (a.contact ?? "").toLowerCase().includes(q),
+          (a) => a.name.toLowerCase().includes(q) || (a.contact ?? "").toLowerCase().includes(q),
         ),
       }))
       .filter(

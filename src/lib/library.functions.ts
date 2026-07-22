@@ -25,7 +25,7 @@ async function extractDeals(text: string, fileName: string): Promise<LibraryDeal
           {
             role: "system",
             content:
-              "Extract structured product / promotional deal data from beverage industry sales documents (price lists, promo decks, range cards). Return ONLY JSON: {\"deals\":[{\"product\":string,\"discount\":string,\"starts_on\":string|null,\"ends_on\":string|null,\"eligibility\":string,\"notes\":string}]}. If no clear product+discount pairs exist, return {\"deals\":[]}. Never invent products, prices, dates, or eligibility rules — only extract what is literally in the document. starts_on / ends_on should be ISO date YYYY-MM-DD when possible, otherwise the raw phrase, otherwise null.",
+              'Extract structured product / promotional deal data from beverage industry sales documents (price lists, promo decks, range cards). Return ONLY JSON: {"deals":[{"product":string,"discount":string,"starts_on":string|null,"ends_on":string|null,"eligibility":string,"notes":string}]}. If no clear product+discount pairs exist, return {"deals":[]}. Never invent products, prices, dates, or eligibility rules — only extract what is literally in the document. starts_on / ends_on should be ISO date YYYY-MM-DD when possible, otherwise the raw phrase, otherwise null.',
           },
           { role: "user", content: `File: ${fileName}\n\n---\n${trimmed}` },
         ],
@@ -58,8 +58,6 @@ async function extractDeals(text: string, fileName: string): Promise<LibraryDeal
   }
 }
 
-
-
 const MAX_BYTES = 20 * 1024 * 1024;
 const MAX_CHARS = 120_000;
 
@@ -82,16 +80,21 @@ function detectType(name: string, mime: string): LibraryFileType {
   if (
     mime === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
     mime === "application/vnd.ms-excel" ||
-    n.endsWith(".xlsx") || n.endsWith(".xls") || n.endsWith(".csv")
-  ) return "xlsx";
+    n.endsWith(".xlsx") ||
+    n.endsWith(".xls") ||
+    n.endsWith(".csv")
+  )
+    return "xlsx";
   if (
     mime === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
     n.endsWith(".pptx")
-  ) return "pptx";
+  )
+    return "pptx";
   if (
     mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
     n.endsWith(".docx")
-  ) return "docx";
+  )
+    return "docx";
   if (
     mime.startsWith("image/") ||
     n.endsWith(".png") ||
@@ -102,13 +105,16 @@ function detectType(name: string, mime: string): LibraryFileType {
     n.endsWith(".heic") ||
     n.endsWith(".heif") ||
     n.endsWith(".bmp")
-  ) return "image";
+  )
+    return "image";
   return "other";
 }
 
 function clamp(s: string): string {
   s = s.trim();
-  return s.length <= MAX_CHARS ? s : s.slice(0, MAX_CHARS) + `\n\n…[truncated ${s.length - MAX_CHARS} chars]`;
+  return s.length <= MAX_CHARS
+    ? s
+    : s.slice(0, MAX_CHARS) + `\n\n…[truncated ${s.length - MAX_CHARS} chars]`;
 }
 
 function noTextFallback(name: string, type: LibraryFileType): string {
@@ -218,12 +224,10 @@ export const uploadLibraryFile = createServerFn({ method: "POST" })
       }
     }
 
-    const { error: upErr } = await supabase.storage
-      .from("library")
-      .upload(storagePath, bytes, {
-        contentType: data.mime || "application/octet-stream",
-        upsert: false,
-      });
+    const { error: upErr } = await supabase.storage.from("library").upload(storagePath, bytes, {
+      contentType: data.mime || "application/octet-stream",
+      upsert: false,
+    });
     if (upErr) {
       console.error("[library upload]", upErr);
       throw new Error("Could not store the file. Please try again.");
@@ -314,7 +318,11 @@ export const getLibraryFileText = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error || !row) throw new Error("File not found.");
     const type = row.file_type as LibraryFileType;
-    return { id: row.id, name: row.name, text: (row.extracted_text ?? "").trim() || noTextFallback(row.name, type) };
+    return {
+      id: row.id,
+      name: row.name,
+      text: (row.extracted_text ?? "").trim() || noTextFallback(row.name, type),
+    };
   });
 
 export const deleteLibraryFile = createServerFn({ method: "POST" })
@@ -331,7 +339,10 @@ export const deleteLibraryFile = createServerFn({ method: "POST" })
       throw new Error("Only the file owner can delete this file.");
     }
     await context.supabase.storage.from("library").remove([row.storage_path]);
-    const { error: delErr } = await context.supabase.from("library_files").delete().eq("id", data.id);
+    const { error: delErr } = await context.supabase
+      .from("library_files")
+      .delete()
+      .eq("id", data.id);
     if (delErr) {
       console.error("[library delete]", delErr);
       throw new Error("Could not delete file.");

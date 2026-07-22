@@ -32,7 +32,8 @@ export function LandingPage() {
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
               <SignalLabel className="text-left leading-tight">
-                POST VISIT SALES INTELLIGENCE<br />
+                POST VISIT SALES INTELLIGENCE
+                <br />
                 &nbsp; FOR FIELD MANAGERS&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
               </SignalLabel>
             </motion.div>
@@ -55,8 +56,8 @@ export function LandingPage() {
               custom={2}
               className="mt-6 max-w-xl text-lg text-muted-foreground leading-relaxed"
             >
-              BEVI turns post-visit thinking into CRM ready notes, account memory
-              and the next best commercial move.
+              BEVI turns post-visit thinking into CRM ready notes, account memory and the next best
+              commercial move.
             </motion.p>
 
             <motion.div
@@ -88,9 +89,7 @@ export function LandingPage() {
                 See Example Output
                 <span>→</span>
               </Link>
-
             </motion.div>
-
           </div>
 
           <motion.div
@@ -112,7 +111,6 @@ export function LandingPage() {
               >
                 <BeviMark size={380} />
               </motion.div>
-
             </div>
           </motion.div>
         </div>
@@ -126,20 +124,18 @@ export function LandingPage() {
             { label: "BEVI UNDERSTANDS CONTEXT", tone: "var(--brand-blue)" },
             { label: "DELIVERS THE NEXT MOVE", tone: "var(--brand-violet)" },
           ].map((p) => (
-            <div
-              key={p.label}
-              className="glass rounded-2xl px-5 py-4 flex items-center gap-3"
-            >
+            <div key={p.label} className="glass rounded-2xl px-5 py-4 flex items-center gap-3">
               <span
                 className="w-2.5 h-2.5 rounded-full"
                 style={{ background: p.tone, boxShadow: `0 0 14px ${p.tone}` }}
               />
-              <span className="signal-label font-sans font-bold text-lg !text-white/90">{p.label}</span>
+              <span className="signal-label font-sans font-bold text-lg !text-white/90">
+                {p.label}
+              </span>
             </div>
           ))}
         </div>
       </section>
-
 
       {/* CAPABILITIES */}
       <section className="relative mx-auto max-w-7xl px-6 mt-32">
@@ -185,7 +181,10 @@ export function LandingPage() {
               <GlassCard className="p-7 h-full">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center mb-6"
-                  style={{ background: `color-mix(in oklab, ${c.ring} 18%, transparent)`, border: `1px solid ${c.ring}` }}
+                  style={{
+                    background: `color-mix(in oklab, ${c.ring} 18%, transparent)`,
+                    border: `1px solid ${c.ring}`,
+                  }}
                 >
                   <span className="w-2 h-2 rounded-full" style={{ background: c.ring }} />
                 </div>
@@ -227,4 +226,3 @@ export function LandingPage() {
     </main>
   );
 }
-

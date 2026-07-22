@@ -9,7 +9,9 @@ const MAX_CHARS_PER_FILE = 120_000;
 
 function clamp(text: string): string {
   if (text.length <= MAX_CHARS_PER_FILE) return text;
-  return text.slice(0, MAX_CHARS_PER_FILE) + `\n\n…[truncated ${text.length - MAX_CHARS_PER_FILE} chars]`;
+  return (
+    text.slice(0, MAX_CHARS_PER_FILE) + `\n\n…[truncated ${text.length - MAX_CHARS_PER_FILE} chars]`
+  );
 }
 
 async function extractPdf(file: File): Promise<string> {

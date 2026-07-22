@@ -33,7 +33,10 @@ export function ParticleField({
     }));
   }, [count, seed]);
   return (
-    <div className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`} aria-hidden>
+    <div
+      className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}
+      aria-hidden
+    >
       {particles.map((p) => (
         <motion.span
           key={p.id}

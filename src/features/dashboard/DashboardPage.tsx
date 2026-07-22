@@ -8,7 +8,14 @@ import { GlassCard, RiskDot, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { listVisits, type VisitListItem } from "@/lib/trial.functions";
 
-const confidenceRank: Record<string, number> = { high: 3, High: 3, medium: 2, Medium: 2, low: 1, Low: 1 };
+const confidenceRank: Record<string, number> = {
+  high: 3,
+  High: 3,
+  medium: 2,
+  Medium: 2,
+  low: 1,
+  Low: 1,
+};
 const postureRank: Record<string, number> = { Push: 4, Recommend: 3, Suggest: 2, Hold: 1 };
 
 function visitRisk(v: VisitListItem): "low" | "medium" | "high" {
@@ -49,7 +56,11 @@ export function DashboardPage() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "/" && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+      if (
+        e.key === "/" &&
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA"
+      ) {
         e.preventDefault();
         searchRef.current?.focus();
       }
@@ -124,7 +135,8 @@ export function DashboardPage() {
           <GlassCard className="mt-12 p-8 text-center">
             <div className="text-white font-medium">No visits recorded yet</div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Head to the trial recorder to capture your first post-visit note. Your dashboard fills in automatically.
+              Head to the trial recorder to capture your first post-visit note. Your dashboard fills
+              in automatically.
             </p>
             <div className="mt-5 flex items-center justify-center gap-3">
               <Link
@@ -178,7 +190,9 @@ export function DashboardPage() {
                         >
                           Open visit →
                         </Link>
-                        <span className="text-[10px] font-mono text-white/40">{formatDate(v.created_at)}</span>
+                        <span className="text-[10px] font-mono text-white/40">
+                          {formatDate(v.created_at)}
+                        </span>
                       </div>
                     </GlassCard>
                   </motion.div>

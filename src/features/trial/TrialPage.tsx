@@ -72,7 +72,10 @@ export function TrialPage() {
   const rate = useServerFn(rateVisit);
   const transcribe = useServerFn(transcribeAudio);
 
-  const active = useMemo(() => accounts.find((a) => a.id === activeId) ?? null, [accounts, activeId]);
+  const active = useMemo(
+    () => accounts.find((a) => a.id === activeId) ?? null,
+    [accounts, activeId],
+  );
 
   async function loadAccounts(selectId?: string) {
     const { data, error } = await supabase
@@ -95,13 +98,22 @@ export function TrialPage() {
 
   useEffect(() => {
     return () => {
-      try { mediaRecorderRef.current?.stop(); } catch { /* noop */ }
+      try {
+        mediaRecorderRef.current?.stop();
+      } catch {
+        /* noop */
+      }
       mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
       mediaRecorderRef.current = null;
       mediaStreamRef.current = null;
     };
   }, []);
 
+  // Intentionally keyed on activeId only, not `active`: this should reset the
+  // composer when the user switches accounts, but must NOT re-fire when `active`
+  // changes reference for other reasons (e.g. the memory-autosave update below
+  // mutates the active account's `memory` field in place) - that would wipe out
+  // whatever the user is mid-typing.
   useEffect(() => {
     if (active) {
       setOutput(null);
@@ -112,6 +124,7 @@ export function TrialPage() {
       setError(null);
       setAdoptedMemory(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
   function buildSupportingContext(): string {
@@ -125,9 +138,6 @@ export function TrialPage() {
     return parts.join("\n\n");
   }
 
-
-
-
   function removeAttachment(id: string) {
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   }
@@ -139,9 +149,12 @@ export function TrialPage() {
     setError(null);
     setOutput(null);
     try {
-
       const res = await generate({
-        data: { accountId: active.id, rawNote: noteToSubmit, supportingContext: buildSupportingContext() },
+        data: {
+          accountId: active.id,
+          rawNote: noteToSubmit,
+          supportingContext: buildSupportingContext(),
+        },
       });
       setOutput(res.output);
       setVisitId(res.visitId);
@@ -162,7 +175,6 @@ export function TrialPage() {
     setAdoptedMemory(true);
   }
 
-
   async function handleCreate() {
     if (!newName.trim()) return;
     const res = await addAccount({ data: { name: newName.trim(), contact: newContact.trim() } });
@@ -179,12 +191,22 @@ export function TrialPage() {
   async function toggleDictation() {
     // If currently recording, stop — onstop handler uploads + transcribes.
     if (recognizing) {
-      try { mediaRecorderRef.current?.stop(); } catch { /* noop */ }
+      try {
+        mediaRecorderRef.current?.stop();
+      } catch {
+        /* noop */
+      }
       return;
     }
 
-    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-      setError("Dictation isn't supported here. Open the app in a normal browser tab and try again.");
+    if (
+      typeof navigator === "undefined" ||
+      !navigator.mediaDevices?.getUserMedia ||
+      typeof MediaRecorder === "undefined"
+    ) {
+      setError(
+        "Dictation isn't supported here. Open the app in a normal browser tab and try again.",
+      );
       return;
     }
 
@@ -194,7 +216,9 @@ export function TrialPage() {
     } catch (e) {
       const name = (e as { name?: string })?.name;
       if (name === "NotAllowedError" || name === "SecurityError") {
-        setError("Microphone permission was blocked. In the preview, open in a new tab to allow the mic.");
+        setError(
+          "Microphone permission was blocked. In the preview, open in a new tab to allow the mic.",
+        );
       } else if (name === "NotFoundError") {
         setError("No microphone detected on this device.");
       } else {
@@ -325,13 +349,11 @@ export function TrialPage() {
               <div className="flex items-center gap-2 px-1 pb-2">
                 <BeviMark size={16} animated={false} />
                 <SignalLabel>Accounts</SignalLabel>
-                <span className="ml-auto text-[10px] font-mono text-white/40">{accounts.length}</span>
+                <span className="ml-auto text-[10px] font-mono text-white/40">
+                  {accounts.length}
+                </span>
               </div>
-              <AccountSearch
-                accounts={accounts}
-                activeId={activeId}
-                onSelect={setActiveId}
-              />
+              <AccountSearch accounts={accounts} activeId={activeId} onSelect={setActiveId} />
             </GlassCard>
 
             <GlassCard className="p-4">
@@ -362,110 +384,115 @@ export function TrialPage() {
             </GlassCard>
           </div>
 
+          {/* File library */}
+          <LibraryPanel
+            activeAccountId={active?.id ?? null}
+            activeAccountName={active?.name ?? null}
+            onAttach={({ id, name, text }) => {
+              if (attachments.some((a) => a.id === id)) return;
+              setAttachments((prev) => [...prev, { id, name, size: text.length, text }]);
+            }}
+          />
 
-            {/* File library */}
-            <LibraryPanel
-              activeAccountId={active?.id ?? null}
-              activeAccountName={active?.name ?? null}
-              onAttach={({ id, name, text }) => {
-                if (attachments.some((a) => a.id === id)) return;
-                setAttachments((prev) => [...prev, { id, name, size: text.length, text }]);
-              }}
-            />
+          {/* Supporting context — paste only */}
+          <GlassCard className="p-5">
+            <SignalLabel>Supporting context (optional)</SignalLabel>
+            <p className="text-xs text-white/50 mt-1">
+              Paste prior emails, masterfile rows, promo notes. Attached library files appear as
+              chips.
+            </p>
 
-            {/* Supporting context — paste only */}
-            <GlassCard className="p-5">
-              <SignalLabel>Supporting context (optional)</SignalLabel>
-              <p className="text-xs text-white/50 mt-1">
-                Paste prior emails, masterfile rows, promo notes. Attached library files appear as chips.
-              </p>
-
-              {attachments.length > 0 && (
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {attachments.map((a) => (
-                    <li
-                      key={a.id}
-                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-xs text-white/85"
+            {attachments.length > 0 && (
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {attachments.map((a) => (
+                  <li
+                    key={a.id}
+                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-xs text-white/85"
+                  >
+                    <span
+                      className="inline-block w-1.5 h-1.5 rounded-full"
+                      style={{ background: "var(--brand-cyan)" }}
+                    />
+                    <span className="font-medium">{a.name}</span>
+                    <span className="text-white/40">
+                      · {(a.text.length / 1000).toFixed(1)}k chars
+                    </span>
+                    <button
+                      onClick={() => removeAttachment(a.id)}
+                      className="ml-1 text-white/40 hover:text-white"
+                      aria-label={`Remove ${a.name}`}
                     >
-                      <span
-                        className="inline-block w-1.5 h-1.5 rounded-full"
-                        style={{ background: "var(--brand-cyan)" }}
-                      />
-                      <span className="font-medium">{a.name}</span>
-                      <span className="text-white/40">· {(a.text.length / 1000).toFixed(1)}k chars</span>
-                      <button
-                        onClick={() => removeAttachment(a.id)}
-                        className="ml-1 text-white/40 hover:text-white"
-                        aria-label={`Remove ${a.name}`}
-                      >
-                        ×
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
 
-              <textarea
-                value={supportingContext}
-                onChange={(e) => setSupportingContext(e.target.value)}
-                disabled={!active}
-                placeholder="Paste anything here — prior emails, masterfile rows, promo plan notes…"
-                className="mt-3 w-full min-h-[80px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
-              />
-            </GlassCard>
+            <textarea
+              value={supportingContext}
+              onChange={(e) => setSupportingContext(e.target.value)}
+              disabled={!active}
+              placeholder="Paste anything here — prior emails, masterfile rows, promo plan notes…"
+              className="mt-3 w-full min-h-[80px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
+            />
+          </GlassCard>
 
-            {/* Note */}
-            <GlassCard tone="strong" className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <SignalLabel>Post-visit note</SignalLabel>
-                <button
-                  type="button"
-                  onClick={toggleDictation}
-                  disabled={transcribing}
-                  className={`text-xs px-3 py-1.5 rounded-md disabled:opacity-60 ${
-                    recognizing
-                      ? "bg-[var(--signal-risk)]/20 text-[var(--signal-risk)]"
-                      : "bg-white/10 text-white hover:bg-white/15"
-                  }`}
-                >
-                  {transcribing ? "Transcribing…" : recognizing ? "● Listening — tap to stop" : "🎙 Dictate"}
-                </button>
-              </div>
-              <textarea
-                value={rawNote}
-                onChange={(e) => setRawNote(e.target.value)}
-                disabled={!active}
-                placeholder="Dictate or type. Messy is fine — BEVI will structure it."
-                className="w-full min-h-[140px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
-              />
-              <div className="mt-4 flex items-center gap-3 justify-end">
-                {error && <span className="text-sm text-[var(--signal-risk)]">{error}</span>}
-                <button
-                  type="button"
-                  onClick={() => handleGenerate()}
-                  disabled={!active || !rawNote.trim() || loading}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-primary-foreground disabled:opacity-40 ambient-glow"
-                  style={{ background: "var(--gradient-signal)" }}
-                >
-                  {loading ? "Generating…" : "Generate intelligence →"}
-                </button>
-              </div>
-            </GlassCard>
+          {/* Note */}
+          <GlassCard tone="strong" className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <SignalLabel>Post-visit note</SignalLabel>
+              <button
+                type="button"
+                onClick={toggleDictation}
+                disabled={transcribing}
+                className={`text-xs px-3 py-1.5 rounded-md disabled:opacity-60 ${
+                  recognizing
+                    ? "bg-[var(--signal-risk)]/20 text-[var(--signal-risk)]"
+                    : "bg-white/10 text-white hover:bg-white/15"
+                }`}
+              >
+                {transcribing
+                  ? "Transcribing…"
+                  : recognizing
+                    ? "● Listening — tap to stop"
+                    : "🎙 Dictate"}
+              </button>
+            </div>
+            <textarea
+              value={rawNote}
+              onChange={(e) => setRawNote(e.target.value)}
+              disabled={!active}
+              placeholder="Dictate or type. Messy is fine — BEVI will structure it."
+              className="w-full min-h-[140px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
+            />
+            <div className="mt-4 flex items-center gap-3 justify-end">
+              {error && <span className="text-sm text-[var(--signal-risk)]">{error}</span>}
+              <button
+                type="button"
+                onClick={() => handleGenerate()}
+                disabled={!active || !rawNote.trim() || loading}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-primary-foreground disabled:opacity-40 ambient-glow"
+                style={{ background: "var(--gradient-signal)" }}
+              >
+                {loading ? "Generating…" : "Generate intelligence →"}
+              </button>
+            </div>
+          </GlassCard>
 
-            {/* Output */}
-            {output && (
-              <OutputPanel
-                output={output}
-                onAdoptMemory={handleAdoptMemory}
-                onRate={handleRate}
-                onClarifyingAnswers={handleClarifyingAnswers}
-                loading={loading}
-                adoptedMemory={adoptedMemory}
-              />
+          {/* Output */}
+          {output && (
+            <OutputPanel
+              output={output}
+              onAdoptMemory={handleAdoptMemory}
+              onRate={handleRate}
+              onClarifyingAnswers={handleClarifyingAnswers}
+              loading={loading}
+              adoptedMemory={adoptedMemory}
+            />
           )}
         </div>
       </div>
-
     </main>
   );
 }
@@ -481,7 +508,11 @@ function CopyButton({ text }: { text: string }) {
       }}
       className="text-xs px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white"
     >
-      {status === "copied" ? "Copied ✓" : status === "failed" ? "Couldn't copy — select manually" : "Copy"}
+      {status === "copied"
+        ? "Copied ✓"
+        : status === "failed"
+          ? "Couldn't copy — select manually"
+          : "Copy"}
     </button>
   );
 }
@@ -733,7 +764,9 @@ function OutputPanel({
       )}
 
       <div className="flex items-center justify-end gap-2">
-        <span className="signal-label font-sans font-bold text-lg !text-white/50 mr-2">Rate this output</span>
+        <span className="signal-label font-sans font-bold text-lg !text-white/50 mr-2">
+          Rate this output
+        </span>
         <button
           onClick={() => {
             setRated("good");
@@ -788,7 +821,6 @@ function SignalBlock({
   );
 }
 
-
 function AccountSearch({
   accounts,
   activeId,
@@ -811,9 +843,7 @@ function AccountSearch({
     if (!q) return accounts.slice(0, 8);
     return accounts
       .filter(
-        (a) =>
-          a.name.toLowerCase().includes(q) ||
-          (a.contact ?? "").toLowerCase().includes(q),
+        (a) => a.name.toLowerCase().includes(q) || (a.contact ?? "").toLowerCase().includes(q),
       )
       .slice(0, 12);
   }, [q, accounts]);
@@ -847,7 +877,6 @@ function AccountSearch({
     window.addEventListener("mousedown", onDown);
     return () => window.removeEventListener("mousedown", onDown);
   }, []);
-
 
   const pick = (id: string) => {
     onSelect(id);
@@ -904,11 +933,20 @@ function AccountSearch({
         )}
       </div>
 
-      {open && accounts.length > 0 && anchor && typeof document !== "undefined" &&
+      {open &&
+        accounts.length > 0 &&
+        anchor &&
+        typeof document !== "undefined" &&
         createPortal(
           <div
             ref={popRef}
-            style={{ position: "fixed", top: anchor.top, left: anchor.left, width: anchor.width, zIndex: 1000 }}
+            style={{
+              position: "fixed",
+              top: anchor.top,
+              left: anchor.left,
+              width: anchor.width,
+              zIndex: 1000,
+            }}
             className="max-h-72 overflow-y-auto rounded-xl border border-white/10 ring-1 ring-white/5 bg-background/95 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]"
           >
             {matches.length === 0 ? (
@@ -922,9 +960,7 @@ function AccountSearch({
                       onMouseEnter={() => setHighlight(i)}
                       onClick={() => pick(a.id)}
                       className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                        i === highlight
-                          ? "bg-white/8 text-white"
-                          : "text-white/80 hover:bg-white/5"
+                        i === highlight ? "bg-white/8 text-white" : "text-white/80 hover:bg-white/5"
                       } ${a.id === activeId ? "border-l-2 border-[var(--brand-cyan)]" : ""}`}
                     >
                       <div className="font-medium truncate">{a.name}</div>
@@ -939,7 +975,6 @@ function AccountSearch({
           </div>,
           document.body,
         )}
-
 
       {active && !open && (
         <div className="mt-2 px-1 text-[11px] text-white/40">
