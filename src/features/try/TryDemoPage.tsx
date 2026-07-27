@@ -113,7 +113,7 @@ export function TryDemoPage() {
               id="venue"
               value={venue}
               onChange={(e) => setVenue(e.target.value.slice(0, 120))}
-              placeholder="e.g. The Grand Hotel, Southport"
+              placeholder="e.g. The Royal Oak"
               className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-[var(--brand-cyan)]/50"
             />
           </div>
