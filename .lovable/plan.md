@@ -1,49 +1,34 @@
-## Problem
+## Goal
 
-Two features rely on browser APIs that fail in the environments you're using:
+Let visit intelligence run on Anthropic Claude, with a switch so you can flip back to the current Gemini model without code changes.
 
-- **Copy CRM note / email** uses `navigator.clipboard.writeText`, which silently rejects in the Lovable preview iframe (no `clipboard-write` permission) and in some mobile browser contexts. The button flips to "Copied" (state updated before the promise rejects) but nothing lands on the clipboard.
-- **Dictate** uses the Web Speech API (`webkitSpeechRecognition`). It only exists in desktop Chrome/Edge — **not Safari (any iOS device), not Firefox, and not inside the preview iframe without a `microphone` allow attribute**. On your published site opened on iPhone/iPad Safari, the button either does nothing or errors instantly.
+## Important context
 
-## Fix
+Lovable's AI gateway catalog has no Anthropic models, and there is no "custom connector" that adds models to it. So Claude has to be called directly at `api.anthropic.com` using your own Anthropic API key. That means Claude usage is billed by Anthropic, not Lovable credits.
 
-Keep the UI unchanged. Replace the two fragile browser calls with cross-browser paths.
+## What gets built
 
-### 1. Robust copy (frontend only)
+1. **Secret**: request `ANTHROPIC_API_KEY` (from console.anthropic.com → API Keys) via the secure secret form. Server-side only.
 
-Add a small `copyToClipboard(text)` helper used by both `TrialPage` (`CopyButton`) and `VisitDetailPage` (`copy(...)`):
+2. **New server-only helper** `src/lib/ai-provider.server.ts`
+   - `generateVisitJson({ system, user })` — one function, two backends:
+     - `anthropic`: POST `https://api.anthropic.com/v1/messages` with `x-api-key`, `anthropic-version: 2023-06-01`, system prompt as top-level `system`, and a JSON-only instruction plus prefilled `{` assistant turn to force clean JSON.
+     - `lovable`: the existing gateway `/v1/chat/completions` call with `google/gemini-3.6-flash` and `response_format: json_object`.
+   - Returns parsed JSON, and maps errors consistently (429 rate limit, 402/credit or Anthropic billing, other → generic "AI service error", with full detail logged server-side only).
+   - Falls back to the Lovable gateway automatically if Claude is selected but `ANTHROPIC_API_KEY` is missing, so the app never hard-breaks.
 
-1. Try `navigator.clipboard.writeText`.
-2. On rejection / missing API, fall back to a hidden `<textarea>` + `document.execCommand('copy')` (works in iframes and older Safari).
-3. If both fail, surface a visible error ("Couldn't copy — long-press to select") instead of a fake "Copied ✓".
+3. **Model switch** (no code edits to change models)
+   - Env vars read inside the handler: `AI_PROVIDER` (`anthropic` | `lovable`, default `lovable`) and `ANTHROPIC_MODEL` (default `claude-sonnet-4-5`).
+   - Optional per-request override: `generateVisitIntelligence` input gains an optional `provider` field so a caller can force one backend; the env default applies when it's absent.
 
-No design change; the button just actually works.
+4. **Wire into `generateVisitIntelligence`** (`src/lib/trial.functions.ts` lines ~388–418)
+   - Replace the inline gateway fetch with a call to the helper. Prompt building, prior-visit recall, deals, DB insert and return shape all stay exactly as they are.
+   - `/try` demo, transcription (Whisper) and every other AI call are untouched — they stay on the Lovable gateway.
 
-### 2. Reliable dictation via Lovable AI (default STT)
+5. **Verify**: run one real generation through the route on Claude and read the response, confirming valid JSON in the existing `AiOutput` shape, then confirm the switch back to Gemini still works.
 
-Web Speech API is a dead end on Safari/iOS. Switch to the Lovable AI speech-to-text gateway, which works everywhere the mic does:
+## Technical notes
 
-- **Client (`TrialPage.toggleDictation`)**: capture mic audio via Web Audio API and encode a WAV blob (per Lovable STT guidance — MediaRecorder chunks break on Safari). Toggle button text stays "🎙 Dictate" / "● Listening — tap to stop".
-- **New server function `transcribeAudio`** in `src/lib/trial.functions.ts` (`.middleware([requireSupabaseAuth])`, `method: "POST"`): accepts the WAV as base64, forwards to `https://ai.gateway.lovable.dev/v1/audio/transcriptions` with `model: openai/gpt-4o-transcribe`, returns `{ text }`. Handles 402/429/403 the same way the existing `generateVisitIntelligence` does.
-- On stop, upload the WAV, append the returned transcript to `rawNote` (same append semantics as today's `transcriptBaseRef`).
-- Show clear errors: mic denied, empty recording, gateway 4xx/5xx.
-
-### 3. Preview iframe caveat (documented, no code)
-
-Even after these fixes, the Lovable preview iframe blocks microphone access. Dictation will work on `bevipvi.com` / `bevicrm.lovable.app` and in a normal browser tab of the preview URL, but not inside the in-editor preview panel. Copy will work in both after fix #1.
-
-## Files to change
-
-- `src/features/trial/TrialPage.tsx` — swap `toggleDictation` to record → upload → transcribe; use new copy helper in `CopyButton`.
-- `src/features/visit/VisitDetailPage.tsx` — use new copy helper in `copy(...)`.
-- `src/lib/clipboard.ts` (new) — `copyToClipboard` helper with fallback.
-- `src/lib/trial.functions.ts` — add `transcribeAudio` server function.
-
-No DB, RLS, or schema changes. No other UI/business-logic changes.
-
-## Verification
-
-- Build passes (`tsgo`).
-- On `bevipvi.com`, iPhone Safari: press Dictate → grant mic → speak → stop → transcript appended to note.
-- On `bevipvi.com`, desktop Chrome: Copy on a CRM note → paste into Notepad returns the exact note text.
-- In preview iframe: Copy works; Dictate shows a clear "mic blocked in preview — open in a new tab" message instead of silently failing.
+- Anthropic returns `content[0].text`, not `choices[0].message.content`, and has no `response_format` — hence the JSON-forcing prompt + assistant prefill.
+- Helper lives in a `.server.ts` file so the key never enters the client bundle; `process.env` is read inside the handler, not at module scope.
+- Claude model IDs are not validated by Lovable, so `ANTHROPIC_MODEL` is a plain string you control.

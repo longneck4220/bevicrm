@@ -95,12 +95,14 @@ export function TopNav() {
               <>
                 <Link
                   to="/login"
+                  search={{ next: undefined }}
                   className="hidden sm:inline-flex text-xs signal-label font-sans font-bold text-lg !text-white/80 px-3 py-2 rounded-lg hover:bg-white/5"
                 >
                   Sign in
                 </Link>
                 <Link
                   to="/login"
+                  search={{ next: undefined }}
                   className="relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-primary-foreground"
                   style={{ background: "var(--gradient-signal)" }}
                 >

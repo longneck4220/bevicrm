@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Navigate, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -7,6 +7,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const { user, loading } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   if (loading) {
     return (
@@ -17,7 +18,7 @@ function AuthenticatedLayout() {
   }
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" search={{ next: pathname }} />;
   }
 
   return <Outlet />;

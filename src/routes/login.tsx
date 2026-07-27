@@ -9,8 +9,15 @@ const DESCRIPTION =
   "Sign in to BEVI to review post-visit intelligence, follow-ups, and the next best move for every account in your territory.";
 const URL = "https://bevicrm.lovable.app/login";
 
+function safeNext(next: string | undefined) {
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+}
+
 export const Route = createFileRoute("/login")({
   component: LoginPage,
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: TITLE },
@@ -27,6 +34,8 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const redirectTo = safeNext(next);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,7 +55,7 @@ function LoginPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}${redirectTo ?? "/dashboard"}`,
             data: { display_name: displayName || email.split("@")[0] },
           },
         });
@@ -63,6 +72,10 @@ function LoginPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+      }
+      if (redirectTo) {
+        window.location.href = redirectTo;
+        return;
       }
       navigate({ to: "/dashboard" });
     } catch (err) {

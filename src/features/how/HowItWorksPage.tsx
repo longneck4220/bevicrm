@@ -128,12 +128,12 @@ export function HowItWorksPage() {
               How BEVI <span className="text-gradient">works.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-muted-foreground leading-relaxed">
-              BEVI turns messy field visit notes into CRM-ready records, follow-up, account memory
-              and the next best commercial move.
+              BEVI turns daily account visit notes into CRM-ready records, generates draft follow up
+              and prescribes the next best commercial move.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link
-                to="/trial"
+                to="/try"
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
                 style={{ background: "var(--gradient-signal)" }}
               >
@@ -159,8 +159,8 @@ export function HowItWorksPage() {
               </div>
             </div>
             <p className="text-white/80 leading-relaxed">
-              Reps do not lose deals because they forget the meeting. They lose momentum in the gap
-              after it.
+              Reps do not lose deals because they forget the meeting. They lose momentum in the GAP
+              between follow ups.
             </p>
             <p className="mt-4 text-muted-foreground leading-relaxed">
               BEVI turns what just happened into what should happen next. Before pricing tension and
@@ -299,7 +299,7 @@ export function HowItWorksPage() {
           </div>
 
           <div className="mt-4 text-sm text-muted-foreground">
-            Annual billing shows the discounted rate, roughly two months free on paid plans.
+            Annual billing shows the discounted rate, two months free on paid plans.
           </div>
 
           <div className="mt-8 grid lg:grid-cols-4 gap-5">
@@ -334,7 +334,7 @@ export function HowItWorksPage() {
                   {plan.body}
                 </p>
                 <Link
-                  to="/trial"
+                  to="/try"
                   className="mt-6 inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white hover:bg-white/[0.08] transition-colors"
                 >
                   {plan.cta}
@@ -356,7 +356,7 @@ export function HowItWorksPage() {
               the best next move.
             </p>
             <Link
-              to="/trial"
+              to="/try"
               className="mt-8 inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
               style={{ background: "var(--gradient-signal)" }}
             >

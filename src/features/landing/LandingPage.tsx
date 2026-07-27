@@ -68,11 +68,11 @@ export function LandingPage() {
               className="mt-10 flex flex-wrap items-center gap-3"
             >
               <Link
-                to="/how-it-works"
+                to="/try"
                 className="group relative inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide text-primary-foreground ambient-glow border border-white/15 shadow-lg shadow-black/30 hover:shadow-xl transition-shadow"
                 style={{ background: "var(--gradient-signal)" }}
               >
-                See how it works
+                Try a visit note — no signup
                 <span className="transition-transform group-hover:translate-x-0.5">→</span>
               </Link>
               <Link
@@ -80,13 +80,6 @@ export function LandingPage() {
                 className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide glass border border-white/15 hover:bg-white/5 transition-colors"
               >
                 How it works
-                <span>→</span>
-              </Link>
-              <Link
-                to="/login"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide glass border border-white/15 hover:bg-white/5 transition-colors"
-              >
-                Try the preview
                 <span>→</span>
               </Link>
             </motion.div>
