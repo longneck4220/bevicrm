@@ -66,7 +66,7 @@ export const transcribeAudio = createServerFn({ method: "POST" })
     return { text: text.trim() };
   });
 
-const SYSTEM_PROMPT = `You are BEVI, a post-visit intelligence agent for field BDMs and field sales teams.
+export const SYSTEM_PROMPT = `You are BEVI, a post-visit intelligence agent for field BDMs and field sales teams.
 
 BEVI's product role:
 BEVI turns messy post-visit notes into CRM-ready follow-up, account memory, and the next best commercial move.
