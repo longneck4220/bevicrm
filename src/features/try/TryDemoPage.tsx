@@ -86,12 +86,14 @@ export function TryDemoPage() {
           <SignalLabel>LIVE DEMO — NOTHING IS SAVED</SignalLabel>
         </div>
 
-        <h1 className="text-4xl md:text-6xl leading-[1.02] font-semibold text-white">
-          Try a visit note. <span className="text-gradient">See the next move.</span>
+        <h1 className="text-4xl md:text-6xl leading-[1.02] font-semibold text-white whitespace-pre-line">
+          Try a visit note.{"\u00a0"}{"\n"}
+          <span className="text-gradient">See the next move.</span>
         </h1>
-        <p className="mt-5 max-w-2xl text-lg text-muted-foreground leading-relaxed">
-          Enter a venue and a rough post-visit note. BEVI rebuilds it into a CRM-ready record,
-          commercial signals, a follow-up email and the next best commercial move — in real time.
+        <p className="mt-5 max-w-2xl text-lg text-muted-foreground leading-relaxed whitespace-pre-line">
+          Enter a venue name and a rough post-visit note.{"\u00a0"}{"\n"}
+          BEVI Builds a CRM-ready record, commercial signals, a follow-up email.{"\u00a0"}{"\n"}
+          Gives you the next best commercial move ready — in real time.
         </p>
 
         <GlassCard tone="strong" className="mt-9 p-6 md:p-7">
