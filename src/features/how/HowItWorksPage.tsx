@@ -133,7 +133,7 @@ export function HowItWorksPage() {
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link
-                to="/trial"
+                to="/try"
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
                 style={{ background: "var(--gradient-signal)" }}
               >
@@ -334,7 +334,7 @@ export function HowItWorksPage() {
                   {plan.body}
                 </p>
                 <Link
-                  to="/trial"
+                  to="/try"
                   className="mt-6 inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white hover:bg-white/[0.08] transition-colors"
                 >
                   {plan.cta}
@@ -356,7 +356,7 @@ export function HowItWorksPage() {
               the best next move.
             </p>
             <Link
-              to="/trial"
+              to="/try"
               className="mt-8 inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
               style={{ background: "var(--gradient-signal)" }}
             >

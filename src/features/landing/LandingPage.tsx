@@ -68,7 +68,7 @@ export function LandingPage() {
               className="mt-10 flex flex-wrap items-center gap-3"
             >
               <Link
-                to="/trial"
+                to="/try"
                 className="group relative inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide text-primary-foreground ambient-glow border border-white/15 shadow-lg shadow-black/30 hover:shadow-xl transition-shadow"
                 style={{ background: "var(--gradient-signal)" }}
               >
