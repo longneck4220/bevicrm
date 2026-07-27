@@ -1,37 +1,34 @@
 ## Goal
 
-"Try a Visit Note" currently points at `/trial`, which sits behind login, so a first-time visitor bounces to the sign-in screen. Instead, send them to a public, no-signup demo that runs a real AI pass on a venue name + note and shows a polished, slightly lighter version of the real output — nothing saved, no account required.
+Let visit intelligence run on Anthropic Claude, with a switch so you can flip back to the current Gemini model without code changes.
+
+## Important context
+
+Lovable's AI gateway catalog has no Anthropic models, and there is no "custom connector" that adds models to it. So Claude has to be called directly at `api.anthropic.com` using your own Anthropic API key. That means Claude usage is billed by Anthropic, not Lovable credits.
 
 ## What gets built
 
-**1. New public route `/try`** (`src/routes/try.tsx` + `src/features/try/TryDemoPage.tsx`)
-- Same visual language as the app (glass cards, particle field, signal labels).
-- Inputs: **Venue name** and **Post-visit note** (textarea), plus 2–3 one-click sample notes so a visitor can see output without typing.
-- One button: "Generate intelligence". Loading state mirrors the real trial page.
-- Output cards, in the real hierarchy:
-  1. Next Best Move (recommendation, reason, specific ask, posture + confidence)
-  2. Commercial Signals (buying style, risk flags, margin pressure, opportunity signals)
-  3. CRM Note (with copy button, using the existing robust clipboard helper)
-  4. Follow-up Email (subject + body, copy button)
-  5. Missed Opportunity
-  - Deliberately excluded from the demo (they're the "memory" payoff that requires an account): Account Memory and Targeted Deals — each shown as a locked/teaser tile with a line like "Account memory builds from your second visit onwards" and a CTA.
-- Bottom CTA block: "Nothing here was saved. Create an account to keep account memory, files and deal pitches" → links to `/login`, then on to `/trial`.
+1. **Secret**: request `ANTHROPIC_API_KEY` (from console.anthropic.com → API Keys) via the secure secret form. Server-side only.
 
-**2. New public server function `generateDemoIntelligence`** (`src/lib/demo.functions.ts`)
-- No `requireSupabaseAuth`, no database reads or writes at all.
-- Reuses the existing BEVI system prompt (exported from `trial.functions.ts` so there is one source of truth) with a short demo suffix: no account memory, no prior visits, no reference documents, return empty `targeted_deals`.
-- Input validation: venue name ≤ 120 chars, note 20–4,000 chars; anything longer is truncated rather than sent.
-- Same Gemini call + JSON parse + 429/402 error handling as the real function; errors surface as friendly in-page messages.
-- Abuse control appropriate to a public endpoint: strict input caps, one in-flight request per client (button disabled while running), and a client-side cooldown between generations.
+2. **New server-only helper** `src/lib/ai-provider.server.ts`
+   - `generateVisitJson({ system, user })` — one function, two backends:
+     - `anthropic`: POST `https://api.anthropic.com/v1/messages` with `x-api-key`, `anthropic-version: 2023-06-01`, system prompt as top-level `system`, and a JSON-only instruction plus prefilled `{` assistant turn to force clean JSON.
+     - `lovable`: the existing gateway `/v1/chat/completions` call with `google/gemini-3.6-flash` and `response_format: json_object`.
+   - Returns parsed JSON, and maps errors consistently (429 rate limit, 402/credit or Anthropic billing, other → generic "AI service error", with full detail logged server-side only).
+   - Falls back to the Lovable gateway automatically if Claude is selected but `ANTHROPIC_API_KEY` is missing, so the app never hard-breaks.
 
-**3. Repoint the public CTAs**
-- `LandingPage.tsx` (hero) and `HowItWorksPage.tsx` (hero, pricing cards, closing CTA) change `to="/trial"` → `to="/try"`.
-- Logged-in surfaces stay as they are: `DashboardPage`, `MobileCompanionPage`, `VisitDetailPage` keep linking to `/trial`.
-- Add `/try` to `sitemap[.]xml.ts` with its own `head()` metadata (title, description, og/twitter, canonical).
+3. **Model switch** (no code edits to change models)
+   - Env vars read inside the handler: `AI_PROVIDER` (`anthropic` | `lovable`, default `lovable`) and `ANTHROPIC_MODEL` (default `claude-sonnet-4-5`).
+   - Optional per-request override: `generateVisitIntelligence` input gains an optional `provider` field so a caller can force one backend; the env default applies when it's absent.
+
+4. **Wire into `generateVisitIntelligence`** (`src/lib/trial.functions.ts` lines ~388–418)
+   - Replace the inline gateway fetch with a call to the helper. Prompt building, prior-visit recall, deals, DB insert and return shape all stay exactly as they are.
+   - `/try` demo, transcription (Whisper) and every other AI call are untouched — they stay on the Lovable gateway.
+
+5. **Verify**: run one real generation through the route on Claude and read the response, confirming valid JSON in the existing `AiOutput` shape, then confirm the switch back to Gemini still works.
 
 ## Technical notes
 
-- `/try` is a public route, so no `requireSupabaseAuth` middleware anywhere in its chain and no loader calling a protected function — the demo function is called from the component on click via `useServerFn`.
-- `SYSTEM_PROMPT` moves to an exported const (or a shared `src/lib/bevi-prompt.ts`) so demo and real trial never drift.
-- The demo reuses the existing `AiOutput` type; the page just renders a subset of it.
-- No schema changes, no migrations, no new tables.
+- Anthropic returns `content[0].text`, not `choices[0].message.content`, and has no `response_format` — hence the JSON-forcing prompt + assistant prefill.
+- Helper lives in a `.server.ts` file so the key never enters the client bundle; `process.env` is read inside the handler, not at module scope.
+- Claude model IDs are not validated by Lovable, so `ANTHROPIC_MODEL` is a plain string you control.
