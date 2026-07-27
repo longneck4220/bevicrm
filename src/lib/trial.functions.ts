@@ -237,8 +237,6 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
   .inputValidator((d) => GenerateInput.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
     const { data: account, error: accErr } = await supabase
       .from("accounts")
