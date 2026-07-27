@@ -386,37 +386,12 @@ ${data.rawNote}
 
 Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-ready lines, and synthesize updated_account_memory as a concise front-of-call account brief using current memory + prior visit history + this note. The memory should help the rep quickly understand the account before opening or entering the next call. Do not copy the raw note or CRM note verbatim into account memory, and do not include detailed product history unless it is currently important.`;
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3.6-flash",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-      }),
+    const { generateVisitJson } = await import("@/lib/ai-provider.server");
+    const parsed = await generateVisitJson<AiOutput>({
+      system: SYSTEM_PROMPT,
+      user: userPrompt,
+      provider: data.provider,
     });
-
-    if (resp.status === 429) throw new Error("Rate limit — please try again in a moment.");
-    if (resp.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
-    if (!resp.ok) {
-      const txt = await resp.text();
-      console.error("[AI gateway error]", resp.status, txt.slice(0, 1000));
-      throw new Error("AI service error. Please try again later.");
-    }
-    const payload = await resp.json();
-    const content: string = payload?.choices?.[0]?.message?.content ?? "";
-    let parsed: AiOutput;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      throw new Error("AI returned non-JSON output");
-    }
 
     const { data: visit, error: visitErr } = await supabase
       .from("visits")
