@@ -25,8 +25,7 @@ export const transcribeAudio = createServerFn({ method: "POST" })
     const bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     if (bytes.byteLength < 512) throw new Error("Recording was empty. Please try again.");
-    if (bytes.byteLength > 25 * 1024 * 1024)
-      throw new Error("Recording is over 25 MB. Try shorter clips.");
+    if (bytes.byteLength > 25 * 1024 * 1024) throw new Error("Recording is over 25 MB. Try shorter clips.");
 
     // Pick a filename extension that matches the actual container so the
     // upstream model doesn't reject with "Audio file might be corrupted".
@@ -54,8 +53,7 @@ export const transcribeAudio = createServerFn({ method: "POST" })
     });
 
     if (resp.status === 429) throw new Error("Rate limit — please try again in a moment.");
-    if (resp.status === 402)
-      throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
+    if (resp.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
     if (!resp.ok) {
       const txt = await resp.text();
       console.error("[STT gateway error]", resp.status, txt.slice(0, 500));
@@ -394,7 +392,7 @@ Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-re
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "anthropic/claude-sonnet-5",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
@@ -404,8 +402,7 @@ Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-re
     });
 
     if (resp.status === 429) throw new Error("Rate limit — please try again in a moment.");
-    if (resp.status === 402)
-      throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
+    if (resp.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
     if (!resp.ok) {
       const txt = await resp.text();
       console.error("[AI gateway error]", resp.status, txt.slice(0, 1000));
@@ -441,9 +438,7 @@ Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-re
 
 export const updateAccountMemory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ accountId: z.string().uuid(), memory: z.string().max(20000) }).parse(d),
-  )
+  .inputValidator((d) => z.object({ accountId: z.string().uuid(), memory: z.string().max(20000) }).parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("accounts")
@@ -458,14 +453,9 @@ export const updateAccountMemory = createServerFn({ method: "POST" })
 
 export const rateVisit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ visitId: z.string().uuid(), rating: z.enum(["good", "needs_edit"]) }).parse(d),
-  )
+  .inputValidator((d) => z.object({ visitId: z.string().uuid(), rating: z.enum(["good", "needs_edit"]) }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("visits")
-      .update({ rating: data.rating })
-      .eq("id", data.visitId);
+    const { error } = await context.supabase.from("visits").update({ rating: data.rating }).eq("id", data.visitId);
     if (error) {
       console.error("[DB error] update visit rating", error);
       throw new Error("Could not save rating. Please try again.");
@@ -530,10 +520,7 @@ export const listVisits = createServerFn({ method: "GET" })
         created_at: string;
         rating: string | null;
         ai_output: unknown;
-        accounts:
-          | { name: string; contact: string | null }
-          | { name: string; contact: string | null }[]
-          | null;
+        accounts: { name: string; contact: string | null } | { name: string; contact: string | null }[] | null;
       }) => {
         const acct = Array.isArray(v.accounts) ? v.accounts[0] : v.accounts;
         return {
