@@ -24,6 +24,21 @@ const SAMPLES: Array<{ venue: string; note: string; label: string }> = [
     venue: "Kirra Cellars",
     note: "Spoke to Dean. Foot traffic up over summer, ran out of the 700ml twice. Wants better fridge placement but space is tight. Complained a competitor gave him a case deal last month. Interested in a bundle for the Easter window if the numbers stack up. Follow up with what's available.",
   },
+  {
+    label: "Bar — new opening",
+    venue: "Sable Rooftop, Brisbane",
+    note: "New venue opening next month. Bar manager Jake wants a tight, premium spirits list — around 25 SKUs. Focus on local gins and rums with a story. Needs staff training built into any launch deal. Asked for terms and delivery schedule. Wants samples by Friday.",
+  },
+  {
+    label: "Hotel — event play",
+    venue: "Marina Hotel, Mackay",
+    note: "Functions manager Sarah is planning wedding season. Currently buys sparkling by the case from a competitor but price went up. Wants a prosecco alternative and a rosé for summer packages. Needs a tasting for the events team. Mentioned previous supplier was slow to respond.",
+  },
+  {
+    label: "Restaurant — competitor switch",
+    venue: "Bistro Lumière, Noosa",
+    note: "Head chef Marco is unhappy with current supplier's consistency on vermouth. Wants to switch before the winter menu launches. Asks for spec sheets and pricing on three vermouths and two amaros. Interested in a back-bar training session for the floor team.",
+  },
 ];
 
 export function TryDemoPage() {
