@@ -128,8 +128,8 @@ export function HowItWorksPage() {
               How BEVI <span className="text-gradient">works.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-muted-foreground leading-relaxed">
-              BEVI turns messy field visit notes into CRM-ready records, follow-up, account memory
-              and the next best commercial move.
+              BEVI turns daily account visit notes into CRM-ready records, generates draft follow up
+              and prescribes the next best commercial move.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link
