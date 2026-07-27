@@ -299,7 +299,7 @@ export function HowItWorksPage() {
           </div>
 
           <div className="mt-4 text-sm text-muted-foreground">
-            Annual billing shows the discounted rate, roughly two months free on paid plans.
+            Annual billing shows the discounted rate, two months free on paid plans.
           </div>
 
           <div className="mt-8 grid lg:grid-cols-4 gap-5">
