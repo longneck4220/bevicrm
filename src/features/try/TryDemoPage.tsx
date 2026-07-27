@@ -11,32 +11,32 @@ import type { AiOutput } from "@/lib/trial.functions";
 const SAMPLES: Array<{ venue: string; note: string; label: string }> = [
   {
     label: "Pub — lapsed support",
-    venue: "The Grand Hotel, Southport",
+    venue: "The Royal Oak",
     note: "Caught Aaron between deliveries. Happy with how Byron is selling, sitting front of well. Pricing support lapsed a few months ago and he noticed on the last invoice. Wants help lifting staff confidence on cocktails, said the new crew don't upsell. Open to a training session next month. Didn't order today, said check back after the long weekend.",
   },
   {
     label: "Bistro — range review",
-    venue: "Riverbend Bistro, Toowoomba",
+    venue: "Riverbend Bistro",
     note: "Met Priya, venue manager. Doing a menu refresh in six weeks and wants two signature cocktails. Says gin moves well on weekends, rum barely turns. Worried about pour cost, asked what the margin looks like at $18 a serve. Current supplier slow on deliveries. Wants a sample pack before she commits.",
   },
   {
     label: "Bottle shop — volume push",
-    venue: "Kirra Cellars",
+    venue: "Coastal Cellars",
     note: "Spoke to Dean. Foot traffic up over summer, ran out of the 700ml twice. Wants better fridge placement but space is tight. Complained a competitor gave him a case deal last month. Interested in a bundle for the Easter window if the numbers stack up. Follow up with what's available.",
   },
   {
     label: "Bar — new opening",
-    venue: "Sable Rooftop, Brisbane",
+    venue: "Sable Rooftop",
     note: "New venue opening next month. Bar manager Jake wants a tight, premium spirits list — around 25 SKUs. Focus on local gins and rums with a story. Needs staff training built into any launch deal. Asked for terms and delivery schedule. Wants samples by Friday.",
   },
   {
     label: "Hotel — event play",
-    venue: "Marina Hotel, Mackay",
+    venue: "Marina Hotel",
     note: "Functions manager Sarah is planning wedding season. Currently buys sparkling by the case from a competitor but price went up. Wants a prosecco alternative and a rosé for summer packages. Needs a tasting for the events team. Mentioned previous supplier was slow to respond.",
   },
   {
     label: "Restaurant — competitor switch",
-    venue: "Bistro Lumière, Noosa",
+    venue: "Bistro Lumière",
     note: "Head chef Marco is unhappy with current supplier's consistency on vermouth. Wants to switch before the winter menu launches. Asks for spec sheets and pricing on three vermouths and two amaros. Interested in a back-bar training session for the floor team.",
   },
 ];
@@ -113,7 +113,7 @@ export function TryDemoPage() {
               id="venue"
               value={venue}
               onChange={(e) => setVenue(e.target.value.slice(0, 120))}
-              placeholder="e.g. The Grand Hotel, Southport"
+              placeholder="e.g. The Royal Oak"
               className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-[var(--brand-cyan)]/50"
             />
           </div>
