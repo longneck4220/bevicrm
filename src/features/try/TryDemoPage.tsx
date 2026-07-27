@@ -53,6 +53,14 @@ export function TryDemoPage() {
 
   const canRun = venue.trim().length > 0 && note.trim().length >= 20 && !loading && !cooldown;
 
+  function onReset() {
+    setVenue("");
+    setNote("");
+    setOutput(null);
+    setError(null);
+    setCooldown(false);
+  }
+
   async function onGenerate() {
     if (!canRun) return;
     setLoading(true);
@@ -169,6 +177,13 @@ export function TryDemoPage() {
               style={{ background: "var(--gradient-signal)" }}
             >
               {loading ? "BEVI is thinking…" : "Generate intelligence"}
+            </button>
+            <button
+              type="button"
+              onClick={onReset}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.05] px-5 text-sm font-medium text-white/90 hover:bg-white/[0.10] hover:border-white/25 transition-all"
+            >
+              Reset demo
             </button>
             {note.trim().length > 0 && note.trim().length < 20 && (
               <span className="text-xs text-white/50">Add a bit more detail to the note.</span>
