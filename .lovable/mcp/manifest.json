@@ -1,0 +1,174 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://trbwtgggcsmnustzidbi.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "bevi-mcp",
+      "version": "0.1.0",
+      "title": "BEVI"
+    },
+    "tools": [
+      {
+        "name": "list_accounts",
+        "title": "List accounts",
+        "description": "List the signed-in user's BEVI accounts (venues), optionally filtered by a name search.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "search": {
+              "description": "Optional case-insensitive account name filter.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Maximum accounts to return (default 25).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_account",
+        "title": "Get account with memory",
+        "description": "Fetch one BEVI account including its rolling account memory and most recent visit notes.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "account_id": {
+              "type": "string",
+              "description": "The account UUID, as returned by list_accounts."
+            },
+            "visits": {
+              "description": "How many recent visits to include (default 5).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "account_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_visits",
+        "title": "List recent visits",
+        "description": "List the signed-in user's most recent logged visits across all accounts, newest first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "account_id": {
+              "description": "Optional account UUID to filter by.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Maximum visits to return (default 20).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_account",
+        "title": "Create account",
+        "description": "Create a new BEVI account (venue) owned by the signed-in user.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Venue / account name."
+            },
+            "contact": {
+              "description": "Primary contact name at the venue.",
+              "type": "string"
+            },
+            "memory": {
+              "description": "Initial account memory / background context.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_visit",
+        "title": "Log a visit note",
+        "description": "Save a raw post-visit note against an account. Intelligence generation happens in the BEVI app.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "account_id": {
+              "type": "string",
+              "description": "The account UUID the visit belongs to."
+            },
+            "raw_note": {
+              "type": "string",
+              "description": "The raw post-visit note text."
+            },
+            "supporting_context": {
+              "description": "Any extra supporting context.",
+              "type": "string"
+            },
+            "rating": {
+              "description": "Optional visit rating / sentiment label.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "account_id",
+            "raw_note"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
