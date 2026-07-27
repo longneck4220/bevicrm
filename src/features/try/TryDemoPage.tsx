@@ -53,6 +53,14 @@ export function TryDemoPage() {
 
   const canRun = venue.trim().length > 0 && note.trim().length >= 20 && !loading && !cooldown;
 
+  function onReset() {
+    setVenue("");
+    setNote("");
+    setOutput(null);
+    setError(null);
+    setCooldown(false);
+  }
+
   async function onGenerate() {
     if (!canRun) return;
     setLoading(true);
