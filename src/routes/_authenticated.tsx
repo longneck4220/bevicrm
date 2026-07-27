@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, Navigate, useRouterState } from "@tanstack/react-router";
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -7,7 +8,11 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const { user, loading } = useAuth();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const currentPath = useRouterState({ select: (s) => s.location.pathname });
+  // Capture the protected path on first render. Reading it later can yield
+  // "/login" mid-redirect, which would send the user back to the sign-in page
+  // after a successful sign-in.
+  const [pathname] = useState(currentPath);
 
   if (loading) {
     return (

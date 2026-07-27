@@ -10,7 +10,10 @@ const DESCRIPTION =
 const URL = "https://bevicrm.lovable.app/login";
 
 function safeNext(next: string | undefined) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
+  // Never bounce back to the sign-in page itself.
+  if (next === "/login" || next.startsWith("/login?")) return null;
+  return next;
 }
 
 export const Route = createFileRoute("/login")({
