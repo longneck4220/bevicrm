@@ -159,8 +159,8 @@ export function HowItWorksPage() {
               </div>
             </div>
             <p className="text-white/80 leading-relaxed">
-              Reps do not lose deals because they forget the meeting. They lose momentum in the gap
-              after it.
+              Reps do not lose deals because they forget the meeting. They lose momentum in the GAP
+              between follow ups.
             </p>
             <p className="mt-4 text-muted-foreground leading-relaxed">
               BEVI turns what just happened into what should happen next. Before pricing tension and
