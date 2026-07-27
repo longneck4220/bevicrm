@@ -1,4 +1,5 @@
-import { createFileRoute, Outlet, Navigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Navigate, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -7,7 +8,12 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const { user, loading } = useAuth();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const router = useRouter();
+  // Captured once on mount rather than subscribed reactively: once <Navigate>
+  // below starts the transition to /login, the router's location changes to
+  // /login *before this component unmounts*, so a reactive read here would
+  // otherwise pick up "/login" itself as the redirect target on the next render.
+  const [entryPathname] = useState(() => router.state.location.pathname);
 
   if (loading) {
     return (
@@ -18,7 +24,7 @@ function AuthenticatedLayout() {
   }
 
   if (!user) {
-    return <Navigate to="/login" search={{ next: pathname }} />;
+    return <Navigate to="/login" search={{ next: entryPathname }} />;
   }
 
   return <Outlet />;
