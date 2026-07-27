@@ -92,7 +92,7 @@ export const listUsersForAdmin = createServerFn({ method: "GET" })
 
 export const adminDeleteAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ accountId: z.string().uuid() }).parse(data))
+  .validator((data: unknown) => z.object({ accountId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

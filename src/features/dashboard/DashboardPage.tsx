@@ -123,7 +123,7 @@ export function DashboardPage() {
             </p>
           </div>
           <Link
-            to="/mobile"
+            to="/trial"
             className="rounded-xl px-5 py-3 text-sm font-medium text-primary-foreground"
             style={{ background: "var(--gradient-signal)" }}
           >
@@ -135,8 +135,7 @@ export function DashboardPage() {
           <GlassCard className="mt-12 p-8 text-center">
             <div className="text-white font-medium">No visits recorded yet</div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Head to the trial recorder to capture your first post-visit note. Your dashboard fills
-              in automatically.
+              Log your first post-visit note below. Your dashboard fills in automatically.
             </p>
             <div className="mt-5 flex items-center justify-center gap-3">
               <Link

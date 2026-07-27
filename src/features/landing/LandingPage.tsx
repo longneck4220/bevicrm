@@ -68,11 +68,11 @@ export function LandingPage() {
               className="mt-10 flex flex-wrap items-center gap-3"
             >
               <Link
-                to="/trial"
+                to="/how-it-works"
                 className="group relative inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide text-primary-foreground ambient-glow border border-white/15 shadow-lg shadow-black/30 hover:shadow-xl transition-shadow"
                 style={{ background: "var(--gradient-signal)" }}
               >
-                Try a Visit Note
+                See how it works
                 <span className="transition-transform group-hover:translate-x-0.5">→</span>
               </Link>
               <Link
@@ -83,10 +83,10 @@ export function LandingPage() {
                 <span>→</span>
               </Link>
               <Link
-                to="/mobile"
+                to="/login"
                 className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide glass border border-white/15 hover:bg-white/5 transition-colors"
               >
-                See Example Output
+                Try the preview
                 <span>→</span>
               </Link>
             </motion.div>

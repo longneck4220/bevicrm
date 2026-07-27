@@ -53,7 +53,7 @@ const pricingPlans = [
     annualDetail: "/ user / year",
     body: "For reps using BEVI regularly to keep account memory live, tighten follow-up and prepare the next call faster.",
     badge: "MONTH FREE",
-    cta: "Start memory trial",
+    cta: "Start Field Pro",
   },
   {
     name: "Team Pilot",

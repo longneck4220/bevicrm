@@ -66,7 +66,13 @@ function LoginPage() {
       }
       navigate({ to: "/dashboard" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
+      const message =
+        err instanceof Error && err.message.toLowerCase().includes("invalid login credentials")
+          ? "Those sign-in details were not accepted. Please check your email and password, or create a new account if you do not have one yet."
+          : err instanceof Error
+            ? err.message
+            : "Authentication failed";
+      setError(message);
     } finally {
       setLoading(false);
     }

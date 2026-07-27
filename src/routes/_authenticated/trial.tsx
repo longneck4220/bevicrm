@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrialPage } from "@/features/trial/TrialPage";
 
-const TITLE = "BEVI Trial — Post-visit intelligence";
+const TITLE = "Log a Visit · BEVI";
 const DESCRIPTION =
   "Turn one messy post-visit note into a CRM-ready record, a follow-up email, and the next best move — in under 60 seconds.";
 const URL = "https://bevicrm.lovable.app/trial";

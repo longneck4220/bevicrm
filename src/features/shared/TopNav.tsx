@@ -21,9 +21,8 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
   );
 }
 
-const baseLinks: { to: "/how-it-works" | "/trial" | "/dashboard" | "/mobile"; label: string }[] = [
+const baseLinks: { to: "/how-it-works" | "/dashboard" | "/mobile"; label: string }[] = [
   { to: "/how-it-works", label: "How it works" },
-  { to: "/trial", label: "Trial" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/mobile", label: "Mobile" },
 ];
@@ -37,7 +36,7 @@ export function TopNav() {
   return (
     <header className="fixed top-0 inset-x-0 z-50">
       <div className="mx-auto max-w-7xl px-6 py-4">
-        <div className="glass-strong rounded-2xl px-4 py-3 flex items-center justify-between ambient-glow">
+        <div className="rounded-2xl border border-white/10 bg-[#050917]/90 px-4 py-3 flex items-center justify-between shadow-[0_16px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
           <BeviLogo />
           <nav className="hidden md:flex items-center gap-1">
             {[...baseLinks, ...(isAdmin ? [adminLink] : [])].map((l) => {
