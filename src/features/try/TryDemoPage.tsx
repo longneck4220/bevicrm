@@ -24,6 +24,21 @@ const SAMPLES: Array<{ venue: string; note: string; label: string }> = [
     venue: "Kirra Cellars",
     note: "Spoke to Dean. Foot traffic up over summer, ran out of the 700ml twice. Wants better fridge placement but space is tight. Complained a competitor gave him a case deal last month. Interested in a bundle for the Easter window if the numbers stack up. Follow up with what's available.",
   },
+  {
+    label: "Bar — new opening",
+    venue: "Sable Rooftop, Brisbane",
+    note: "New venue opening next month. Bar manager Jake wants a tight, premium spirits list — around 25 SKUs. Focus on local gins and rums with a story. Needs staff training built into any launch deal. Asked for terms and delivery schedule. Wants samples by Friday.",
+  },
+  {
+    label: "Hotel — event play",
+    venue: "Marina Hotel, Mackay",
+    note: "Functions manager Sarah is planning wedding season. Currently buys sparkling by the case from a competitor but price went up. Wants a prosecco alternative and a rosé for summer packages. Needs a tasting for the events team. Mentioned previous supplier was slow to respond.",
+  },
+  {
+    label: "Restaurant — competitor switch",
+    venue: "Bistro Lumière, Noosa",
+    note: "Head chef Marco is unhappy with current supplier's consistency on vermouth. Wants to switch before the winter menu launches. Asks for spec sheets and pricing on three vermouths and two amaros. Interested in a back-bar training session for the floor team.",
+  },
 ];
 
 export function TryDemoPage() {
@@ -118,24 +133,29 @@ export function TryDemoPage() {
             />
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-[11px] uppercase tracking-[0.18em] text-white/40 mr-1">
-              Or load a sample
-            </span>
-            {SAMPLES.map((s) => (
-              <button
-                key={s.label}
-                type="button"
-                onClick={() => {
-                  setVenue(s.venue);
-                  setNote(s.note);
-                  setError(null);
-                }}
-                className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/80 hover:bg-white/[0.09] transition-colors"
-              >
-                {s.label}
-              </button>
-            ))}
+          <div className="mt-5 rounded-xl border border-white/10 bg-black/30 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-1 h-1 rounded-full bg-[var(--brand-cyan)]" />
+              <span className="text-[11px] uppercase tracking-[0.18em] text-white/60">
+                Try an instant sample
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {SAMPLES.map((s) => (
+                <button
+                  key={s.label}
+                  type="button"
+                  onClick={() => {
+                    setVenue(s.venue);
+                    setNote(s.note);
+                    setError(null);
+                  }}
+                  className="rounded-lg border border-white/15 bg-white/[0.06] px-3.5 py-2 text-xs font-medium text-white/90 shadow-sm hover:bg-white/[0.12] hover:border-white/25 hover:text-white transition-all"
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
