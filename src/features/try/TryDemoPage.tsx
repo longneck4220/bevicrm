@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { ParticleField } from "@/features/shared/ParticleField";
-import { copyToClipboard } from "@/lib/demo-clipboard";
+import { copyToClipboard } from "@/lib/clipboard";
 import { generateDemoIntelligence } from "@/lib/demo.functions";
 import type { AiOutput } from "@/lib/trial.functions";
 
