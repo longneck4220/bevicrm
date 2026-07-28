@@ -23,7 +23,6 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedVisitIdRouteImport } from './routes/_authenticated/visit.$id'
-import { Route as AuthenticatedConversationIdRouteImport } from './routes/_authenticated/conversation.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
@@ -98,12 +97,6 @@ const AuthenticatedVisitIdRoute = AuthenticatedVisitIdRouteImport.update({
   path: '/visit/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedConversationIdRoute =
-  AuthenticatedConversationIdRouteImport.update({
-    id: '/conversation/$id',
-    path: '/conversation/$id',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -131,7 +124,6 @@ export interface FileRoutesByFullPath {
   '/trial': typeof AuthenticatedTrialRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/visit/$id': typeof AuthenticatedVisitIdRoute
 }
 export interface FileRoutesByTo {
@@ -149,7 +141,6 @@ export interface FileRoutesByTo {
   '/trial': typeof AuthenticatedTrialRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/visit/$id': typeof AuthenticatedVisitIdRoute
 }
 export interface FileRoutesById {
@@ -169,7 +160,6 @@ export interface FileRoutesById {
   '/_authenticated/trial': typeof AuthenticatedTrialRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/_authenticated/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/_authenticated/visit/$id': typeof AuthenticatedVisitIdRoute
 }
 export interface FileRouteTypes {
@@ -189,7 +179,6 @@ export interface FileRouteTypes {
     | '/trial'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
-    | '/conversation/$id'
     | '/visit/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -207,7 +196,6 @@ export interface FileRouteTypes {
     | '/trial'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
-    | '/conversation/$id'
     | '/visit/$id'
   id:
     | '__root__'
@@ -226,7 +214,6 @@ export interface FileRouteTypes {
     | '/_authenticated/trial'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
-    | '/_authenticated/conversation/$id'
     | '/_authenticated/visit/$id'
   fileRoutesById: FileRoutesById
 }
@@ -344,13 +331,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVisitIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/conversation/$id': {
-      id: '/_authenticated/conversation/$id'
-      path: '/conversation/$id'
-      fullPath: '/conversation/$id'
-      preLoaderRoute: typeof AuthenticatedConversationIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -373,7 +353,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMobileRoute: typeof AuthenticatedMobileRoute
   AuthenticatedTrialRoute: typeof AuthenticatedTrialRoute
-  AuthenticatedConversationIdRoute: typeof AuthenticatedConversationIdRoute
   AuthenticatedVisitIdRoute: typeof AuthenticatedVisitIdRoute
 }
 
@@ -382,7 +361,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMobileRoute: AuthenticatedMobileRoute,
   AuthenticatedTrialRoute: AuthenticatedTrialRoute,
-  AuthenticatedConversationIdRoute: AuthenticatedConversationIdRoute,
   AuthenticatedVisitIdRoute: AuthenticatedVisitIdRoute,
 }
 
