@@ -163,8 +163,10 @@ function RootComponent() {
               Skip to content
             </a>
             <MarketingNav />
-            <Outlet />
-            <MarketingFooter />
+            <div className="relative min-h-dvh" style={{ background: "var(--bg-base)" }}>
+              <Outlet />
+              <MarketingFooter />
+            </div>
           </>
         ) : (
           <>
