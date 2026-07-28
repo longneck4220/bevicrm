@@ -271,7 +271,7 @@ export function HowItWorksPage() {
           </GlassCard>
         </section>
 
-        <section className="mt-16">
+        <section id="pricing" className="mt-16 scroll-mt-24">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
               <SignalLabel as="h2">Pilot pricing</SignalLabel>
