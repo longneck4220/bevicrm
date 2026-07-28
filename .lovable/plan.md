@@ -1,34 +1,26 @@
-## Goal
+Protect the current main branch while keeping the Homepage V2 work as a reversible experiment.
 
-Let visit intelligence run on Anthropic Claude, with a switch so you can flip back to the current Gemini model without code changes.
+Current state
+- The project has two local branches: `main` (untouched) and the active edit branch `edit/edt-fec6ae0b-8819-4003-8e41-815a26bda334`.
+- The V2 homepage rebuild is committed only on the edit branch (`fc21ac1 Rebuilt homepage V2 marketing`). `main` does not contain this commit.
+- The user is worried V2 will overwrite the current look/schema before they are ready.
 
-## Important context
+Plan
+1. Verify the branch boundary
+   - Run a diff between `main` and the edit branch to produce a precise list of files changed by V2.
+   - Confirm that no app routes (Dashboard, Mobile, Login, Command Center, /try logic) or backend schema files are in the diff.
+2. Preserve main
+   - Document the current `main` HEAD commit hash for the user.
+   - Explain that returning to `main` restores the pre-V2 marketing look immediately.
+3. Make V2 reversible without merging
+   - Keep the edit branch as the V2 experiment branch.
+   - Do not merge or fast-forward `main` until the user explicitly asks.
+   - Offer a revert path via Lovable's built-in History tab / chat revert button.
+4. Optional preview isolation (if the user wants)
+   - Create a short-lived published preview from the edit branch so they can share V2 without affecting the live published site on `main`.
+   - No backend/schema migrations are part of V2, so there is no database risk.
 
-Lovable's AI gateway catalog has no Anthropic models, and there is no "custom connector" that adds models to it. So Claude has to be called directly at `api.anthropic.com` using your own Anthropic API key. That means Claude usage is billed by Anthropic, not Lovable credits.
-
-## What gets built
-
-1. **Secret**: request `ANTHROPIC_API_KEY` (from console.anthropic.com → API Keys) via the secure secret form. Server-side only.
-
-2. **New server-only helper** `src/lib/ai-provider.server.ts`
-   - `generateVisitJson({ system, user })` — one function, two backends:
-     - `anthropic`: POST `https://api.anthropic.com/v1/messages` with `x-api-key`, `anthropic-version: 2023-06-01`, system prompt as top-level `system`, and a JSON-only instruction plus prefilled `{` assistant turn to force clean JSON.
-     - `lovable`: the existing gateway `/v1/chat/completions` call with `google/gemini-3.6-flash` and `response_format: json_object`.
-   - Returns parsed JSON, and maps errors consistently (429 rate limit, 402/credit or Anthropic billing, other → generic "AI service error", with full detail logged server-side only).
-   - Falls back to the Lovable gateway automatically if Claude is selected but `ANTHROPIC_API_KEY` is missing, so the app never hard-breaks.
-
-3. **Model switch** (no code edits to change models)
-   - Env vars read inside the handler: `AI_PROVIDER` (`anthropic` | `lovable`, default `lovable`) and `ANTHROPIC_MODEL` (default `claude-sonnet-4-5`).
-   - Optional per-request override: `generateVisitIntelligence` input gains an optional `provider` field so a caller can force one backend; the env default applies when it's absent.
-
-4. **Wire into `generateVisitIntelligence`** (`src/lib/trial.functions.ts` lines ~388–418)
-   - Replace the inline gateway fetch with a call to the helper. Prompt building, prior-visit recall, deals, DB insert and return shape all stay exactly as they are.
-   - `/try` demo, transcription (Whisper) and every other AI call are untouched — they stay on the Lovable gateway.
-
-5. **Verify**: run one real generation through the route on Claude and read the response, confirming valid JSON in the existing `AiOutput` shape, then confirm the switch back to Gemini still works.
-
-## Technical notes
-
-- Anthropic returns `content[0].text`, not `choices[0].message.content`, and has no `response_format` — hence the JSON-forcing prompt + assistant prefill.
-- Helper lives in a `.server.ts` file so the key never enters the client bundle; `process.env` is read inside the handler, not at module scope.
-- Claude model IDs are not validated by Lovable, so `ANTHROPIC_MODEL` is a plain string you control.
+Outcome
+- The user can keep working on V2 safely, knowing `main` still holds the current live look and schema.
+- No accidental takeover of the current site.
+- Clear rollback instructions if they decide not to ship V2.

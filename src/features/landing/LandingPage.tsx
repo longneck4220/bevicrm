@@ -1,220 +1,226 @@
-import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { BeviMark } from "@/features/shared/BeviMark";
-import { ParticleField } from "@/features/shared/ParticleField";
-import { GlassCard, SignalLabel } from "@/features/shared/primitives";
+import { useEffect, useRef, useState } from "react";
+import { HeroReconstruction } from "./HeroReconstruction";
+import { OUTPUT_CARDS } from "./outputs";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 18 },
-  show: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] as const },
-  }),
-};
+const STACK = ["Salesforce", "Otter", "Rhino CRM", "Teams", "Power BI"];
 
-export function LandingPage() {
+const LOOP = [
+  {
+    label: "CAPTURE",
+    body: "Dictate the rough note from the car park. Buyer cues, pricing tension, promises — before they go cold.",
+  },
+  {
+    label: "SIGNAL",
+    body: "BEVI reads intent, objections, margin pressure, missed opportunity and account risk.",
+  },
+  {
+    label: "MOVE",
+    body: "Five outputs in under 90 seconds. The next best move, ready before you've left the car park.",
+  },
+];
+
+function useInView<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (e) => {
+        if (e[0]?.isIntersecting) {
+          setSeen(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return { ref, seen };
+}
+
+function LoopSection() {
+  const { ref, seen } = useInView<HTMLDivElement>();
   return (
-    <main className="relative pt-28 pb-32">
-      <ParticleField count={36} />
-      <div className="absolute inset-0 grid-overlay pointer-events-none" aria-hidden />
+    <section id="why" className="bevi-section" aria-labelledby="loop-heading">
+      <div className="bevi-container">
+        <span className="bevi-eyebrow">THE OPERATING LOOP</span>
+        <h2 id="loop-heading" className="bevi-h2 mt-3">
+          Capture → Signal → Move.
+        </h2>
 
-      {/* HERO */}
-      <section className="relative mx-auto max-w-7xl px-6">
-        <div className="grid lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7">
-            <motion.div
-              initial="hidden"
-              animate="show"
-              variants={fadeUp}
-              custom={0}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass mb-8"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
-              <SignalLabel className="text-left leading-tight">
-                POST VISIT SALES INTELLIGENCE
-                <br />
-                &nbsp; FOR FIELD MANAGERS&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-              </SignalLabel>
-            </motion.div>
-
-            <motion.h1
-              initial="hidden"
-              animate="show"
-              variants={fadeUp}
-              custom={1}
-              className="text-[clamp(2.8rem,6.4vw,5.5rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-white"
-            >
-              Win the <br className="hidden sm:block" />
-              <span className="text-gradient">next call.</span>
-            </motion.h1>
-
-            <motion.p
-              initial="hidden"
-              animate="show"
-              variants={fadeUp}
-              custom={2}
-              className="mt-6 max-w-xl text-lg text-muted-foreground leading-relaxed"
-            >
-              BEVI turns post-visit thinking into CRM ready notes, account memory and the next best
-              commercial move.
-            </motion.p>
-
-            <motion.div
-              initial="hidden"
-              animate="show"
-              variants={fadeUp}
-              custom={3}
-              className="mt-10 flex flex-wrap items-center gap-3"
-            >
-              <Link
-                to="/try"
-                className="group relative inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide text-primary-foreground ambient-glow border border-white/15 shadow-lg shadow-black/30 hover:shadow-xl transition-shadow"
-                style={{ background: "var(--gradient-signal)" }}
-              >
-                Try a visit note — no signup
-                <span className="transition-transform group-hover:translate-x-0.5">→</span>
-              </Link>
-              <Link
-                to="/how-it-works"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide glass border border-white/15 hover:bg-white/5 transition-colors"
-              >
-                How it works
-                <span>→</span>
-              </Link>
-            </motion.div>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:col-span-5 relative flex justify-center"
-          >
-            <div className="relative">
-              {/* aura behind the brandmark */}
-              <div
-                className="absolute -inset-16 rounded-full blur-3xl opacity-60 pointer-events-none"
-                style={{ background: "var(--gradient-aurora)" }}
-              />
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="relative"
-              >
-                <BeviMark size={380} />
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* THREE PILLARS — Senses · Understands · Delivers */}
-      <section className="relative mx-auto max-w-7xl px-6 mt-24">
-        <div className="grid sm:grid-cols-3 gap-4">
-          {[
-            { label: "BEVI SENSES OPPORTUNITY", tone: "var(--brand-cyan)" },
-            { label: "BEVI UNDERSTANDS CONTEXT", tone: "var(--brand-blue)" },
-            { label: "DELIVERS THE NEXT MOVE", tone: "var(--brand-violet)" },
-          ].map((p) => (
-            <div key={p.label} className="glass rounded-2xl px-5 py-4 flex items-center gap-3">
-              <span
-                className="w-2.5 h-2.5 rounded-full"
-                style={{ background: p.tone, boxShadow: `0 0 14px ${p.tone}` }}
-              />
-              <span className="signal-label font-sans font-bold text-lg !text-white/90">
-                {p.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CAPABILITIES */}
-      <section className="relative mx-auto max-w-7xl px-6 mt-32">
-        <div className="max-w-2xl">
-          <SignalLabel>How BEVI sees</SignalLabel>
-          <h2 className="mt-3 text-4xl md:text-5xl font-semibold tracking-tight text-white">
-            Sense. Understand. Act.
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            Three quiet layers of perception, working in continuous loop — so you walk into every
-            conversation already a step ahead.
-          </p>
-        </div>
-
-        <div className="mt-12 grid md:grid-cols-3 gap-6">
-          {[
-            {
-              tag: "BEVI SENSES OPPORTUNITY",
-              title: "Capture",
-              body: "Dictate or type the rough notes, buyer cues, pricing tension, product talk and promises before they get lost.",
-              ring: "var(--brand-cyan)",
-            },
-            {
-              tag: "UNDERSTANDS SALES CONTEXT",
-              title: "Signal\u00A0",
-              body: "BEVI identifies intent, objections, margin pressure, opportunity quality, missed details and what matters for the next call.",
-              ring: "var(--brand-blue)",
-            },
-            {
-              tag: "BEVI ACTS",
-              title: "Move",
-              body: "Generate a CRM-ready note, follow-up email, automatic updated account memory and one practical commercial action to take next.",
-              ring: "var(--brand-violet)",
-            },
-          ].map((c, i) => (
-            <motion.div
-              key={c.tag}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: i * 0.1 }}
-            >
-              <GlassCard className="p-7 h-full">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-6"
-                  style={{
-                    background: `color-mix(in oklab, ${c.ring} 18%, transparent)`,
-                    border: `1px solid ${c.ring}`,
-                  }}
-                >
-                  <span className="w-2 h-2 rounded-full" style={{ background: c.ring }} />
-                </div>
-                <SignalLabel>{c.tag}</SignalLabel>
-                <h3 className="mt-2 text-xl font-semibold text-white">{c.title}</h3>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{c.body}</p>
-              </GlassCard>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="relative mx-auto max-w-5xl px-6 mt-32">
-        <GlassCard tone="strong" className="relative overflow-hidden p-12 md:p-16 text-center">
+        <div ref={ref} className="relative mt-12">
           <div
-            className="absolute inset-0 opacity-60"
-            style={{ background: "var(--gradient-aurora)" }}
+            className="absolute left-0 right-0 top-[7px] hidden h-px md:block"
+            style={{ background: "var(--border-hairline)" }}
             aria-hidden
           />
-          <div className="relative">
-            <SignalLabel>One conversation</SignalLabel>
-            <h3 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight text-white">
-              One clear <span className="text-gradient">next move.</span>
-            </h3>
-            <p className="mt-4 max-w-xl mx-auto text-muted-foreground">
-              Capture everything. Surface what matters. Move deals forward. Win the next call.
+          <div
+            className="absolute left-0 top-[3px] hidden h-[9px] w-[9px] rounded-full motion-safe:md:block"
+            style={{
+              background: "var(--accent-teal)",
+              animation: seen ? "beviTrace 960ms cubic-bezier(0.4,0,0.2,1) forwards" : "none",
+              opacity: seen ? 1 : 0,
+            }}
+            aria-hidden
+          />
+          <div className="grid gap-8 md:grid-cols-3 md:gap-6">
+            {LOOP.map((s) => (
+              <div key={s.label} className="pt-6">
+                <span className="bevi-eyebrow" style={{ color: "var(--accent-teal-text)" }}>
+                  {s.label}
+                </span>
+                <p className="mt-3 max-w-[46ch] text-[16px] leading-[1.55] text-[var(--text-muted)]">
+                  {s.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BentoCard({
+  header,
+  body,
+  anchor = false,
+  className = "",
+}: {
+  header: string;
+  body: string;
+  anchor?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`bevi-card ${className}`}
+      style={anchor ? { borderColor: "var(--accent-teal)" } : undefined}
+    >
+      <span
+        className="bevi-eyebrow"
+        style={anchor ? { color: "var(--accent-teal-text)" } : undefined}
+      >
+        {header}
+      </span>
+      <p
+        className={`mt-3 leading-[1.55] ${anchor ? "text-[18px] text-[var(--text-primary)]" : "text-[15px] text-[var(--text-muted)]"}`}
+      >
+        {body}
+      </p>
+    </div>
+  );
+}
+
+export function LandingPage() {
+  const [anchorCard, ...rest] = OUTPUT_CARDS;
+
+  return (
+    <main id="main" className="pt-[72px] pb-24 md:pb-0">
+      {/* HERO */}
+      <section className="bevi-section" aria-labelledby="hero-heading">
+        <div className="bevi-container grid items-center gap-12 lg:grid-cols-[55fr_45fr]">
+          <div>
+            <span className="bevi-eyebrow">POST-VISIT INTELLIGENCE</span>
+            <h1 id="hero-heading" className="bevi-h1 mt-4">
+              Win the next call.
+            </h1>
+            <p className="mt-6 max-w-[52ch] text-[18px] leading-[1.55] text-[var(--text-muted)]">
+              You don't lose the deal in the venue. You lose it in the 90 seconds after. BEVI turns
+              one rough post-visit note into your next best move — CRM note, follow-up, missed
+              opportunity and account signals — before the car leaves the car park.
             </p>
-            <Link
-              to="/dashboard"
-              className="mt-8 inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
-              style={{ background: "var(--gradient-signal)" }}
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link to="/try" className="bevi-btn-primary">
+                Try a visit note — no signup →
+              </Link>
+              <Link to="/how-it-works" className="bevi-btn-secondary">
+                See how it works
+              </Link>
+            </div>
+            <p className="bevi-eyebrow mt-4 block" style={{ fontSize: 12 }}>
+              No signup · nothing saved · ~90 seconds
+            </p>
+          </div>
+
+          <HeroReconstruction />
+        </div>
+      </section>
+
+      {/* TRUST STRIP */}
+      <section className="bevi-container flex flex-wrap items-center gap-3 pb-12">
+        <span className="bevi-eyebrow">SITS ABOVE</span>
+        <ul className="flex flex-wrap items-center gap-2">
+          {STACK.map((s) => (
+            <li
+              key={s}
+              className="rounded-full border px-3 py-1.5 text-[13px] text-[var(--text-muted)]"
+              style={{ borderColor: "var(--border-hairline)", background: "var(--bg-surface)" }}
             >
-              Open Command Center →
+              {s}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* FRAMEWORK */}
+      <section className="bevi-section" aria-label="What BEVI does">
+        <div className="bevi-container text-center">
+          <p className="bevi-h2 text-[var(--text-muted)]">A CRM stores the account.</p>
+          <p className="bevi-h2 mt-2 text-[var(--text-muted)]">A transcriber captures the words.</p>
+          <p className="bevi-h2 mt-2 text-[var(--text-primary)]">
+            BEVI interprets the next move.
+            <span
+              className="ml-2 inline-block h-2.5 w-2.5 rounded-full align-middle"
+              style={{ background: "var(--accent-teal)" }}
+              aria-hidden
+            />
+          </p>
+        </div>
+      </section>
+
+      <LoopSection />
+
+      {/* BENTO */}
+      <section id="outputs" className="bevi-section" aria-labelledby="outputs-heading">
+        <div className="bevi-container">
+          <h2 id="outputs-heading" className="bevi-h2">
+            One note in. Five moves out.
+          </h2>
+          <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-12">
+            <BentoCard
+              header={anchorCard.header}
+              body={anchorCard.expanded}
+              anchor
+              className="md:col-span-6 md:row-span-2"
+            />
+            {rest.map((c) => (
+              <BentoCard
+                key={c.key}
+                header={c.header}
+                body={c.expanded}
+                className="md:col-span-3"
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="bevi-section" aria-labelledby="cta-heading">
+        <div className="bevi-container max-w-[820px] text-center">
+          <h2 id="cta-heading" className="bevi-h2">
+            Sales isn't lost in the meeting. It's lost in what happens next.
+          </h2>
+          <div className="mt-8 flex justify-center">
+            <Link to="/try" className="bevi-btn-primary">
+              Try a visit note →
             </Link>
           </div>
-        </GlassCard>
+        </div>
       </section>
     </main>
   );
