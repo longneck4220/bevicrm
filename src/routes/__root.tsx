@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "BEVI senses, understands, and acts across every sales conversation — surfacing the one next move that matters.",
+          "BEVI turns one rough post-visit note into your next best move — CRM note, follow-up, missed opportunity and account signals.",
       },
       { name: "author", content: "BEVI" },
       { property: "og:type", content: "website" },
