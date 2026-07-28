@@ -72,11 +72,50 @@ Hard "never" list includes: inventing pricing or supply guarantees, suggesting d
 
 **MCP server:** BEVI is also exposed as an MCP server (`list_accounts`, `get_account`, `list_visits`, `create_account`, `log_visit`), so it can be driven from other agent tools.
 
-**⚠️ Vestigial — flag for deletion:** `/conversation/$id` and `src/features/intelligence/data.ts` run on hardcoded mock generic-B2B-SaaS data (Northwind Robotics, Helios Freight, "$2.84M pipeline"). This is leftover from the original generic build, is off-domain, and is **not** real product. It should be removed. Do not treat it as a reference for how BEVI works, and do not extend it.
+**Removed — do not reintroduce:** a `/conversation/$id` route backed by hardcoded mock generic-B2B-SaaS data (Northwind Robotics, Helios Freight, a fabricated "$2.84M pipeline") survived from the project's original generic build and was deleted. If you meet it in git history or an old branch, it is not product — don't restore it, and don't use it as a reference for how BEVI works.
 
 ---
 
 # PART 2 — OPERATING IN THIS REPO
+
+## Verification comes first — state it before you start
+
+**This is the top rule. It outranks speed.** A live beta with real colleagues is running on this codebase; a broken build or a disturbed UI is a credibility cost, not just a bug.
+
+**Before making any change, say how you will verify it.** One line, up front, in the same message where you propose or begin the work. Not "I'll test it after" — the actual mechanism: *"I'll confirm this by loading the tokenised preview and checking the /try flow generates + console is clean."*
+
+**If you cannot verify it, say so before doing the work, not after.** Do not proceed on hope and hand back something unverified with a hedge attached. Stop and agree a better way of operating first — that might mean installing dependencies, adding a script, testing a different layer, or the user checking something manually. An honest "I can't prove this works, here's what I'd need" is worth more than a confident guess.
+
+**Then actually loop back and check.** After the change, re-run the verification you named and report what you observed. Re-grep after removals. Re-read what you edited if it was hand-modified. Never say "done" on the basis that the edit tool reported success — that only proves text changed, not that anything works.
+
+### What verification is actually available here
+
+Know these before promising anything:
+
+- **No local build or typecheck.** `node_modules` is not installed in worktrees, so `tsc`, `vite build` and `eslint` cannot run locally. Never claim a local typecheck. If a change needs one, install deps first or use the signal below.
+- **Lovable's sync is the build signal.** Lovable rebuilds on push to `main`. Call `get_project` and check `latest_commit_sha` matches your commit, `status` is `ready`, and `error` is null. That is real evidence the project compiles.
+- **The tokenised preview is the functional test, and it is safe.** `get_project` returns an `embed_url` containing a `__lovable_token`. Load that in the Browser pane to exercise the synced build. **Preview ≠ published** — testing here does not touch the live site, so prefer it for everything. (The bare preview URL without the token bounces to a Lovable login; use `embed_url` and note the token expires, so refetch it.)
+- **Browser checks that matter:** `read_console_messages` with `onlyErrors` for runtime breakage, `get_page_text` / `read_page` for content and structure, and driving the real flow (fill the form, click the button) for anything touching an external API.
+- **Grep before and after** for any removal or rename, to prove nothing still references it.
+
+### Protecting the live UI/UX
+
+The user's explicit concern: changes must not disturb the functionality or look of the app that is live.
+
+- **Check consumers before editing anything shared** — `src/routes/__root.tsx`, `src/styles.css`, `TopNav`, `features/shared/primitives`, and the AI system prompt are all load-bearing across many surfaces. Grep for usages first; a "small" edit there is not small.
+- **Prefer additive and isolated changes** over edits to shared surfaces when both would work.
+- **After anything that could affect rendering**, load the preview and confirm: no console errors, the key routes still render (`/`, `/try`, `/how-it-works`), and the thing you changed looks right. Removals should degrade cleanly — e.g. a deleted route should 404, not crash.
+- **Scope the diff to the request.** If you notice unrelated problems, report them rather than fixing them in the same change.
+
+### Standing instruction — the audit phrase
+
+If the user says any version of:
+
+> *"please go back and verify all your work so far. Make sure you used the best practices, were efficient and didn't introduce any issues"*
+
+…treat it as a directive to **stop producing new work and audit what already exists.** Re-read the actual current state of every file touched (don't rely on memory of what you intended), verify each change against the mechanisms above, and report honestly — including anything you cannot confirm, anything unverified, and anything you'd do differently. Finding and admitting a real problem is a success here; a clean "all good" that wasn't actually checked is a failure.
+
+The user reaching for this phrase is a signal the loop has gotten too noisy. Take it as feedback to verify more thoroughly up front, not just to run one audit.
 
 ## V1 and V2 are different things — keep them separate
 
@@ -103,7 +142,7 @@ These are two distinct tracks with different purposes. Conflating them has alrea
 **Rule:** when the user raises a "which version is live / don't lose this" concern, ask them to *point at* the safe version — a screenshot, a date, a commit, or "whatever's live right now." Do not reconstruct the boundary from history.
 
 **The AI generation outage.** Visit generation failed with "AI service error" on every call. Root cause was an abandoned experiment to add a Claude/Anthropic provider switch: Lovable's gateway has no Anthropic passthrough, so `anthropic/claude-sonnet-5` was never valid. It was patched in one call site and left inconsistent in others, so `demo.functions.ts` and `library.functions.ts` sat on a stale model ID.
-**Rules:** (a) all AI calls go through the **Lovable AI Gateway** only — there is no direct-provider path, don't reintroduce one; (b) the model ID must be **consistent across every call site** — currently `google/gemini-3.6-flash` for generation, deal extraction and the demo, plus `openai/gpt-4o-transcribe` for dictation; (c) verify any fix touching an external API by **driving the real flow in a browser**, not by static review.
+**Rules:** (a) all AI calls go through the **Lovable AI Gateway** only — there is no direct-provider path, don't reintroduce one; (b) the model ID must be **consistent across every call site** — currently `google/gemini-3.6-flash` for generation, deal extraction and the demo, plus `openai/gpt-4o-transcribe` for dictation. A partial fix across call sites is how this broke in the first place.
 
 ## Technical facts worth knowing
 
