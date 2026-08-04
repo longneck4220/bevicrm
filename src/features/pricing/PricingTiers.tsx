@@ -45,7 +45,7 @@ export const TIERS: Tier[] = [
     annualDetail: "/ user / year",
     body: "For reps using BEVI regularly to keep account memory live, tighten follow-up and prepare the next call faster.",
     badge: "Month free",
-    cta: "Start memory trial",
+    cta: "Start Field Pro",
   },
   {
     name: "Team Pilot",
