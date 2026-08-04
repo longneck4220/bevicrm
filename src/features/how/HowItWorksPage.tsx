@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
@@ -22,48 +21,6 @@ const workflow = [
     title: "Carry the account forward",
     body: "Account memory is updated as a running profile, so the next visit starts with buyer cues, risks and open actions already in view.",
     tone: "var(--brand-violet)",
-  },
-];
-
-const pricingPlans = [
-  {
-    name: "Free Test Run",
-    price: "A$0",
-    annualPrice: "A$0",
-    detail: "No card required",
-    annualDetail: "No saved memory",
-    body: "Try BEVI on a real visit note. Generate the output, copy what you need, then the call is forgotten.",
-    cta: "Try a Visit Note",
-  },
-  {
-    name: "Founding 50",
-    price: "A$32",
-    annualPrice: "A$320",
-    detail: "/ user / month",
-    annualDetail: "/ user / year",
-    body: "Early-user pricing for the first 50 reps. Includes saved account memory, CRM-ready notes, follow-up drafts and next-move intelligence.",
-    badge: "Early access",
-    cta: "Start pilot",
-  },
-  {
-    name: "Field Pro",
-    price: "A$44",
-    annualPrice: "A$440",
-    detail: "/ user / month",
-    annualDetail: "/ user / year",
-    body: "For reps using BEVI regularly to keep account memory live, tighten follow-up and prepare the next call faster.",
-    badge: "MONTH FREE",
-    cta: "Start Field Pro",
-  },
-  {
-    name: "Team Pilot",
-    price: "A$750",
-    annualPrice: "A$7,500",
-    detail: "/ month",
-    annualDetail: "/ year",
-    body: "For up to 20 seats, with workflow setup, feedback-led improvements and use-case tailoring for the sales team.",
-    badge: "20 seats",
-    cta: "Discuss team pilot",
   },
 ];
 
@@ -110,8 +67,6 @@ const phoneSteps = [
 ];
 
 export function HowItWorksPage() {
-  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
-
   return (
     <main className="relative pt-28 pb-24 min-h-screen">
       <ParticleField count={28} />
@@ -269,79 +224,6 @@ export function HowItWorksPage() {
               </div>
             </div>
           </GlassCard>
-        </section>
-
-        <section id="pricing" className="mt-16 scroll-mt-24">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-2xl">
-              <SignalLabel as="h2">Pilot pricing</SignalLabel>
-              <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-white">
-                Start simple, then carry memory forward.
-              </h2>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
-                Try the output first. Start a memory trial when you want BEVI to remember accounts,
-                shape follow-up and carry the next call forward.
-              </p>
-            </div>
-            <div className="flex w-fit rounded-2xl border border-white/10 bg-white/[0.035] p-1">
-              {(["monthly", "annual"] as const).map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setBilling(option)}
-                  className={`rounded-xl px-4 py-2 text-sm transition-colors ${billing === option ? "text-white" : "text-muted-foreground hover:text-white"}`}
-                  style={billing === option ? { background: "var(--gradient-signal)" } : undefined}
-                >
-                  {option === "monthly" ? "Monthly" : "Annual"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-4 text-sm text-muted-foreground">
-            Annual billing shows the discounted rate, two months free on paid plans.
-          </div>
-
-          <div className="mt-8 grid lg:grid-cols-4 gap-5">
-            {pricingPlans.map((plan) => (
-              <GlassCard
-                key={plan.name}
-                tone={plan.name === "Founding 50" ? "strong" : "default"}
-                className="p-6 flex flex-col relative bg-black/55"
-                style={{
-                  boxShadow:
-                    "0 30px 80px -20px rgba(0,0,0,0.85), 0 12px 40px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.4)",
-                }}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="text-white font-semibold">{plan.name}</div>
-                    <div className="mt-3 text-4xl font-semibold text-white">
-                      {billing === "annual" ? plan.annualPrice : plan.price}
-                      <span className="text-sm text-muted-foreground font-normal">
-                        {" "}
-                        {billing === "annual" ? plan.annualDetail : plan.detail}
-                      </span>
-                    </div>
-                  </div>
-                  {plan.badge && (
-                    <span className="rounded-full border border-[var(--brand-cyan)]/35 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[var(--brand-cyan)]">
-                      {plan.badge}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-5 text-sm text-muted-foreground leading-relaxed flex-1">
-                  {plan.body}
-                </p>
-                <Link
-                  to="/try"
-                  className="mt-6 inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white hover:bg-white/[0.08] transition-colors"
-                >
-                  {plan.cta}
-                </Link>
-              </GlassCard>
-            ))}
-          </div>
         </section>
 
         <section className="mt-16">
