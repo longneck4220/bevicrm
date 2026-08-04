@@ -95,7 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap",
       },
       {
         rel: "stylesheet",
@@ -144,7 +144,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-const MARKETING_PATHS = ["/", "/how-it-works"];
+const MARKETING_PATHS = ["/", "/product", "/how-it-works", "/why-bevi", "/pricing", "/try"];
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -158,12 +158,12 @@ function RootComponent() {
           <>
             <a
               href="#main"
-              className="bevi-focus sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-lg focus:bg-[var(--bg-surface)] focus:px-4 focus:py-3 focus:text-sm focus:text-[var(--text-primary)]"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-lg focus:bg-surface focus:px-4 focus:py-3 focus:text-sm focus:text-foreground"
             >
               Skip to content
             </a>
             <MarketingNav />
-            <div className="relative min-h-dvh" style={{ background: "var(--bg-base)" }}>
+            <div className="relative min-h-dvh bg-background">
               <Outlet />
               <MarketingFooter />
             </div>

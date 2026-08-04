@@ -9,8 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WhyBeviRouteImport } from './routes/why-bevi'
 import { Route as TryRouteImport } from './routes/try'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ProductRouteImport } from './routes/product'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
@@ -34,6 +37,21 @@ const TryRoute = TryRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WhyBeviRoute = WhyBeviRouteImport.update({
+  id: '/why-bevi',
+  path: '/why-bevi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductRoute = ProductRouteImport.update({
+  id: '/product',
+  path: '/product',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -114,8 +132,11 @@ export interface FileRoutesByFullPath {
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/pricing': typeof PricingRoute
+  '/product': typeof ProductRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/try': typeof TryRoute
+  '/why-bevi': typeof WhyBeviRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -131,8 +152,11 @@ export interface FileRoutesByTo {
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/pricing': typeof PricingRoute
+  '/product': typeof ProductRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/try': typeof TryRoute
+  '/why-bevi': typeof WhyBeviRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -150,8 +174,11 @@ export interface FileRoutesById {
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/pricing': typeof PricingRoute
+  '/product': typeof ProductRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/try': typeof TryRoute
+  '/why-bevi': typeof WhyBeviRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -169,8 +196,11 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/login'
     | '/mcp'
+    | '/pricing'
+    | '/product'
     | '/sitemap.xml'
     | '/try'
+    | '/why-bevi'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/admin'
@@ -186,8 +216,11 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/login'
     | '/mcp'
+    | '/pricing'
+    | '/product'
     | '/sitemap.xml'
     | '/try'
+    | '/why-bevi'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/admin'
@@ -204,8 +237,11 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/login'
     | '/mcp'
+    | '/pricing'
+    | '/product'
     | '/sitemap.xml'
     | '/try'
+    | '/why-bevi'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
@@ -223,8 +259,11 @@ export interface RootRouteChildren {
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
+  PricingRoute: typeof PricingRoute
+  ProductRoute: typeof ProductRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TryRoute: typeof TryRoute
+  WhyBeviRoute: typeof WhyBeviRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -245,6 +284,27 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/why-bevi': {
+      id: '/why-bevi'
+      path: '/why-bevi'
+      fullPath: '/why-bevi'
+      preLoaderRoute: typeof WhyBeviRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product': {
+      id: '/product'
+      path: '/product'
+      fullPath: '/product'
+      preLoaderRoute: typeof ProductRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -374,8 +434,11 @@ const rootRouteChildren: RootRouteChildren = {
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
+  PricingRoute: PricingRoute,
+  ProductRoute: ProductRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TryRoute: TryRoute,
+  WhyBeviRoute: WhyBeviRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,

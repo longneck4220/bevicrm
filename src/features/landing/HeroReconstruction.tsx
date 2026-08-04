@@ -1,140 +1,106 @@
-import { useEffect, useRef, useState } from "react";
-import { HERO_NOTE, OUTPUT_CARDS } from "./outputs";
+import { useEffect, useState } from "react";
 
-const TYPE_MS = 3000;
-const STAGGER = 80;
+const outputs = [
+  {
+    label: "Next Best Move",
+    body: "Call Aaron Thursday with a staff-performance training slot and a refreshed pricing support proposal.",
+  },
+  {
+    label: "CRM Note",
+    body: "Summer promotional material agreed. Pricing support lapsed and needs reviewing. Training booked for next month.",
+  },
+  {
+    label: "Follow-Up Email",
+    body: "Aaron — great to see you're happy to run with the Summer promotional material. Sending the reinstated pricing support and training agenda today.",
+  },
+  {
+    label: "Missed Opportunity",
+    body: "No premium spirits discussed despite venue upgrading its cocktail list.",
+  },
+  {
+    label: "Account Signals",
+    body: "Margin pressure rising · Relationship strong · Renewal risk if pricing support isn't reinstated.",
+  },
+];
+
+const STEP_MS = 420;
 const HOLD_MS = 4000;
-
-function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const on = () => setReduced(mq.matches);
-    on();
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-  return reduced;
-}
+const FADE_MS = 400;
 
 export function HeroReconstruction() {
-  const reduced = usePrefersReducedMotion();
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  const [typed, setTyped] = useState(reduced ? HERO_NOTE.length : 0);
-  const [revealed, setRevealed] = useState(reduced ? OUTPUT_CARDS.length : 0);
+  const [visible, setVisible] = useState(0);
+  const [fading, setFading] = useState(false);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      (entries) => setInView(entries[0]?.isIntersecting ?? false),
-      {
-        threshold: 0.2,
-      },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (reduced) {
-      setTyped(HERO_NOTE.length);
-      setRevealed(OUTPUT_CARDS.length);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setVisible(outputs.length);
       return;
     }
-    if (!inView) return;
 
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
-    let raf = 0;
+    const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
 
     const run = () => {
-      setTyped(0);
-      setRevealed(0);
-      const start = performance.now();
-      const step = (now: number) => {
-        if (cancelled) return;
-        const p = Math.min((now - start) / TYPE_MS, 1);
-        setTyped(Math.round(p * HERO_NOTE.length));
-        if (p < 1) {
-          raf = requestAnimationFrame(step);
-        } else {
-          OUTPUT_CARDS.forEach((_, i) => {
-            timers.push(setTimeout(() => !cancelled && setRevealed(i + 1), i * STAGGER));
-          });
-          timers.push(
-            setTimeout(
-              () => {
-                if (!cancelled) run();
-              },
-              OUTPUT_CARDS.length * STAGGER + 320 + HOLD_MS,
-            ),
-          );
-        }
-      };
-      raf = requestAnimationFrame(step);
+      if (cancelled) return;
+      setFading(false);
+      setVisible(0);
+      outputs.forEach((_, i) => at(STEP_MS * (i + 1), () => setVisible(i + 1)));
+      const done = STEP_MS * outputs.length;
+      at(done + HOLD_MS, () => setFading(true));
+      at(done + HOLD_MS + FADE_MS, run);
     };
-
     run();
+
     return () => {
       cancelled = true;
-      cancelAnimationFrame(raf);
       timers.forEach(clearTimeout);
     };
-  }, [inView, reduced]);
+  }, []);
+
+  const progress = (visible / outputs.length) * 100;
 
   return (
-    <div ref={ref}>
-      <p className="sr-only">
-        BEVI turns one post-visit note into five outputs: next best move, CRM note, follow-up email,
-        missed opportunity and account signals.
-      </p>
-
-      <div aria-hidden className="flex flex-col gap-3">
-        <div
-          className="rounded-xl border p-5"
-          style={{ background: "var(--bg-surface)", borderColor: "var(--border-hairline)" }}
-        >
-          <span className="bevi-eyebrow">POST-VISIT NOTE</span>
-          <p className="mt-3 min-h-[72px] text-[15px] leading-[1.55] text-[var(--text-primary)]">
-            {HERO_NOTE.slice(0, typed)}
-            <span className="bevi-caret" />
-          </p>
-        </div>
-
-        <div className="grid gap-3">
-          {OUTPUT_CARDS.map((card, i) => {
-            const on = i < revealed;
-            const anchor = i === 0;
-            return (
-              <div
-                key={card.key}
-                className="rounded-xl border p-4 transition-[opacity,transform] duration-[320ms] ease-out"
-                style={{
-                  background: "var(--bg-surface)",
-                  borderColor: anchor ? "var(--accent-teal)" : "var(--border-hairline)",
-                  opacity: on ? 1 : 0,
-                  transform: on ? "translateY(0)" : "translateY(12px)",
-                  minHeight: anchor ? 108 : 88,
-                }}
-              >
-                <span
-                  className="bevi-eyebrow"
-                  style={anchor ? { color: "var(--accent-teal-text)" } : undefined}
-                >
-                  {card.header}
-                </span>
-                <p
-                  className={`mt-2 leading-[1.5] text-[var(--text-muted)] ${anchor ? "text-[15px] text-[var(--text-primary)]" : "text-[13px]"}`}
-                >
-                  {card.body}
-                </p>
-              </div>
-            );
-          })}
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
+      <div className="panel">
+        <p className="eyebrow">Dictated in the car park</p>
+        <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
+          “Met with Aaron, he is happy to run with the Summer promotional material. He mentioned
+          pricing support lapsed needs reviewing. Wants help with staff performance. Training booked
+          next month.”
+        </p>
+        <div className="mt-6">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="signal-dot h-1.5 w-1.5" />
+            <span className="font-mono uppercase tracking-[0.06em]">Interpreting</span>
+          </div>
+          <div className="mt-3 h-px w-full bg-hairline">
+            <div
+              className="h-px bg-primary transition-[width] duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
       </div>
+
+      <ul
+        className="grid gap-3 transition-opacity"
+        style={{ opacity: fading ? 0 : 1, transitionDuration: `${FADE_MS}ms` }}
+      >
+        {outputs.map((o, i) => (
+          <li
+            key={o.label}
+            className={`edge-lit rounded-xl border border-hairline bg-surface-2 p-4 transition-opacity duration-500 ${
+              i < visible ? "rise opacity-100" : "opacity-0"
+            }`}
+          >
+            <p className="font-mono text-[13px] uppercase tracking-[0.06em] text-primary">
+              {o.label}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{o.body}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
