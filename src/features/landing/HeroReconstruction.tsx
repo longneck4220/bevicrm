@@ -27,9 +27,12 @@ export function HeroReconstruction() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver((entries) => setInView(entries[0]?.isIntersecting ?? false), {
-      threshold: 0.2,
-    });
+    const io = new IntersectionObserver(
+      (entries) => setInView(entries[0]?.isIntersecting ?? false),
+      {
+        threshold: 0.2,
+      },
+    );
     io.observe(el);
     return () => io.disconnect();
   }, []);
