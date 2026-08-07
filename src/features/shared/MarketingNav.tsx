@@ -1,28 +1,20 @@
-import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { BeviMark } from "@/features/shared/BeviMark";
+import { PrimaryButton, type MarketingTo } from "@/features/shared/MarketingButtons";
 
-const NAV_LINKS = [
-  { label: "Product", href: "/#outputs" },
-  { label: "How it works", href: "/how-it-works" },
-  { label: "Why BEVI", href: "/#why" },
-  { label: "Pricing", href: "/how-it-works#pricing" },
+const links: { label: string; to: MarketingTo }[] = [
+  { label: "Product", to: "/product" },
+  { label: "How it works", to: "/how-it-works" },
+  { label: "Why BEVI", to: "/why-bevi" },
+  { label: "Pricing", to: "/pricing" },
 ];
-
-export function BeviWordmark() {
-  return (
-    <Link
-      to="/"
-      className="bevi-focus inline-flex items-center rounded-md px-1 font-display text-[22px] font-medium tracking-[-0.02em] text-[var(--text-primary)]"
-      aria-label="BEVI home"
-    >
-      B<span className="text-[var(--accent-teal)]">.</span>
-    </Link>
-  );
-}
 
 export function MarketingNav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -31,123 +23,159 @@ export function MarketingNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Trap focus inside the mobile sheet while it is open and hand focus back to
+  // the trigger on close, so keyboard users don't land at the top of the page.
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
+    if (!open) return;
+    document.body.style.overflow = "hidden";
+
+    const focusables = () =>
+      Array.from(
+        sheetRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+
+    focusables()[0]?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setOpen(false);
+        triggerRef.current?.focus();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const items = focusables();
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && (active === first || !sheetRef.current?.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
 
   return (
     <>
       <header
-        className="fixed inset-x-0 top-0 z-50 transition-[background-color,border-color] duration-200"
-        style={{
-          background: "rgba(10,16,32,0.8)",
-          backdropFilter: "blur(12px)",
-          borderBottom: `1px solid ${scrolled ? "rgba(255,255,255,0.08)" : "transparent"}`,
-        }}
+        className={`sticky top-0 z-50 bg-background/85 backdrop-blur transition-all duration-300 ${
+          scrolled ? "h-14 border-b border-hairline" : "h-[72px] border-b border-transparent"
+        }`}
       >
-        <div
-          className="mx-auto flex max-w-[1200px] items-center justify-between px-6 transition-[height] duration-200"
-          style={{ height: scrolled ? 56 : 72 }}
-        >
-          <BeviWordmark />
+        <nav className="shell grid h-full grid-cols-[minmax(0,1fr)_auto] items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
+          <Link to="/" className="flex w-fit items-center gap-2.5" aria-label="BEVI home">
+            <BeviMark size={scrolled ? 24 : 28} />
+            <span className="font-display text-[17px] font-medium tracking-[0.14em] text-foreground">
+              BEVI
+            </span>
+          </Link>
 
-          <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
-            {NAV_LINKS.map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                className="bevi-focus rounded-lg px-3 py-2 text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
-              >
-                {l.label}
-              </a>
+          <ul className="hidden items-center gap-8 md:flex">
+            {links.map((l) => (
+              <li key={l.label}>
+                <Link
+                  to={l.to}
+                  activeProps={{ className: "active text-foreground" }}
+                  inactiveProps={{ className: "text-muted-foreground" }}
+                  className="group relative py-1 text-sm transition-colors hover:text-foreground"
+                >
+                  {l.label}
+                  <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-px origin-left scale-x-0 bg-primary transition-transform duration-200 group-hover:scale-x-100 [.active_&]:scale-x-100" />
+                </Link>
+              </li>
             ))}
-          </nav>
+          </ul>
 
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="flex items-center justify-end gap-3 md:gap-5">
             <Link
               to="/login"
               search={{ next: undefined }}
-              className="bevi-focus rounded-lg px-3 py-2 text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
+              className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline"
             >
               Sign in
             </Link>
-            <Link to="/try" className="bevi-btn-primary">
-              Try a visit note
-            </Link>
-          </div>
+            <PrimaryButton to="/try" className="hidden h-10 sm:inline-flex">
+              Try a visit note →
+            </PrimaryButton>
 
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-label="Open menu"
-            aria-expanded={open}
-            className="bevi-focus grid h-11 w-11 place-items-center rounded-lg md:hidden"
-          >
-            <span className="relative block h-[10px] w-5">
-              <span className="absolute inset-x-0 top-0 h-px bg-[var(--text-primary)]" />
-              <span className="absolute inset-x-0 bottom-0 h-px bg-[var(--text-primary)]" />
-            </span>
-          </button>
-        </div>
+            <button
+              ref={triggerRef}
+              type="button"
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+              aria-label={open ? "Close menu" : "Open menu"}
+              onClick={() => setOpen((v) => !v)}
+              className="-mr-2 flex h-11 w-11 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-surface-2 md:hidden"
+            >
+              <span className="relative block h-3.5 w-5" aria-hidden>
+                <span
+                  className={`absolute left-0 block h-px w-5 bg-current transition-all duration-200 ${
+                    open ? "top-1.5 rotate-45" : "top-0"
+                  }`}
+                />
+                <span
+                  className={`absolute left-0 top-1.5 block h-px w-5 bg-current transition-opacity duration-200 ${
+                    open ? "opacity-0" : "opacity-100"
+                  }`}
+                />
+                <span
+                  className={`absolute left-0 block h-px w-5 bg-current transition-all duration-200 ${
+                    open ? "top-1.5 -rotate-45" : "top-3"
+                  }`}
+                />
+              </span>
+            </button>
+          </div>
+        </nav>
       </header>
 
       {open && (
         <div
-          className="fixed inset-0 z-[60] flex flex-col bg-[var(--bg-base)] px-6 py-5 md:hidden"
+          ref={sheetRef}
+          id="mobile-menu"
           role="dialog"
           aria-modal="true"
-          aria-label="Menu"
+          aria-label="Site menu"
+          style={{ top: 56 }}
+          className="fixed inset-x-0 bottom-0 z-[60] flex flex-col overflow-y-auto bg-background md:hidden"
         >
-          <div className="flex items-center justify-between">
-            <BeviWordmark />
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Close menu"
-              className="bevi-focus grid h-11 w-11 place-items-center rounded-lg text-[var(--text-primary)]"
-            >
-              ✕
-            </button>
-          </div>
-          <nav aria-label="Mobile" className="mt-10 flex flex-col gap-2">
-            {NAV_LINKS.map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="bevi-focus flex min-h-[44px] items-center rounded-lg font-display text-2xl text-[var(--text-primary)]"
-              >
-                {l.label}
-              </a>
+          <ul className="shell flex flex-col divide-y divide-hairline border-t border-hairline">
+            {links.map((l) => (
+              <li key={l.label}>
+                <Link
+                  to={l.to}
+                  onClick={() => setOpen(false)}
+                  className="flex min-h-[56px] items-center text-lg text-foreground"
+                >
+                  {l.label}
+                </Link>
+              </li>
             ))}
-            <Link
-              to="/login"
-              search={{ next: undefined }}
-              onClick={() => setOpen(false)}
-              className="bevi-focus flex min-h-[44px] items-center rounded-lg font-display text-2xl text-[var(--text-muted)]"
-            >
-              Sign in
-            </Link>
-          </nav>
+            <li>
+              <Link
+                to="/login"
+                search={{ next: undefined }}
+                onClick={() => setOpen(false)}
+                className="flex min-h-[56px] items-center text-lg text-muted-foreground"
+              >
+                Sign in
+              </Link>
+            </li>
+          </ul>
         </div>
       )}
-
-      {/* persistent mobile CTA bar */}
-      <div
-        className="fixed inset-x-0 bottom-0 z-[55] border-t px-4 py-3 md:hidden"
-        style={{
-          background: "rgba(10,16,32,0.9)",
-          backdropFilter: "blur(12px)",
-          borderColor: "var(--border-hairline)",
-        }}
-      >
-        <Link to="/try" className="bevi-btn-primary w-full">
-          Try a visit note
-        </Link>
-      </div>
     </>
   );
 }

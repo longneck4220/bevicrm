@@ -27,5 +27,11 @@ function AuthenticatedLayout() {
     return <Navigate to="/login" search={{ next: entryPathname }} />;
   }
 
-  return <Outlet />;
+  // The ambient gradient canvas belongs to the signed-in app only; the
+  // marketing surface keeps the flat midnight ground.
+  return (
+    <div className="app-ambient">
+      <Outlet />
+    </div>
+  );
 }
