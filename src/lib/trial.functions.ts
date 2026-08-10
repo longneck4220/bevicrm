@@ -6,6 +6,7 @@ const GenerateInput = z.object({
   accountId: z.string().uuid(),
   rawNote: z.string().min(1).max(12000),
   supportingContext: z.string().max(400000).optional().default(""),
+  provider: z.enum(["anthropic", "lovable"]).optional(),
 });
 
 const TranscribeInput = z.object({
@@ -389,6 +390,7 @@ Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-re
     const parsed = await generateVisitJson<AiOutput>({
       system: SYSTEM_PROMPT,
       user: userPrompt,
+      provider: data.provider,
     });
 
     const { data: visit, error: visitErr } = await supabase

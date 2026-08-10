@@ -65,7 +65,7 @@ Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-re
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3.6-flash",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: SYSTEM_PROMPT + DEMO_SUFFIX },
           { role: "user", content: userPrompt },
