@@ -1,9 +1,7 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { GlassCard, SignalLabel } from "@/features/shared/primitives";
-import { BeviMark } from "@/features/shared/BeviMark";
-import { ParticleField } from "@/features/shared/ParticleField";
+import { PrimaryAction, SecondaryAction } from "@/features/shared/MarketingButtons";
 import { copyToClipboard } from "@/lib/clipboard";
 import { generateDemoIntelligence } from "@/lib/demo.functions";
 import type { AiOutput } from "@/lib/trial.functions";
@@ -40,6 +38,14 @@ const SAMPLES: Array<{ venue: string; note: string; label: string }> = [
     note: "Head chef Marco is unhappy with current supplier's consistency on vermouth. Wants to switch before the winter menu launches. Asks for spec sheets and pricing on three vermouths and two amaros. Interested in a back-bar training session for the floor team.",
   },
 ];
+
+function Label({ children }: { children: string }) {
+  return (
+    <p className="font-mono text-[13px] uppercase tracking-[0.06em] text-muted-foreground">
+      {children}
+    </p>
+  );
+}
 
 export function TryDemoPage() {
   const [venue, setVenue] = useState("");
@@ -84,40 +90,23 @@ export function TryDemoPage() {
   const sig = output?.commercial_signals;
 
   return (
-    <main className="relative pt-28 pb-24 min-h-screen">
-      <ParticleField count={24} />
-      <div className="absolute inset-0 grid-overlay pointer-events-none" aria-hidden />
-
-      <div className="relative mx-auto max-w-5xl px-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass mb-7">
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
-          <SignalLabel>LIVE DEMO — NOTHING IS SAVED</SignalLabel>
-        </div>
-
-        <h1 className="text-4xl md:text-6xl leading-[1.02] font-semibold text-white whitespace-pre-line">
-          Try a visit note.{"\u00a0"}
-          {"\n"}
-          <span className="text-gradient">See the next move.</span>
+    <main id="main" className="section-y">
+      <div className="shell max-w-4xl">
+        <p className="eyebrow">Live demo — nothing is saved</p>
+        <h1 className="mt-5 text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.04] tracking-[-0.02em] text-foreground">
+          Try a visit note. See the next move.
         </h1>
-        <p className="mt-5 max-w-2xl text-lg text-muted-foreground leading-relaxed whitespace-pre-line">
-          Enter a venue name and a rough post-visit note.{"\u00a0"}
-          {"\n"}
-          BEVI Builds a CRM-ready record, commercial signals, a follow-up email.{"\u00a0"}
-          {"\n"}
-          Gives you the next best commercial move ready — in real time.
+        <p className="mt-6 max-w-2xl text-[17px] leading-relaxed text-muted-foreground">
+          Enter a venue name and a rough post-visit note. BEVI builds a CRM-ready record, commercial
+          signals and a follow-up email, then gives you the next best commercial move — in real
+          time.
         </p>
 
-        <GlassCard tone="strong" className="mt-9 p-6 md:p-7">
-          <div className="flex items-center gap-4">
-            <BeviMark size={44} />
-            <div>
-              <SignalLabel>Post-visit input</SignalLabel>
-              <div className="text-white text-lg font-semibold mt-1">Capture the visit</div>
-            </div>
-          </div>
+        <section className="panel mt-10">
+          <Label>Post-visit input</Label>
 
           <div className="mt-6">
-            <label className="text-xs uppercase tracking-[0.18em] text-white/50" htmlFor="venue">
+            <label htmlFor="venue" className="block text-sm text-foreground">
               Venue name
             </label>
             <input
@@ -125,16 +114,18 @@ export function TryDemoPage() {
               value={venue}
               onChange={(e) => setVenue(e.target.value.slice(0, 120))}
               placeholder="e.g. The Royal Oak"
-              className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-[var(--brand-cyan)]/50"
+              className="mt-2 min-h-[44px] w-full rounded-lg border border-hairline bg-surface-2 px-4 text-[15px] text-foreground placeholder:text-muted-foreground/60"
             />
           </div>
 
           <div className="mt-5">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <label className="text-xs uppercase tracking-[0.18em] text-white/50" htmlFor="note">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label htmlFor="note" className="block text-sm text-foreground">
                 Post-visit note
               </label>
-              <span className="text-[11px] text-white/40">{note.trim().length}/4000</span>
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                {note.trim().length}/4000
+              </span>
             </div>
             <textarea
               id="note"
@@ -142,18 +133,16 @@ export function TryDemoPage() {
               onChange={(e) => setNote(e.target.value.slice(0, 4000))}
               rows={7}
               placeholder="Messy is fine. Who you saw, what they said, objections, orders, what you promised…"
-              className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-[var(--brand-cyan)]/50 leading-relaxed resize-y"
+              className="mt-2 min-h-[160px] w-full resize-y rounded-xl border border-hairline bg-surface-2 p-4 text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground/60"
             />
           </div>
 
-          <div className="mt-5 rounded-xl border border-white/10 bg-black/30 p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-1 h-1 rounded-full bg-[var(--brand-cyan)]" />
-              <span className="text-[11px] uppercase tracking-[0.18em] text-white/60">
-                Try an instant sample
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-2">
+          <div className="mt-5 rounded-xl border border-hairline bg-surface-2 p-4">
+            <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
+              <span className="signal-dot h-1.5 w-1.5" />
+              Try an instant sample
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
               {SAMPLES.map((s) => (
                 <button
                   key={s.label}
@@ -163,7 +152,7 @@ export function TryDemoPage() {
                     setNote(s.note);
                     setError(null);
                   }}
-                  className="rounded-lg border border-white/15 bg-white/[0.06] px-3.5 py-2 text-xs font-medium text-white/90 shadow-sm hover:bg-white/[0.12] hover:border-white/25 hover:text-white transition-all"
+                  className="min-h-[44px] rounded-full border border-hairline px-4 text-[13px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
                 >
                   {s.label}
                 </button>
@@ -172,167 +161,176 @@ export function TryDemoPage() {
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={onGenerate}
-              disabled={!canRun}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-medium text-primary-foreground ambient-glow disabled:opacity-45 disabled:cursor-not-allowed"
-              style={{ background: "var(--gradient-signal)" }}
-            >
+            <PrimaryAction onClick={onGenerate} disabled={!canRun}>
+              {loading && (
+                <span
+                  aria-hidden
+                  className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+                />
+              )}
               {loading ? "BEVI is thinking…" : "Generate intelligence"}
-            </button>
-            <button
-              type="button"
-              onClick={onReset}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.05] px-5 text-sm font-medium text-white/90 hover:bg-white/[0.10] hover:border-white/25 transition-all"
-            >
-              Reset demo
-            </button>
+            </PrimaryAction>
+            <SecondaryAction onClick={onReset}>Reset demo</SecondaryAction>
             {note.trim().length > 0 && note.trim().length < 20 && (
-              <span className="text-xs text-white/50">Add a bit more detail to the note.</span>
+              <span className="text-[13px] text-muted-foreground">
+                Add a bit more detail to the note.
+              </span>
             )}
             {cooldown && !loading && (
-              <span className="text-xs text-white/50">Ready again in a few seconds.</span>
+              <span className="text-[13px] text-muted-foreground">
+                Ready again in a few seconds.
+              </span>
             )}
           </div>
 
+          <p className="mt-4 font-mono text-[13px] uppercase tracking-[0.06em] text-muted-foreground">
+            No signup · Nothing saved · Interpreted live
+          </p>
+
           {error && (
-            <div className="mt-4 rounded-xl border border-[var(--signal-risk)]/40 bg-[var(--signal-risk)]/10 px-4 py-3 text-sm text-white/90">
+            <p className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-[15px] text-foreground">
               {error}
-            </div>
+            </p>
           )}
-        </GlassCard>
+        </section>
 
         {loading && (
-          <GlassCard className="mt-6 p-6">
-            <SignalLabel as="h2">Working</SignalLabel>
-            <div className="mt-4 space-y-3">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="h-3 rounded-full bg-white/[0.06] animate-pulse" />
-              ))}
+          <section className="panel mt-6" aria-live="polite">
+            <Label>Working</Label>
+            <div className="mt-4 animate-pulse space-y-3" aria-hidden>
+              <div className="h-3 w-full rounded bg-surface-2" />
+              <div className="h-3 w-4/5 rounded bg-surface-2" />
+              <div className="h-3 w-2/3 rounded bg-surface-2" />
             </div>
-          </GlassCard>
+          </section>
         )}
 
         {output && (
-          <div className="mt-8 space-y-5">
+          <div className="mt-8 space-y-4" aria-live="polite">
             {/* 1. NEXT BEST MOVE */}
             {nbm && (
-              <GlassCard tone="strong" className="p-6">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <SignalLabel as="h2">Next best move</SignalLabel>
-                  <div className="flex gap-2 text-[10px] font-mono uppercase tracking-[0.18em]">
-                    <span
-                      className="px-2 py-1 rounded-md"
-                      style={{
-                        color: "var(--brand-cyan)",
-                        background: "color-mix(in oklab, var(--brand-cyan) 12%, transparent)",
-                      }}
-                    >
+              <section className="panel rise">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <Label>Next best move</Label>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-mono text-[12px] uppercase tracking-[0.06em] text-primary">
                       {nbm.commercial_posture}
                     </span>
-                    <span
-                      className="px-2 py-1 rounded-md"
-                      style={{
-                        color: "var(--brand-violet)",
-                        background: "color-mix(in oklab, var(--brand-violet) 12%, transparent)",
-                      }}
-                    >
+                    <span className="rounded-full border border-hairline bg-surface-2 px-3 py-1 font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
                       {nbm.confidence} confidence
                     </span>
                   </div>
                 </div>
-                <p className="mt-3 text-xl md:text-2xl text-white font-semibold leading-snug">
+                <p className="mt-5 font-display text-xl leading-snug tracking-[-0.01em] text-foreground md:text-h3">
                   {nbm.recommendation}
                 </p>
-                <p className="mt-3 text-white/70 text-sm leading-relaxed">{nbm.reason}</p>
+                <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
+                  {nbm.reason}
+                </p>
                 {nbm.specific_ask && (
-                  <div className="mt-4 p-3 rounded-lg border border-white/10 bg-white/5">
-                    <SignalLabel>Specific ask</SignalLabel>
-                    <p className="text-white/90 text-sm mt-1">{nbm.specific_ask}</p>
+                  <div className="mt-5 rounded-lg border border-hairline bg-surface-2 p-4">
+                    <Label>Specific ask</Label>
+                    <p className="mt-2 text-[15px] leading-relaxed text-foreground">
+                      {nbm.specific_ask}
+                    </p>
                   </div>
                 )}
-              </GlassCard>
+              </section>
             )}
 
             {/* 2. COMMERCIAL SIGNALS */}
             {sig && (
-              <GlassCard tone="strong" className="p-6">
-                <SignalLabel as="h2">Commercial signals</SignalLabel>
-                <div className="mt-4 grid sm:grid-cols-2 gap-4">
-                  <SignalBlock label="Buying style" tone="var(--brand-cyan)">
-                    <p className="text-white/85 text-sm">{sig.buying_style || "—"}</p>
+              <section className="panel">
+                <Label>Commercial signals</Label>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <SignalBlock label="Buying style">
+                    <p className="text-[15px] text-muted-foreground">{sig.buying_style || "—"}</p>
                   </SignalBlock>
-                  <SignalBlock label="Margin pressure" tone="var(--signal-warning)">
-                    <p className="text-white/85 text-sm">{sig.margin_pressure || "—"}</p>
+                  <SignalBlock label="Margin pressure">
+                    <p className="text-[15px] text-muted-foreground">
+                      {sig.margin_pressure || "—"}
+                    </p>
                   </SignalBlock>
-                  <SignalBlock label="Risk flags" tone="var(--signal-risk)">
+                  <SignalBlock label="Risk flags" tone="risk">
                     {sig.risk_flags?.length ? (
-                      <ul className="text-white/85 text-sm space-y-1">
+                      <ul className="space-y-1 text-[15px] text-muted-foreground">
                         {sig.risk_flags.map((r, i) => (
                           <li key={i}>· {r}</li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-white/50 text-sm">None flagged.</p>
+                      <p className="text-[15px] text-muted-foreground/60">None flagged.</p>
                     )}
                   </SignalBlock>
-                  <SignalBlock label="Opportunity signals" tone="var(--signal-positive)">
+                  <SignalBlock label="Opportunity signals" tone="good">
                     {sig.opportunity_signals?.length ? (
-                      <ul className="text-white/85 text-sm space-y-1">
+                      <ul className="space-y-1 text-[15px] text-muted-foreground">
                         {sig.opportunity_signals.map((r, i) => (
                           <li key={i}>· {r}</li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-white/50 text-sm">None surfaced.</p>
+                      <p className="text-[15px] text-muted-foreground/60">None surfaced.</p>
                     )}
                   </SignalBlock>
                 </div>
-              </GlassCard>
+              </section>
             )}
 
             {/* 3. CRM NOTE */}
-            <GlassCard className="p-5">
-              <div className="flex items-center justify-between mb-2">
-                <SignalLabel as="h2">CRM NOTE</SignalLabel>
+            <section className="panel">
+              <div className="flex items-start justify-between gap-4">
+                <Label>CRM note</Label>
                 <CopyButton text={output.combined_crm_note} />
               </div>
-              <pre className="text-[13px] text-white/85 whitespace-pre-wrap font-sans leading-relaxed">
+              <pre className="mt-4 whitespace-pre-wrap font-sans text-[15px] leading-relaxed text-muted-foreground">
                 {output.combined_crm_note}
               </pre>
-            </GlassCard>
+            </section>
 
             {/* 4. FOLLOW-UP EMAIL */}
             {output.follow_up_email && (
-              <GlassCard className="p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <SignalLabel as="h2">Follow-up Email</SignalLabel>
+              <section className="panel">
+                <div className="flex items-start justify-between gap-4">
+                  <Label>Follow-up email</Label>
                   <CopyButton
                     text={`Subject: ${output.follow_up_email.subject}\n\n${output.follow_up_email.body}`}
+                    label="Copy full email"
                   />
                 </div>
-                <div className="text-xs text-white/50 mb-1">Subject</div>
-                <div className="text-white text-sm font-medium">
-                  {output.follow_up_email.subject}
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-lg border border-hairline bg-surface-2 p-3">
+                    <p className="font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
+                      Subject
+                    </p>
+                    <p className="mt-1 text-[15px] text-foreground">
+                      {output.follow_up_email.subject}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-hairline bg-surface-2 p-3">
+                    <p className="font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
+                      Body
+                    </p>
+                    <pre className="mt-2 whitespace-pre-wrap font-sans text-[15px] leading-relaxed text-muted-foreground">
+                      {output.follow_up_email.body}
+                    </pre>
+                  </div>
                 </div>
-                <div className="text-xs text-white/50 mt-3 mb-1">Body</div>
-                <pre className="text-[13px] text-white/85 whitespace-pre-wrap font-sans leading-relaxed">
-                  {output.follow_up_email.body}
-                </pre>
-              </GlassCard>
+              </section>
             )}
 
             {/* 5. MISSED OPPORTUNITY */}
             {output.missed_opportunity && (
-              <GlassCard className="p-5">
-                <SignalLabel as="h2">Missed opportunity challenge</SignalLabel>
-                <p className="mt-2 text-white/85 text-sm">{output.missed_opportunity}</p>
-              </GlassCard>
+              <section className="panel">
+                <Label>Missed opportunity challenge</Label>
+                <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
+                  {output.missed_opportunity}
+                </p>
+              </section>
             )}
 
             {/* Locked: the memory payoff */}
-            <div className="grid md:grid-cols-2 gap-5">
+            <div className="grid gap-4 md:grid-cols-2">
               <LockedTile
                 label="Account memory"
                 body="In the full version BEVI keeps a running brief on this venue — buyer style, what sells, recurring objections and open actions — so the next visit starts warm."
@@ -343,24 +341,23 @@ export function TryDemoPage() {
               />
             </div>
 
-            <GlassCard tone="strong" className="p-7">
-              <SignalLabel as="h2">Nothing here was saved</SignalLabel>
-              <h2 className="mt-3 text-2xl md:text-3xl font-semibold text-white">
+            <section className="panel">
+              <Label>Nothing here was saved</Label>
+              <h2 className="mt-4 text-2xl leading-snug tracking-[-0.02em] text-foreground md:text-h3">
                 Create an account to keep account memory, files and deal pitches.
               </h2>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
+              <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
                 This demo runs once and forgets. The real BEVI carries every visit forward so each
                 call builds on the last.
               </p>
               <Link
                 to="/login"
                 search={{ next: undefined }}
-                className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-medium text-primary-foreground ambient-glow"
-                style={{ background: "var(--gradient-signal)" }}
+                className="mt-7 inline-flex min-h-[44px] items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-[filter] hover:brightness-110"
               >
                 Start with account memory
               </Link>
-            </GlassCard>
+            </section>
           </div>
         )}
       </div>
@@ -370,56 +367,57 @@ export function TryDemoPage() {
 
 function SignalBlock({
   label,
-  tone,
+  tone = "neutral",
   children,
 }: {
   label: string;
-  tone: string;
-  children: React.ReactNode;
+  tone?: "neutral" | "good" | "risk";
+  children: ReactNode;
 }) {
+  const border =
+    tone === "risk"
+      ? "border-destructive/30"
+      : tone === "good"
+        ? "border-primary/30"
+        : "border-hairline";
+  const labelTone =
+    tone === "risk"
+      ? "text-destructive"
+      : tone === "good"
+        ? "text-primary"
+        : "text-muted-foreground";
   return (
-    <div
-      className="rounded-xl border p-4"
-      style={{
-        borderColor: `color-mix(in oklab, ${tone} 30%, transparent)`,
-        background: `color-mix(in oklab, ${tone} 7%, transparent)`,
-      }}
-    >
-      <div
-        className="text-[10px] font-mono uppercase tracking-[0.18em] mb-2"
-        style={{ color: tone }}
-      >
-        {label}
-      </div>
-      {children}
+    <div className={`rounded-lg border bg-surface-2 p-4 ${border}`}>
+      <p className={`font-mono text-[12px] uppercase tracking-[0.06em] ${labelTone}`}>{label}</p>
+      <div className="mt-2">{children}</div>
     </div>
   );
 }
 
 function LockedTile({ label, body }: { label: string; body: string }) {
   return (
-    <GlassCard className="p-5 relative overflow-hidden">
-      <div className="flex items-center justify-between gap-3">
-        <SignalLabel as="h2">{label}</SignalLabel>
-        <span className="rounded-full border border-white/15 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-white/55">
+    <section className="panel">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Label>{label}</Label>
+        <span className="rounded-full border border-hairline px-3 py-1 font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
           Full version
         </span>
       </div>
-      <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{body}</p>
-      <div className="mt-4 space-y-2" aria-hidden>
+      <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">{body}</p>
+      <div className="mt-5 space-y-2" aria-hidden>
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="h-2.5 rounded-full bg-white/[0.06]"
+            className="h-2.5 rounded-full bg-surface-2"
             style={{ width: `${88 - i * 18}%` }}
           />
         ))}
       </div>
-    </GlassCard>
+    </section>
   );
 }
 
-function CopyButton({ text }: { text: string }) {
+function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
   return (
     <button
@@ -429,13 +427,13 @@ function CopyButton({ text }: { text: string }) {
         setStatus(ok ? "copied" : "failed");
         setTimeout(() => setStatus("idle"), 1800);
       }}
-      className="text-xs px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white"
+      className="min-h-[36px] shrink-0 rounded-md border border-hairline px-3 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
     >
       {status === "copied"
         ? "Copied ✓"
         : status === "failed"
           ? "Couldn't copy — select manually"
-          : "Copy"}
+          : label}
     </button>
   );
 }
