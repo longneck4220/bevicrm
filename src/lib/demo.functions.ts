@@ -58,40 +58,11 @@ ${rawNote}
 
 Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-ready lines and keep every recommendation grounded in the note above. Return an empty array for "targeted_deals".`;
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT + DEMO_SUFFIX },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-      }),
+    const { generateVisitJson } = await import("@/lib/ai-provider.server");
+    const parsed = await generateVisitJson<AiOutput>({
+      system: SYSTEM_PROMPT + DEMO_SUFFIX,
+      user: userPrompt,
     });
-
-    if (resp.status === 429)
-      throw new Error("BEVI is busy right now — please try again in a moment.");
-    if (resp.status === 402)
-      throw new Error("The demo is temporarily unavailable. Try again soon.");
-    if (!resp.ok) {
-      const txt = await resp.text();
-      console.error("[demo AI gateway error]", resp.status, txt.slice(0, 1000));
-      throw new Error("AI service error. Please try again later.");
-    }
-
-    const payload = await resp.json();
-    const content: string = payload?.choices?.[0]?.message?.content ?? "";
-    let parsed: AiOutput;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      throw new Error("BEVI returned an unexpected response. Please try again.");
-    }
     parsed.targeted_deals = [];
     return { output: parsed };
   });
