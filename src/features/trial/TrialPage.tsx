@@ -937,7 +937,7 @@ function AccountSearch({
             }
           }}
           placeholder={active ? active.name : "Search venue…"}
-          className="w-full bg-transparent text-sm text-white placeholder-white/40 outline-none"
+          className="w-full min-w-0 bg-transparent text-sm text-white placeholder-white/40 outline-none"
           aria-label="Search accounts"
         />
         {query && (
