@@ -81,6 +81,10 @@ export function AdminUsersPage() {
           </p>
         </header>
 
+        <WaitlistSection />
+
+
+
         <GlassCard className="p-3 mb-6">
           <div className="flex items-center gap-2 px-2">
             <Search className="w-4 h-4 text-white/50" />
