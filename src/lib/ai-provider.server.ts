@@ -39,13 +39,16 @@ function extractJson(raw: string): unknown {
   throw new Error("AI returned non-JSON output");
 }
 
+/** Set once an Anthropic call fails auth, so we stop trying for the process lifetime. */
+let anthropicDisabled = false;
+
+class AnthropicAuthError extends Error {}
+
 export function resolveProvider(requested?: AiProvider): AiProvider {
   const envChoice = (process.env.AI_PROVIDER ?? "").trim().toLowerCase();
   const choice: AiProvider = requested ?? (envChoice === "anthropic" ? "anthropic" : "lovable");
-  if (choice === "anthropic" && !process.env.ANTHROPIC_API_KEY) {
-    console.warn(
-      "[ai-provider] anthropic requested but ANTHROPIC_API_KEY missing — using Lovable gateway",
-    );
+  if (choice === "anthropic" && (!process.env.ANTHROPIC_API_KEY || anthropicDisabled)) {
+    console.warn("[ai-provider] anthropic unavailable — using Lovable gateway");
     return "lovable";
   }
   return choice;
@@ -74,6 +77,11 @@ async function callAnthropic(system: string, user: string): Promise<unknown> {
     }),
   });
 
+  if (resp.status === 401 || resp.status === 403) {
+    anthropicDisabled = true;
+    console.warn("[ai-provider] Anthropic key rejected — falling back to Lovable gateway");
+    throw new AnthropicAuthError("anthropic auth failed");
+  }
   if (!resp.ok) throw mapStatus(resp.status, "Anthropic", await resp.text());
 
   const payload = (await resp.json()) as {
@@ -122,9 +130,13 @@ export async function generateVisitJson<T>(args: {
   provider?: AiProvider;
 }): Promise<T> {
   const provider = resolveProvider(args.provider);
-  const result =
-    provider === "anthropic"
-      ? await callAnthropic(args.system, args.user)
-      : await callLovable(args.system, args.user);
-  return result as T;
+  if (provider === "anthropic") {
+    try {
+      return (await callAnthropic(args.system, args.user)) as T;
+    } catch (err) {
+      if (!(err instanceof AnthropicAuthError)) throw err;
+      // Bad/expired Anthropic key: transparently continue on the Lovable gateway.
+    }
+  }
+  return (await callLovable(args.system, args.user)) as T;
 }
