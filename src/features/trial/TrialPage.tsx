@@ -835,7 +835,12 @@ function AccountSearch({
   const [highlight, setHighlight] = useState(0);
   const wrapRef = useRef<HTMLDivElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
-  const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [anchor, setAnchor] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    maxHeight: number;
+  } | null>(null);
 
   const active = accounts.find((a) => a.id === activeId);
   const q = query.trim().toLowerCase();
@@ -856,26 +861,39 @@ function AccountSearch({
     if (!open) return;
     const update = () => {
       const r = wrapRef.current?.getBoundingClientRect();
-      if (r) setAnchor({ top: r.bottom + 6, left: r.left, width: r.width });
+      if (!r) return;
+      const vv = window.visualViewport;
+      const vw = vv?.width ?? window.innerWidth;
+      const vh = vv?.height ?? window.innerHeight;
+      const margin = 8;
+      const width = Math.min(r.width, vw - margin * 2);
+      const left = Math.min(Math.max(r.left, margin), Math.max(margin, vw - width - margin));
+      const top = r.bottom + 6;
+      const maxHeight = Math.max(140, vh - (top - (vv?.offsetTop ?? 0)) - margin);
+      setAnchor({ top, left, width, maxHeight });
     };
     update();
     window.addEventListener("resize", update);
     window.addEventListener("scroll", update, true);
+    window.visualViewport?.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("scroll", update);
     return () => {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
+      window.visualViewport?.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("scroll", update);
     };
   }, [open]);
 
   useEffect(() => {
-    const onDown = (e: MouseEvent) => {
+    const onDown = (e: Event) => {
       const t = e.target as Node;
       if (wrapRef.current?.contains(t)) return;
       if (popRef.current?.contains(t)) return;
       setOpen(false);
     };
-    window.addEventListener("mousedown", onDown);
-    return () => window.removeEventListener("mousedown", onDown);
+    window.addEventListener("pointerdown", onDown);
+    return () => window.removeEventListener("pointerdown", onDown);
   }, []);
 
   const pick = (id: string) => {
@@ -885,8 +903,8 @@ function AccountSearch({
   };
 
   return (
-    <div ref={wrapRef} className="relative">
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 focus-within:border-[var(--brand-cyan)] transition-colors">
+    <div ref={wrapRef} className="relative min-w-0">
+      <div className="flex min-w-0 items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 focus-within:border-[var(--brand-cyan)] transition-colors">
         <svg
           className="h-3.5 w-3.5 text-white/40 shrink-0"
           viewBox="0 0 24 24"
@@ -919,7 +937,7 @@ function AccountSearch({
             }
           }}
           placeholder={active ? active.name : "Search venue…"}
-          className="w-full bg-transparent text-sm text-white placeholder-white/40 outline-none"
+          className="w-full min-w-0 bg-transparent text-sm text-white placeholder-white/40 outline-none"
           aria-label="Search accounts"
         />
         {query && (
@@ -945,9 +963,11 @@ function AccountSearch({
               top: anchor.top,
               left: anchor.left,
               width: anchor.width,
+              maxWidth: "calc(100vw - 16px)",
+              maxHeight: Math.min(anchor.maxHeight, 288),
               zIndex: 1000,
             }}
-            className="max-h-72 overflow-y-auto rounded-xl border border-white/10 ring-1 ring-white/5 bg-background/95 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]"
+            className="overflow-y-auto overflow-x-hidden overscroll-contain rounded-xl border border-white/10 ring-1 ring-white/5 bg-background/95 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]"
           >
             {matches.length === 0 ? (
               <div className="px-3 py-3 text-xs text-white/50">No venues match "{query}"</div>
