@@ -130,9 +130,13 @@ export async function generateVisitJson<T>(args: {
   provider?: AiProvider;
 }): Promise<T> {
   const provider = resolveProvider(args.provider);
-  const result =
-    provider === "anthropic"
-      ? await callAnthropic(args.system, args.user)
-      : await callLovable(args.system, args.user);
-  return result as T;
+  if (provider === "anthropic") {
+    try {
+      return (await callAnthropic(args.system, args.user)) as T;
+    } catch (err) {
+      if (!(err instanceof AnthropicAuthError)) throw err;
+      // Bad/expired Anthropic key: transparently continue on the Lovable gateway.
+    }
+  }
+  return (await callLovable(args.system, args.user)) as T;
 }
