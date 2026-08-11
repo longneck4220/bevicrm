@@ -313,23 +313,25 @@ export function HowItWorksPage() {
                     "0 30px 80px -20px rgba(0,0,0,0.85), 0 12px 40px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.4)",
                 }}
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="text-white font-semibold">{plan.name}</div>
-                    <div className="mt-3 text-4xl font-semibold text-white">
-                      {billing === "annual" ? plan.annualPrice : plan.price}
+                    <div className="mt-3 flex flex-wrap items-baseline gap-x-2">
+                      <span className="text-4xl font-semibold text-white tabular-nums leading-none">
+                        {billing === "annual" ? plan.annualPrice : plan.price}
+                      </span>
                       <span className="text-sm text-muted-foreground font-normal">
-                        {" "}
                         {billing === "annual" ? plan.annualDetail : plan.detail}
                       </span>
                     </div>
                   </div>
                   {plan.badge && (
-                    <span className="rounded-full border border-[var(--brand-cyan)]/35 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[var(--brand-cyan)]">
+                    <span className="shrink-0 rounded-full border border-[var(--brand-cyan)]/35 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[var(--brand-cyan)] whitespace-nowrap">
                       {plan.badge}
                     </span>
                   )}
                 </div>
+
                 <p className="mt-5 text-sm text-muted-foreground leading-relaxed flex-1">
                   {plan.body}
                 </p>
