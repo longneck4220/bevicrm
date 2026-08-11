@@ -8,22 +8,29 @@ export function Reveal({
   y = 18,
   className = "",
   as = "div",
+  id,
 }: {
   children: ReactNode;
   delay?: number;
   y?: number;
   className?: string;
   as?: "div" | "section";
+  id?: string;
 }) {
   const reduce = useReducedMotion();
   const Comp = as === "section" ? motion.section : motion.div;
 
   if (reduce) {
-    return <Comp className={className}>{children}</Comp>;
+    return (
+      <Comp id={id} className={className}>
+        {children}
+      </Comp>
+    );
   }
 
   return (
     <Comp
+      id={id}
       className={className}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
