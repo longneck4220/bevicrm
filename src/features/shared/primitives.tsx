@@ -24,7 +24,9 @@ export function SignalLabel({
   as?: "span" | "h2" | "h3" | "h4";
 }) {
   return (
-    <Tag className={`signal-label font-sans text-lg text-right font-extrabold ${className}`}>
+    <Tag
+      className={`signal-label font-sans text-sm sm:text-base font-extrabold tracking-[0.12em] leading-snug ${className}`}
+    >
       {children}
     </Tag>
   );
