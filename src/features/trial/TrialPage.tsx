@@ -903,7 +903,7 @@ function AccountSearch({
   };
 
   return (
-    <div ref={wrapRef} className="relative">
+    <div ref={wrapRef} className="relative min-w-0">
       <div className="flex min-w-0 items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 focus-within:border-[var(--brand-cyan)] transition-colors">
         <svg
           className="h-3.5 w-3.5 text-white/40 shrink-0"

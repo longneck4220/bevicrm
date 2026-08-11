@@ -211,7 +211,7 @@ export function DashboardPage() {
               </span>
             </div>
             <GlassCard className="mt-4 p-3">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/5 focus-within:border-white/15 transition-colors">
+              <div className="flex min-w-0 items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/5 focus-within:border-white/15 transition-colors">
                 <Search className="h-4 w-4 text-white/40 shrink-0" />
                 <input
                   ref={searchRef}
@@ -225,7 +225,7 @@ export function DashboardPage() {
                     }
                   }}
                   placeholder="Type a venue or contact…"
-                  className="w-full bg-transparent text-sm text-white placeholder:text-white/30 outline-none"
+                  className="w-full min-w-0 bg-transparent text-sm text-white placeholder:text-white/30 outline-none"
                   aria-label="Search accounts"
                 />
                 {query && (
