@@ -43,6 +43,13 @@ export function TopNav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [getBevi, setGetBevi] = useState(false);
   const [compact, setCompact] = useState(false);
+  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
+  const displayName =
+    (typeof meta.full_name === "string" && meta.full_name) ||
+    (typeof meta.name === "string" && meta.name) ||
+    user?.email?.split("@")[0] ||
+    "Account";
+
 
   useEffect(() => {
     const onScroll = () => setCompact(window.scrollY > 12);
@@ -71,34 +78,44 @@ export function TopNav() {
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-5 sm:px-6">
           <BeviLogo />
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setGetBevi(true)}
-              className="inline-flex min-h-[40px] items-center rounded-full px-4 text-sm font-semibold text-primary-foreground"
-              style={{ background: "var(--gradient-signal)" }}
-            >
-              Get a BEVI
-            </button>
-
+          <div className="flex min-w-0 items-center gap-2">
             {user ? (
-              <button
-                onClick={async () => {
-                  await signOut();
-                  navigate({ to: "/" });
-                }}
-                className="inline-flex min-h-[40px] items-center rounded-full border border-white/15 px-4 text-sm font-medium text-white/85 hover:bg-white/5"
-              >
-                Sign out
-              </button>
+              <>
+                <span
+                  className="max-w-[38vw] truncate rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white sm:max-w-[220px]"
+                  title={displayName}
+                >
+                  {displayName}
+                </span>
+                <button
+                  onClick={async () => {
+                    await signOut();
+                    navigate({ to: "/" });
+                  }}
+                  className="inline-flex min-h-[40px] shrink-0 items-center rounded-full border border-white/15 px-4 text-sm font-medium text-white/85 hover:bg-white/5"
+                >
+                  Sign out
+                </button>
+              </>
             ) : (
-              <Link
-                to="/login"
-                search={{ next: undefined }}
-                className="inline-flex min-h-[40px] items-center rounded-full border border-white/15 px-4 text-sm font-medium text-white/85 hover:bg-white/5"
-              >
-                Sign in
-              </Link>
+              <>
+                <button
+                  onClick={() => setGetBevi(true)}
+                  className="inline-flex min-h-[40px] shrink-0 items-center rounded-full px-4 text-sm font-semibold text-primary-foreground"
+                  style={{ background: "var(--gradient-signal)" }}
+                >
+                  Get a BEVI
+                </button>
+                <Link
+                  to="/login"
+                  search={{ next: undefined }}
+                  className="inline-flex min-h-[40px] shrink-0 items-center rounded-full border border-white/15 px-4 text-sm font-medium text-white/85 hover:bg-white/5"
+                >
+                  Sign in
+                </Link>
+              </>
             )}
+
 
             <button
               onClick={() => setMenuOpen((v) => !v)}
