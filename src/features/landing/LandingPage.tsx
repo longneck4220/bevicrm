@@ -3,6 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { ParticleField } from "@/features/shared/ParticleField";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
+import { Reveal, ScrollProgress } from "@/features/shared/Reveal";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -14,27 +16,28 @@ const fadeUp = {
 };
 
 export function LandingPage() {
+  const isMobile = useIsMobile();
+
   return (
-    <main className="relative pt-28 pb-32">
+    <main className="relative pt-24 sm:pt-28 pb-24 sm:pb-32">
+      <ScrollProgress />
       <ParticleField count={36} />
       <div className="absolute inset-0 grid-overlay pointer-events-none" aria-hidden />
 
       {/* HERO */}
       <section className="relative mx-auto max-w-7xl px-6">
-        <div className="grid lg:grid-cols-12 gap-12 items-center">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           <div className="lg:col-span-7">
             <motion.div
               initial="hidden"
               animate="show"
               variants={fadeUp}
               custom={0}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass mb-8"
+              className="inline-flex items-start gap-2 px-3.5 py-2 rounded-2xl glass mb-7"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
-              <SignalLabel className="text-left leading-tight">
-                POST VISIT SALES INTELLIGENCE
-                <br />
-                &nbsp; FOR FIELD MANAGERS&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+              <span className="mt-[0.4rem] w-1.5 h-1.5 shrink-0 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
+              <SignalLabel className="block max-w-[22ch] sm:max-w-none">
+                Post visit sales intelligence for field managers
               </SignalLabel>
             </motion.div>
 
@@ -43,7 +46,7 @@ export function LandingPage() {
               animate="show"
               variants={fadeUp}
               custom={1}
-              className="text-[clamp(2.8rem,6.4vw,5.5rem)] leading-[0.98] font-semibold tracking-[-0.025em] text-white"
+              className="text-[clamp(2.6rem,6.2vw,5.25rem)] leading-[1.02] font-semibold tracking-[-0.025em] text-white text-balance"
             >
               Win the <br className="hidden sm:block" />
               <span className="text-gradient">next call.</span>
@@ -54,7 +57,7 @@ export function LandingPage() {
               animate="show"
               variants={fadeUp}
               custom={2}
-              className="mt-6 max-w-xl text-lg text-muted-foreground leading-relaxed"
+              className="mt-5 sm:mt-6 max-w-xl text-base sm:text-lg text-muted-foreground leading-relaxed"
             >
               BEVI turns post-visit thinking into CRM ready notes, account memory and the next best
               commercial move.
@@ -65,11 +68,11 @@ export function LandingPage() {
               animate="show"
               variants={fadeUp}
               custom={3}
-              className="mt-10 flex flex-wrap items-center gap-3"
+              className="mt-8 sm:mt-10 flex flex-wrap items-stretch gap-3"
             >
               <Link
                 to="/try"
-                className="group relative inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide text-primary-foreground ambient-glow border border-white/15 shadow-lg shadow-black/30 hover:shadow-xl transition-shadow"
+                className="group relative inline-flex min-h-[52px] items-center justify-center gap-2 px-7 rounded-xl text-sm font-semibold tracking-wide text-primary-foreground ambient-glow border border-white/15 shadow-lg shadow-black/30 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
                 style={{ background: "var(--gradient-signal)" }}
               >
                 Try a visit note — no signup
@@ -77,10 +80,10 @@ export function LandingPage() {
               </Link>
               <Link
                 to="/how-it-works"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold tracking-wide glass border border-white/15 hover:bg-white/5 transition-colors"
+                className="group inline-flex min-h-[52px] items-center justify-center gap-2 px-7 rounded-xl text-sm font-semibold tracking-wide glass border border-white/15 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/5"
               >
                 How it works
-                <span>→</span>
+                <span className="transition-transform group-hover:translate-x-0.5">→</span>
               </Link>
             </motion.div>
           </div>
@@ -94,7 +97,7 @@ export function LandingPage() {
             <div className="relative">
               {/* aura behind the brandmark */}
               <div
-                className="absolute -inset-16 rounded-full blur-3xl opacity-60 pointer-events-none"
+                className="absolute -inset-12 sm:-inset-16 rounded-full blur-3xl opacity-60 pointer-events-none"
                 style={{ background: "var(--gradient-aurora)" }}
               />
               <motion.div
@@ -102,33 +105,36 @@ export function LandingPage() {
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                 className="relative"
               >
-                <BeviMark size={380} />
+                <BeviMark size={isMobile ? 240 : 380} />
               </motion.div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* THREE PILLARS — Senses · Understands · Delivers */}
-      <section className="relative mx-auto max-w-7xl px-6 mt-24">
-        <div className="grid sm:grid-cols-3 gap-4">
+      {/* THREE PILLARS — Capture · Signal · Move */}
+      <section className="relative mx-auto max-w-7xl px-6 mt-16 sm:mt-20">
+        <div className="grid sm:grid-cols-3 gap-3 sm:gap-4">
           {[
             { label: "BEVI SENSES OPPORTUNITY", tone: "var(--brand-cyan)" },
             { label: "BEVI UNDERSTANDS CONTEXT", tone: "var(--brand-blue)" },
             { label: "DELIVERS THE NEXT MOVE", tone: "var(--brand-violet)" },
-          ].map((p) => (
-            <div key={p.label} className="glass rounded-2xl px-5 py-4 flex items-center gap-3">
-              <span
-                className="w-2.5 h-2.5 rounded-full"
-                style={{ background: p.tone, boxShadow: `0 0 14px ${p.tone}` }}
-              />
-              <span className="signal-label font-sans font-bold text-lg !text-white/90">
-                {p.label}
-              </span>
-            </div>
+          ].map((p, i) => (
+            <Reveal key={p.label} delay={i * 0.08}>
+              <div className="glass rounded-2xl px-5 py-4 flex items-center gap-3 h-full transition-transform duration-200 hover:-translate-y-0.5">
+                <span
+                  className="w-2.5 h-2.5 shrink-0 rounded-full"
+                  style={{ background: p.tone, boxShadow: `0 0 14px ${p.tone}` }}
+                />
+                <span className="signal-label font-sans font-bold text-sm sm:text-base tracking-[0.12em] !text-white/90">
+                  {p.label}
+                </span>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
+
 
       {/* CAPABILITIES */}
       <section className="relative mx-auto max-w-7xl px-6 mt-32">
