@@ -963,9 +963,11 @@ function AccountSearch({
               top: anchor.top,
               left: anchor.left,
               width: anchor.width,
+              maxWidth: "calc(100vw - 16px)",
+              maxHeight: Math.min(anchor.maxHeight, 288),
               zIndex: 1000,
             }}
-            className="max-h-72 overflow-y-auto rounded-xl border border-white/10 ring-1 ring-white/5 bg-background/95 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]"
+            className="overflow-y-auto overflow-x-hidden overscroll-contain rounded-xl border border-white/10 ring-1 ring-white/5 bg-background/95 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]"
           >
             {matches.length === 0 ? (
               <div className="px-3 py-3 text-xs text-white/50">No venues match "{query}"</div>
