@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { ParticleField } from "@/features/shared/ParticleField";
+import { Reveal, ScrollProgress } from "@/features/shared/Reveal";
 
 const workflow = [
   {
@@ -114,6 +115,7 @@ export function HowItWorksPage() {
 
   return (
     <main className="relative pt-28 pb-24 min-h-screen">
+      <ScrollProgress />
       <ParticleField count={28} />
       <div className="absolute inset-0 grid-overlay pointer-events-none" aria-hidden />
 
@@ -167,10 +169,10 @@ export function HowItWorksPage() {
               follow-up promises go cold.&nbsp;
             </p>
           </GlassCard>
-        </section>
+        </Reveal>
 
-        <section className="mt-16">
-          <SignalLabel as="h2">Workflow</SignalLabel>
+        <Reveal as="section" className="mt-14 sm:mt-16">
+          <SignalLabel as="h2" className="block">Workflow</SignalLabel>
           <div className="mt-4 grid md:grid-cols-3 gap-4">
             {workflow.map((item) => (
               <GlassCard key={item.title} className="p-6">
@@ -192,9 +194,9 @@ export function HowItWorksPage() {
               </GlassCard>
             ))}
           </div>
-        </section>
+        </Reveal>
 
-        <section id="example" className="mt-16">
+        <Reveal as="section" id="example" className="mt-14 sm:mt-16 scroll-mt-28">
           <GlassCard tone="strong" className="mt-8 overflow-hidden p-5 md:p-7">
             <div className="relative rounded-[2rem] border border-white/10 bg-gradient-to-br from-cyan-500/10 via-white/[0.025] to-violet-500/10 px-3 py-8 md:px-7">
               <div
@@ -269,12 +271,12 @@ export function HowItWorksPage() {
               </div>
             </div>
           </GlassCard>
-        </section>
+        </Reveal>
 
-        <section className="mt-16">
+        <Reveal as="section" className="mt-14 sm:mt-16">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
-              <SignalLabel as="h2">Pilot pricing</SignalLabel>
+              <SignalLabel as="h2" className="block">Pilot pricing</SignalLabel>
               <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-white">
                 Start simple, then carry memory forward.
               </h2>
@@ -344,11 +346,11 @@ export function HowItWorksPage() {
               </GlassCard>
             ))}
           </div>
-        </section>
+        </Reveal>
 
-        <section className="mt-16">
+        <Reveal as="section" className="mt-14 sm:mt-16">
           <GlassCard tone="strong" className="p-8">
-            <SignalLabel as="h2">DELIVERS THE NEXT MOVE</SignalLabel>
+            <SignalLabel as="h2" className="block">DELIVERS THE NEXT MOVE</SignalLabel>
             <h2 className="mt-4 text-3xl md:text-4xl font-semibold tracking-tight text-white">
               BEVI sits after the field visit, where sales value is either captured or lost.
             </h2>
@@ -365,7 +367,7 @@ export function HowItWorksPage() {
               Try a Visit Note <span>-&gt;</span>
             </Link>
           </GlassCard>
-        </section>
+        </Reveal>
       </div>
     </main>
   );
