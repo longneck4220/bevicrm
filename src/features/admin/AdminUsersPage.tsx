@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronDown, ChevronRight, Search, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, Search, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import {
@@ -11,6 +11,7 @@ import {
   type AdminUser,
   type AdminAccount,
 } from "@/lib/admin.functions";
+import { listWaitlist, type WaitlistRow } from "@/lib/waitlist.functions";
 
 export function AdminUsersPage() {
   const { isAdmin, loading } = useAuth();
@@ -201,5 +202,62 @@ function AccountRow({
         {deleting ? "Deleting…" : "Delete"}
       </button>
     </div>
+  );
+}
+
+function WaitlistSection() {
+  const listFn = useServerFn(listWaitlist);
+  const { data, isLoading } = useQuery({ queryKey: ["admin-waitlist"], queryFn: () => listFn() });
+  const rows: WaitlistRow[] = data ?? [];
+
+  function downloadCsv() {
+    const esc = (v: string | null) => `"${(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [
+      "email,source,referrer,utm,created_at",
+      ...rows.map((r) => [r.email, r.source, r.referrer, r.utm, r.created_at].map(esc).join(",")),
+    ].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "bevi-waitlist.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <GlassCard className="p-5 mb-6">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <SignalLabel>Waitlist</SignalLabel>
+          <p className="mt-1 text-sm text-white/60">
+            {isLoading ? "Loading…" : `${rows.length} email${rows.length === 1 ? "" : "s"} captured`}
+          </p>
+        </div>
+        <button
+          onClick={downloadCsv}
+          disabled={rows.length === 0}
+          className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5 disabled:opacity-50"
+        >
+          <Download className="h-4 w-4" />
+          Download CSV
+        </button>
+      </div>
+
+      {rows.length > 0 && (
+        <div className="mt-4 max-h-64 overflow-auto rounded-lg border border-white/8">
+          {rows.map((r) => (
+            <div
+              key={r.id}
+              className="flex items-center justify-between gap-3 border-b border-white/5 px-3 py-2 text-xs last:border-0"
+            >
+              <span className="truncate text-white/85">{r.email}</span>
+              <span className="shrink-0 text-white/45">
+                {new Date(r.created_at).toLocaleDateString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </GlassCard>
   );
 }
