@@ -861,26 +861,39 @@ function AccountSearch({
     if (!open) return;
     const update = () => {
       const r = wrapRef.current?.getBoundingClientRect();
-      if (r) setAnchor({ top: r.bottom + 6, left: r.left, width: r.width });
+      if (!r) return;
+      const vv = window.visualViewport;
+      const vw = vv?.width ?? window.innerWidth;
+      const vh = vv?.height ?? window.innerHeight;
+      const margin = 8;
+      const width = Math.min(r.width, vw - margin * 2);
+      const left = Math.min(Math.max(r.left, margin), Math.max(margin, vw - width - margin));
+      const top = r.bottom + 6;
+      const maxHeight = Math.max(140, vh - (top - (vv?.offsetTop ?? 0)) - margin);
+      setAnchor({ top, left, width, maxHeight });
     };
     update();
     window.addEventListener("resize", update);
     window.addEventListener("scroll", update, true);
+    window.visualViewport?.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("scroll", update);
     return () => {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
+      window.visualViewport?.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("scroll", update);
     };
   }, [open]);
 
   useEffect(() => {
-    const onDown = (e: MouseEvent) => {
+    const onDown = (e: Event) => {
       const t = e.target as Node;
       if (wrapRef.current?.contains(t)) return;
       if (popRef.current?.contains(t)) return;
       setOpen(false);
     };
-    window.addEventListener("mousedown", onDown);
-    return () => window.removeEventListener("mousedown", onDown);
+    window.addEventListener("pointerdown", onDown);
+    return () => window.removeEventListener("pointerdown", onDown);
   }, []);
 
   const pick = (id: string) => {
