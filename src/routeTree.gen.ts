@@ -26,6 +26,7 @@ import { Route as AuthenticatedVisitIdRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedConversationIdRouteImport } from './routes/_authenticated/conversation.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as ApiPublicWaitlistExportRouteImport } from './routes/api/public/waitlist/export'
 
 const TryRoute = TryRouteImport.update({
   id: '/try',
@@ -115,6 +116,11 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWaitlistExportRoute = ApiPublicWaitlistExportRouteImport.update({
+  id: '/api/public/waitlist/export',
+  path: '/api/public/waitlist/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/visit/$id': typeof AuthenticatedVisitIdRoute
+  '/api/public/waitlist/export': typeof ApiPublicWaitlistExportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/visit/$id': typeof AuthenticatedVisitIdRoute
+  '/api/public/waitlist/export': typeof ApiPublicWaitlistExportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/_authenticated/visit/$id': typeof AuthenticatedVisitIdRoute
+  '/api/public/waitlist/export': typeof ApiPublicWaitlistExportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -191,6 +200,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/conversation/$id'
     | '/visit/$id'
+    | '/api/public/waitlist/export'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/conversation/$id'
     | '/visit/$id'
+    | '/api/public/waitlist/export'
   id:
     | '__root__'
     | '/'
@@ -228,6 +239,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/conversation/$id'
     | '/_authenticated/visit/$id'
+    | '/api/public/waitlist/export'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -242,6 +254,7 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiPublicWaitlistExportRoute: typeof ApiPublicWaitlistExportRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -365,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/waitlist/export': {
+      id: '/api/public/waitlist/export'
+      path: '/api/public/waitlist/export'
+      fullPath: '/api/public/waitlist/export'
+      preLoaderRoute: typeof ApiPublicWaitlistExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -403,6 +423,7 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiPublicWaitlistExportRoute: ApiPublicWaitlistExportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
