@@ -77,6 +77,11 @@ async function callAnthropic(system: string, user: string): Promise<unknown> {
     }),
   });
 
+  if (resp.status === 401 || resp.status === 403) {
+    anthropicDisabled = true;
+    console.warn("[ai-provider] Anthropic key rejected — falling back to Lovable gateway");
+    throw new AnthropicAuthError("anthropic auth failed");
+  }
   if (!resp.ok) throw mapStatus(resp.status, "Anthropic", await resp.text());
 
   const payload = (await resp.json()) as {
