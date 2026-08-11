@@ -120,7 +120,7 @@ export function HowItWorksPage() {
       <div className="absolute inset-0 grid-overlay pointer-events-none" aria-hidden />
 
       <div className="relative mx-auto max-w-6xl px-6">
-        <section className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+        <Reveal as="section" className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass mb-7">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
