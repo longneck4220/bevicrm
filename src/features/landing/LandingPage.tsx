@@ -135,21 +135,20 @@ export function LandingPage() {
         </div>
       </section>
 
-
       {/* CAPABILITIES */}
-      <section className="relative mx-auto max-w-7xl px-6 mt-32">
-        <div className="max-w-2xl">
+      <section className="relative mx-auto max-w-7xl px-6 mt-24 sm:mt-32">
+        <Reveal className="max-w-2xl">
           <SignalLabel>How BEVI sees</SignalLabel>
-          <h2 className="mt-3 text-4xl md:text-5xl font-semibold tracking-tight text-white">
-            Sense. Understand. Act.
+          <h2 className="mt-3 text-[clamp(2rem,4.4vw,3rem)] leading-[1.08] font-semibold tracking-tight text-white text-balance">
+            Capture. Signal. Move.
           </h2>
-          <p className="mt-4 text-muted-foreground">
+          <p className="mt-4 text-base text-muted-foreground leading-relaxed">
             Three quiet layers of perception, working in continuous loop — so you walk into every
             conversation already a step ahead.
           </p>
-        </div>
+        </Reveal>
 
-        <div className="mt-12 grid md:grid-cols-3 gap-6">
+        <div className="mt-10 sm:mt-12 grid md:grid-cols-3 gap-4 sm:gap-6">
           {[
             {
               tag: "BEVI SENSES OPPORTUNITY",
@@ -159,7 +158,7 @@ export function LandingPage() {
             },
             {
               tag: "UNDERSTANDS SALES CONTEXT",
-              title: "Signal\u00A0",
+              title: "Signal",
               body: "BEVI identifies intent, objections, margin pressure, opportunity quality, missed details and what matters for the next call.",
               ring: "var(--brand-blue)",
             },
@@ -170,14 +169,8 @@ export function LandingPage() {
               ring: "var(--brand-violet)",
             },
           ].map((c, i) => (
-            <motion.div
-              key={c.tag}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: i * 0.1 }}
-            >
-              <GlassCard className="p-7 h-full">
+            <Reveal key={c.tag} delay={i * 0.1}>
+              <GlassCard className="p-6 sm:p-7 h-full transition-transform duration-200 hover:-translate-y-1">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center mb-6"
                   style={{
@@ -188,40 +181,46 @@ export function LandingPage() {
                   <span className="w-2 h-2 rounded-full" style={{ background: c.ring }} />
                 </div>
                 <SignalLabel>{c.tag}</SignalLabel>
-                <h3 className="mt-2 text-xl font-semibold text-white">{c.title}</h3>
+                <h3 className="mt-2.5 text-xl font-semibold text-white">{c.title}</h3>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{c.body}</p>
               </GlassCard>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
       </section>
 
       {/* CTA */}
-      <section className="relative mx-auto max-w-5xl px-6 mt-32">
-        <GlassCard tone="strong" className="relative overflow-hidden p-12 md:p-16 text-center">
-          <div
-            className="absolute inset-0 opacity-60"
-            style={{ background: "var(--gradient-aurora)" }}
-            aria-hidden
-          />
-          <div className="relative">
-            <SignalLabel>One conversation</SignalLabel>
-            <h3 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight text-white">
-              One clear <span className="text-gradient">next move.</span>
-            </h3>
-            <p className="mt-4 max-w-xl mx-auto text-muted-foreground">
-              Capture everything. Surface what matters. Move deals forward. Win the next call.
-            </p>
-            <Link
-              to="/dashboard"
-              className="mt-8 inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-medium text-primary-foreground ambient-glow"
-              style={{ background: "var(--gradient-signal)" }}
-            >
-              Open Command Center →
-            </Link>
-          </div>
-        </GlassCard>
+      <section className="relative mx-auto max-w-5xl px-6 mt-24 sm:mt-32">
+        <Reveal>
+          <GlassCard
+            tone="strong"
+            className="relative overflow-hidden p-8 sm:p-12 md:p-16 text-center"
+          >
+            <div
+              className="absolute inset-0 opacity-60"
+              style={{ background: "var(--gradient-aurora)" }}
+              aria-hidden
+            />
+            <div className="relative">
+              <SignalLabel className="block">One conversation</SignalLabel>
+              <h3 className="mt-3 text-[clamp(1.9rem,4.6vw,3rem)] leading-[1.06] font-semibold tracking-tight text-white text-balance">
+                One clear <span className="text-gradient">next move.</span>
+              </h3>
+              <p className="mt-4 max-w-xl mx-auto text-muted-foreground leading-relaxed">
+                Capture everything. Surface what matters. Move deals forward. Win the next call.
+              </p>
+              <Link
+                to="/dashboard"
+                className="mt-8 inline-flex min-h-[52px] items-center gap-2 px-7 rounded-xl text-sm font-semibold text-primary-foreground ambient-glow transition-transform duration-200 hover:-translate-y-0.5"
+                style={{ background: "var(--gradient-signal)" }}
+              >
+                Open Command Center →
+              </Link>
+            </div>
+          </GlassCard>
+        </Reveal>
       </section>
     </main>
+
   );
 }
