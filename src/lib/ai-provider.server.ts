@@ -39,13 +39,16 @@ function extractJson(raw: string): unknown {
   throw new Error("AI returned non-JSON output");
 }
 
+/** Set once an Anthropic call fails auth, so we stop trying for the process lifetime. */
+let anthropicDisabled = false;
+
+class AnthropicAuthError extends Error {}
+
 export function resolveProvider(requested?: AiProvider): AiProvider {
   const envChoice = (process.env.AI_PROVIDER ?? "").trim().toLowerCase();
   const choice: AiProvider = requested ?? (envChoice === "anthropic" ? "anthropic" : "lovable");
-  if (choice === "anthropic" && !process.env.ANTHROPIC_API_KEY) {
-    console.warn(
-      "[ai-provider] anthropic requested but ANTHROPIC_API_KEY missing — using Lovable gateway",
-    );
+  if (choice === "anthropic" && (!process.env.ANTHROPIC_API_KEY || anthropicDisabled)) {
+    console.warn("[ai-provider] anthropic unavailable — using Lovable gateway");
     return "lovable";
   }
   return choice;
