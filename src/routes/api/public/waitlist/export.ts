@@ -1,9 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { timingSafeEqual } from "node:crypto";
 
+// `source`, `referrer` and `utm` are supplied by the public signup call, which
+// validates length and type but not content. Quoting alone stops a value from
+// breaking out of its field, but a spreadsheet still evaluates a cell that
+// opens with =, +, - or @ (or a leading tab / carriage return before one), so
+// prefix those with an apostrophe to keep them inert text on open.
 function csvCell(v: string | null) {
-  const s = (v ?? "").replace(/"/g, '""');
-  return `"${s}"`;
+  let s = v ?? "";
+  if (/^[\t\r]*[=+\-@]/.test(s)) s = `'${s}`;
+  return `"${s.replace(/"/g, '""')}"`;
 }
 
 export const Route = createFileRoute("/api/public/waitlist/export")({
