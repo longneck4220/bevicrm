@@ -769,25 +769,14 @@ function OutputPanel({
       </GlassCard>
 
       {/* 5. ACCOUNT MEMORY */}
-      <GlassCard className="p-5">
-        <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-          <SignalLabel as="h2">Updated Account Memory</SignalLabel>
-          <button
-            onClick={onAdoptMemory}
-            disabled={adoptedMemory}
-            className={`text-xs px-3 py-1.5 rounded-md text-white transition-colors ${
-              adoptedMemory
-                ? "bg-[var(--brand-cyan)]/20 border border-[var(--brand-cyan)]/40 text-[var(--brand-cyan)] cursor-default"
-                : "bg-white/10 hover:bg-white/15"
-            }`}
-          >
-            {adoptedMemory ? "Memory updated" : "Adopt as new memory"}
-          </button>
-        </div>
-        <pre className="text-[13px] text-white/80 whitespace-pre-wrap font-sans leading-relaxed">
-          {output.updated_account_memory}
-        </pre>
-      </GlassCard>
+      <MemoryReviewCard
+        accountId={accountId}
+        currentMemory={currentMemory}
+        proposedMemory={output.updated_account_memory}
+        visitId={visitId}
+        onSaved={onMemorySaved}
+      />
+
 
       {/* 6. MISSED OPPORTUNITY */}
       {output.missed_opportunity && (
