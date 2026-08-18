@@ -175,14 +175,11 @@ export function TrialPage() {
     }
   }
 
-  async function handleAdoptMemory() {
-    if (!active || !output) return;
-    await saveMemory({ data: { accountId: active.id, memory: output.updated_account_memory } });
-    setAccounts((prev) =>
-      prev.map((a) => (a.id === active.id ? { ...a, memory: output.updated_account_memory } : a)),
-    );
-    setAdoptedMemory(true);
+  function handleMemorySaved(memory: string) {
+    if (!active) return;
+    setAccounts((prev) => prev.map((a) => (a.id === active.id ? { ...a, memory } : a)));
   }
+
 
   async function handleCreate() {
     if (!newName.trim()) return;
