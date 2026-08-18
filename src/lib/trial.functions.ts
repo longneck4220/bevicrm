@@ -412,13 +412,58 @@ Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-re
     return { output: parsed, visitId: visit.id, createdAt: visit.created_at };
   });
 
+export type MemoryVersion = {
+  id: string;
+  memory: string;
+  source: string;
+  visit_id: string | null;
+  created_at: string;
+};
+
+/**
+ * Saves a new account memory, snapshotting the value it replaces first so the
+ * previous state is always recoverable (append-only history table).
+ */
 export const updateAccountMemory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({ accountId: z.string().uuid(), memory: z.string().max(20000) }).parse(d),
+    z
+      .object({
+        accountId: z.string().uuid(),
+        memory: z.string().max(20000),
+        visitId: z.string().uuid().optional(),
+        source: z.enum(["ai_adopted", "manual_edit", "restore"]).optional().default("ai_adopted"),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+    const { supabase, userId } = context;
+
+    const { data: account, error: accErr } = await supabase
+      .from("accounts")
+      .select("id, memory")
+      .eq("id", data.accountId)
+      .single();
+    if (accErr || !account) {
+      if (accErr) console.error("[DB error] fetch account for memory update", accErr);
+      throw new Error("Account not found");
+    }
+
+    if ((account.memory ?? "") !== data.memory) {
+      const { error: snapErr } = await supabase.from("account_memory_versions").insert({
+        account_id: data.accountId,
+        owner_id: userId,
+        memory: account.memory ?? "",
+        source: data.source,
+        visit_id: data.visitId ?? null,
+      });
+      if (snapErr) {
+        console.error("[DB error] snapshot account memory", snapErr);
+        throw new Error("Could not save memory history. Nothing was changed.");
+      }
+    }
+
+    const { error } = await supabase
       .from("accounts")
       .update({ memory: data.memory, updated_at: new Date().toISOString() })
       .eq("id", data.accountId);
@@ -428,6 +473,75 @@ export const updateAccountMemory = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+export const listAccountMemoryVersions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ accountId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }): Promise<MemoryVersion[]> => {
+    const { data: rows, error } = await context.supabase
+      .from("account_memory_versions")
+      .select("id, memory, source, visit_id, created_at")
+      .eq("account_id", data.accountId)
+      .order("created_at", { ascending: false })
+      .limit(25);
+    if (error) {
+      console.error("[DB error] list memory versions", error);
+      throw new Error("Could not load memory history.");
+    }
+    return (rows ?? []) as MemoryVersion[];
+  });
+
+/** Restores a prior snapshot, first snapshotting the current value. */
+export const restoreAccountMemoryVersion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ versionId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }): Promise<{ accountId: string; memory: string }> => {
+    const { supabase, userId } = context;
+
+    const { data: version, error: verErr } = await supabase
+      .from("account_memory_versions")
+      .select("id, account_id, memory")
+      .eq("id", data.versionId)
+      .single();
+    if (verErr || !version) {
+      if (verErr) console.error("[DB error] fetch memory version", verErr);
+      throw new Error("Memory version not found");
+    }
+
+    const { data: account, error: accErr } = await supabase
+      .from("accounts")
+      .select("id, memory")
+      .eq("id", version.account_id)
+      .single();
+    if (accErr || !account) {
+      if (accErr) console.error("[DB error] fetch account for restore", accErr);
+      throw new Error("Account not found");
+    }
+
+    if ((account.memory ?? "") !== version.memory) {
+      const { error: snapErr } = await supabase.from("account_memory_versions").insert({
+        account_id: version.account_id,
+        owner_id: userId,
+        memory: account.memory ?? "",
+        source: "restore",
+      });
+      if (snapErr) {
+        console.error("[DB error] snapshot before restore", snapErr);
+        throw new Error("Could not save memory history. Nothing was changed.");
+      }
+    }
+
+    const { error } = await supabase
+      .from("accounts")
+      .update({ memory: version.memory, updated_at: new Date().toISOString() })
+      .eq("id", version.account_id);
+    if (error) {
+      console.error("[DB error] restore account memory", error);
+      throw new Error("Could not restore account memory. Please try again.");
+    }
+    return { accountId: version.account_id, memory: version.memory };
+  });
+
 
 export const rateVisit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
