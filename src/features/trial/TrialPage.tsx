@@ -128,7 +128,6 @@ export function TrialPage() {
       setSupportingContext("");
       setAttachments([]);
       setError(null);
-      setAdoptedMemory(false);
       // Re-open the memory panel for each venue: collapsing it for one account
       // must not hide the pre-visit context for the next one.
       setMemoryOpen(true);
@@ -167,7 +166,6 @@ export function TrialPage() {
       });
       setOutput(res.output);
       setVisitId(res.visitId);
-      setAdoptedMemory(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
