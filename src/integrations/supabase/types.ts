@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_memory_versions: {
+        Row: {
+          account_id: string
+          created_at: string
+          id: string
+          memory: string
+          owner_id: string
+          source: Database["public"]["Enums"]["memory_version_source"]
+          visit_id: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          id?: string
+          memory?: string
+          owner_id: string
+          source?: Database["public"]["Enums"]["memory_version_source"]
+          visit_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          id?: string
+          memory?: string
+          owner_id?: string
+          source?: Database["public"]["Enums"]["memory_version_source"]
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_memory_versions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_memory_versions_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounts: {
         Row: {
           contact: string | null
@@ -229,6 +274,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       library_file_type: "pdf" | "xlsx" | "pptx" | "docx" | "other"
+      memory_version_source: "ai_adopted" | "manual_edit" | "restore"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -358,6 +404,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       library_file_type: ["pdf", "xlsx", "pptx", "docx", "other"],
+      memory_version_source: ["ai_adopted", "manual_edit", "restore"],
     },
   },
 } as const

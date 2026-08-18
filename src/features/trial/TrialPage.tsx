@@ -8,12 +8,13 @@ import type { Attachment } from "./extractFileText";
 import { LibraryPanel } from "./LibraryPanel";
 import {
   generateVisitIntelligence,
-  updateAccountMemory,
   createAccount,
   rateVisit,
   transcribeAudio,
 } from "@/lib/trial.functions";
+import { MemoryReviewCard } from "./MemoryReviewCard";
 import { copyToClipboard } from "@/lib/clipboard";
+
 
 type Account = { id: string; name: string; contact: string | null; memory: string };
 type AiOutput = {
@@ -54,7 +55,7 @@ export function TrialPage() {
   const [rawNote, setRawNote] = useState("");
   const [output, setOutput] = useState<AiOutput | null>(null);
   const [visitId, setVisitId] = useState<string | null>(null);
-  const [adoptedMemory, setAdoptedMemory] = useState(false);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
@@ -68,8 +69,8 @@ export function TrialPage() {
   const audioChunksRef = useRef<Blob[]>([]);
 
   const generate = useServerFn(generateVisitIntelligence);
-  const saveMemory = useServerFn(updateAccountMemory);
   const addAccount = useServerFn(createAccount);
+
   const rate = useServerFn(rateVisit);
   const transcribe = useServerFn(transcribeAudio);
 
@@ -127,7 +128,6 @@ export function TrialPage() {
       setSupportingContext("");
       setAttachments([]);
       setError(null);
-      setAdoptedMemory(false);
       // Re-open the memory panel for each venue: collapsing it for one account
       // must not hide the pre-visit context for the next one.
       setMemoryOpen(true);
@@ -166,7 +166,6 @@ export function TrialPage() {
       });
       setOutput(res.output);
       setVisitId(res.visitId);
-      setAdoptedMemory(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -174,14 +173,11 @@ export function TrialPage() {
     }
   }
 
-  async function handleAdoptMemory() {
-    if (!active || !output) return;
-    await saveMemory({ data: { accountId: active.id, memory: output.updated_account_memory } });
-    setAccounts((prev) =>
-      prev.map((a) => (a.id === active.id ? { ...a, memory: output.updated_account_memory } : a)),
-    );
-    setAdoptedMemory(true);
+  function handleMemorySaved(memory: string) {
+    if (!active) return;
+    setAccounts((prev) => prev.map((a) => (a.id === active.id ? { ...a, memory } : a)));
   }
+
 
   async function handleCreate() {
     if (!newName.trim()) return;
@@ -557,12 +553,15 @@ export function TrialPage() {
           {output && (
             <OutputPanel
               output={output}
-              onAdoptMemory={handleAdoptMemory}
+              accountId={active?.id ?? ""}
+              currentMemory={active?.memory ?? ""}
+              visitId={visitId}
+              onMemorySaved={handleMemorySaved}
               onRate={handleRate}
               onClarifyingAnswers={handleClarifyingAnswers}
               loading={loading}
-              adoptedMemory={adoptedMemory}
             />
+
           )}
         </div>
       </div>
@@ -592,19 +591,24 @@ function CopyButton({ text }: { text: string }) {
 
 function OutputPanel({
   output,
-  onAdoptMemory,
+  accountId,
+  currentMemory,
+  visitId,
+  onMemorySaved,
   onRate,
   onClarifyingAnswers,
   loading,
-  adoptedMemory,
 }: {
   output: AiOutput;
-  onAdoptMemory: () => void;
+  accountId: string;
+  currentMemory: string;
+  visitId: string | null;
+  onMemorySaved: (memory: string) => void;
   onRate: (r: "good" | "needs_edit") => void;
   onClarifyingAnswers: (answers: string[]) => void;
   loading: boolean;
-  adoptedMemory: boolean;
 }) {
+
   const [rated, setRated] = useState<"good" | "needs_edit" | null>(null);
   const [clarifyingAnswers, setClarifyingAnswers] = useState<string[]>(() =>
     output.clarifying_questions.map(() => ""),
@@ -763,25 +767,14 @@ function OutputPanel({
       </GlassCard>
 
       {/* 5. ACCOUNT MEMORY */}
-      <GlassCard className="p-5">
-        <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-          <SignalLabel as="h2">Updated Account Memory</SignalLabel>
-          <button
-            onClick={onAdoptMemory}
-            disabled={adoptedMemory}
-            className={`text-xs px-3 py-1.5 rounded-md text-white transition-colors ${
-              adoptedMemory
-                ? "bg-[var(--brand-cyan)]/20 border border-[var(--brand-cyan)]/40 text-[var(--brand-cyan)] cursor-default"
-                : "bg-white/10 hover:bg-white/15"
-            }`}
-          >
-            {adoptedMemory ? "Memory updated" : "Adopt as new memory"}
-          </button>
-        </div>
-        <pre className="text-[13px] text-white/80 whitespace-pre-wrap font-sans leading-relaxed">
-          {output.updated_account_memory}
-        </pre>
-      </GlassCard>
+      <MemoryReviewCard
+        accountId={accountId}
+        currentMemory={currentMemory}
+        proposedMemory={output.updated_account_memory}
+        visitId={visitId}
+        onSaved={onMemorySaved}
+      />
+
 
       {/* 6. MISSED OPPORTUNITY */}
       {output.missed_opportunity && (
