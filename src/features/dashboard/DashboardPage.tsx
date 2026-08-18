@@ -127,7 +127,7 @@ export function DashboardPage() {
             className="rounded-xl px-5 py-3 text-sm font-medium text-primary-foreground"
             style={{ background: "var(--gradient-signal)" }}
           >
-            Record a visit →
+            Log a visit →
           </Link>
         </header>
 
@@ -143,7 +143,7 @@ export function DashboardPage() {
                 className="rounded-xl px-4 py-2 text-sm font-medium text-primary-foreground"
                 style={{ background: "var(--gradient-signal)" }}
               >
-                Open recorder →
+                Log your first visit →
               </Link>
             </div>
           </GlassCard>

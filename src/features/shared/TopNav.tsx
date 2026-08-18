@@ -23,7 +23,18 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
   );
 }
 
-type NavItem = { to: "/" | "/how-it-works" | "/try" | "/dashboard" | "/mobile" | "/admin"; label: string };
+type NavItem = {
+  to: "/" | "/how-it-works" | "/try" | "/trial" | "/dashboard" | "/mobile" | "/admin";
+  label: string;
+};
+
+// "/trial".startsWith("/try") is true, so a naive prefix test lights up both
+// "Try a visit note" and "Log a visit" at once. Match the route exactly, or on
+// a path segment boundary.
+function isNavActive(path: string, to: NavItem["to"]) {
+  if (to === "/") return path === "/";
+  return path === to || path.startsWith(`${to}/`);
+}
 
 const publicLinks: NavItem[] = [
   { to: "/", label: "Home" },
@@ -32,6 +43,7 @@ const publicLinks: NavItem[] = [
 ];
 const appLinks: NavItem[] = [
   { to: "/dashboard", label: "Dashboard" },
+  { to: "/trial", label: "Log a visit" },
   { to: "/mobile", label: "Mobile" },
 ];
 const adminLink: NavItem = { to: "/admin", label: "Admin" };
@@ -68,6 +80,14 @@ export function TopNav() {
     ...(isAdmin ? [adminLink] : []),
   ];
 
+  // Shown inline in the header from `md` up. Every nav link used to live behind
+  // the hamburger on all viewports, so reaching the dashboard cost two clicks
+  // and a full-screen overlay. A signed-in rep works in the app rather than the
+  // marketing site, so their working set goes inline; the menu keeps the lot.
+  const inlineItems: NavItem[] = user
+    ? [...appLinks, ...(isAdmin ? [adminLink] : [])]
+    : publicLinks;
+
   return (
     <>
       <header
@@ -78,11 +98,30 @@ export function TopNav() {
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-5 sm:px-6">
           <BeviLogo />
 
+          <nav className="hidden md:flex items-center gap-1">
+            {inlineItems.map((l) => {
+              const isActive = isNavActive(path, l.to);
+              return (
+                <Link
+                  key={l.to}
+                  to={l.to}
+                  className={`rounded-full px-3 py-2 text-sm transition-colors ${
+                    isActive
+                      ? "bg-white/10 text-white"
+                      : "text-white/70 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
+          </nav>
+
           <div className="flex min-w-0 items-center gap-2">
             {user ? (
               <>
                 <span
-                  className="max-w-[38vw] truncate rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white sm:max-w-[220px]"
+                  className="max-w-[38vw] truncate rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white sm:max-w-[120px] lg:max-w-[220px]"
                   title={displayName}
                 >
                   {displayName}
@@ -142,7 +181,7 @@ export function TopNav() {
           />
           <nav className="fixed right-4 left-4 sm:left-auto sm:w-80 top-[76px] z-50 overflow-hidden rounded-2xl border border-white/10 bg-[#121A2E] p-2 shadow-[0_24px_70px_rgba(0,0,0,0.55)]">
             {items.map((l) => {
-              const active = l.to === "/" ? path === "/" : path.startsWith(l.to);
+              const active = isNavActive(path, l.to);
               return (
                 <Link
                   key={l.to}

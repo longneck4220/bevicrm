@@ -50,7 +50,7 @@ export function MobileCompanionPage() {
               </span>
             </div>
             <div className="mt-5 text-2xl font-semibold text-white tracking-tight">
-              Record visit
+              Log a visit
             </div>
             <div className="mt-1 text-xs font-mono uppercase tracking-[0.2em] text-white/80">
               Tap. Talk. Done.
