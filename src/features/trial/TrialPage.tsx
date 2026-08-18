@@ -70,7 +70,7 @@ export function TrialPage() {
 
   const generate = useServerFn(generateVisitIntelligence);
   const addAccount = useServerFn(createAccount);
-  const addAccount = useServerFn(createAccount);
+
   const rate = useServerFn(rateVisit);
   const transcribe = useServerFn(transcribeAudio);
 
