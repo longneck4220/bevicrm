@@ -55,7 +55,7 @@ export function TrialPage() {
   const [rawNote, setRawNote] = useState("");
   const [output, setOutput] = useState<AiOutput | null>(null);
   const [visitId, setVisitId] = useState<string | null>(null);
-  const [adoptedMemory, setAdoptedMemory] = useState(false);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
