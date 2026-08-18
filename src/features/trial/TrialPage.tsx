@@ -8,12 +8,13 @@ import type { Attachment } from "./extractFileText";
 import { LibraryPanel } from "./LibraryPanel";
 import {
   generateVisitIntelligence,
-  updateAccountMemory,
   createAccount,
   rateVisit,
   transcribeAudio,
 } from "@/lib/trial.functions";
+import { MemoryReviewCard } from "./MemoryReviewCard";
 import { copyToClipboard } from "@/lib/clipboard";
+
 
 type Account = { id: string; name: string; contact: string | null; memory: string };
 type AiOutput = {
