@@ -62,6 +62,7 @@ export function TrialPage() {
   const [recognizing, setRecognizing] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [memoryOpen, setMemoryOpen] = useState(true);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -88,7 +89,11 @@ export function TrialPage() {
       return;
     }
     setAccounts(data ?? []);
-    const next = selectId ?? data?.[0]?.id ?? null;
+    // Never auto-select an account. Defaulting to the most recently updated
+    // venue means a rep can dictate and generate a whole note against a venue
+    // they never chose - the note and that account's memory both end up wrong.
+    // Selection stays null until the rep picks one (or just created one).
+    const next = selectId ?? null;
     setActiveId(next);
   }
 
@@ -123,6 +128,9 @@ export function TrialPage() {
       setAttachments([]);
       setError(null);
       setAdoptedMemory(false);
+      // Re-open the memory panel for each venue: collapsing it for one account
+      // must not hide the pre-visit context for the next one.
+      setMemoryOpen(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
@@ -384,6 +392,44 @@ export function TrialPage() {
             </GlassCard>
           </div>
 
+          {/* What BEVI already knows about this account. The memory is the whole
+              product promise, and it was previously only visible baked into the
+              AI output *after* the visit - too late to help the rep walk in. */}
+          {active ? (
+            <GlassCard className="p-4">
+              <div className="flex items-center gap-2">
+                <SignalLabel>Before you walk in · {active.name}</SignalLabel>
+                {(active.memory ?? "").trim() && (
+                  <button
+                    type="button"
+                    onClick={() => setMemoryOpen((v) => !v)}
+                    className="ml-auto text-[11px] text-white/60 hover:text-white"
+                  >
+                    {memoryOpen ? "Hide" : "Show"}
+                  </button>
+                )}
+              </div>
+              {(active.memory ?? "").trim() ? (
+                memoryOpen && (
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-white/80">
+                    {active.memory}
+                  </p>
+                )
+              ) : (
+                <p className="mt-2 text-sm text-white/50">
+                  Nothing on file yet — this will be the first visit recorded for {active.name}.
+                </p>
+              )}
+            </GlassCard>
+          ) : (
+            <GlassCard className="p-4">
+              <SignalLabel>No account selected</SignalLabel>
+              <p className="mt-2 text-sm text-white/60">
+                Pick a venue above (or add a new one) to see what BEVI knows and start logging.
+              </p>
+            </GlassCard>
+          )}
+
           {/* File library */}
           <LibraryPanel
             activeAccountId={active?.id ?? null}
@@ -445,7 +491,10 @@ export function TrialPage() {
               <button
                 type="button"
                 onClick={toggleDictation}
-                disabled={transcribing}
+                // Must match the note textarea's gate. Without this a rep could
+                // dictate before choosing a venue, and selecting one would fire
+                // the composer reset below and wipe the transcript.
+                disabled={!active || transcribing}
                 className={`text-xs px-3 py-1.5 rounded-md disabled:opacity-60 ${
                   recognizing
                     ? "bg-[var(--signal-risk)]/20 text-[var(--signal-risk)]"
@@ -463,21 +512,45 @@ export function TrialPage() {
               value={rawNote}
               onChange={(e) => setRawNote(e.target.value)}
               disabled={!active}
-              placeholder="Dictate or type. Messy is fine — BEVI will structure it."
+              placeholder={
+                active
+                  ? "Dictate or type. Messy is fine — BEVI will structure it."
+                  : "Select an account above to start logging this visit."
+              }
               className="w-full min-h-[140px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
             />
-            <div className="mt-4 flex items-center gap-3 justify-end">
+            <div className="mt-4 flex flex-wrap items-center gap-3 justify-end">
+              {/* A rep needs to know this is the real record, not a sandbox. */}
+              {active && !loading && (
+                <span className="mr-auto text-xs text-white/55">
+                  Saves to{" "}
+                  <span className="font-medium text-white/80">{active.name}</span> in your account
+                  history.
+                </span>
+              )}
               {error && <span className="text-sm text-[var(--signal-risk)]">{error}</span>}
               <button
                 type="button"
                 onClick={() => handleGenerate()}
                 disabled={!active || !rawNote.trim() || loading}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-primary-foreground disabled:opacity-40 ambient-glow"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-primary-foreground disabled:opacity-40 disabled:grayscale disabled:cursor-not-allowed ambient-glow"
                 style={{ background: "var(--gradient-signal)" }}
               >
+                {loading && (
+                  <span
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                  />
+                )}
                 {loading ? "Generating…" : "Generate intelligence →"}
               </button>
             </div>
+            {loading && (
+              <p className="mt-3 text-right text-xs text-white/55" aria-live="polite">
+                Reading your note against {active?.name ?? "this account"}'s history and your deal
+                sheets — usually 10–15 seconds.
+              </p>
+            )}
           </GlassCard>
 
           {/* Output */}
@@ -996,9 +1069,16 @@ function AccountSearch({
           document.body,
         )}
 
+      {/* Deliberately high-contrast: this is the guard against dictating a note
+          into the wrong venue after a long day of calls. */}
       {active && !open && (
-        <div className="mt-2 px-1 text-[11px] text-white/40">
-          Active · <span className="text-white/70">{active.name}</span>
+        <div className="mt-2 px-1">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--brand-cyan)]/40 bg-[var(--brand-cyan)]/10 px-2.5 py-1 text-[11px] font-medium text-white">
+            <span className="text-[var(--brand-cyan)]" aria-hidden="true">
+              ✓
+            </span>
+            Logging to {active.name}
+          </span>
         </div>
       )}
     </div>
