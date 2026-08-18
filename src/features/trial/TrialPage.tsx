@@ -593,19 +593,24 @@ function CopyButton({ text }: { text: string }) {
 
 function OutputPanel({
   output,
-  onAdoptMemory,
+  accountId,
+  currentMemory,
+  visitId,
+  onMemorySaved,
   onRate,
   onClarifyingAnswers,
   loading,
-  adoptedMemory,
 }: {
   output: AiOutput;
-  onAdoptMemory: () => void;
+  accountId: string;
+  currentMemory: string;
+  visitId: string | null;
+  onMemorySaved: (memory: string) => void;
   onRate: (r: "good" | "needs_edit") => void;
   onClarifyingAnswers: (answers: string[]) => void;
   loading: boolean;
-  adoptedMemory: boolean;
 }) {
+
   const [rated, setRated] = useState<"good" | "needs_edit" | null>(null);
   const [clarifyingAnswers, setClarifyingAnswers] = useState<string[]>(() =>
     output.clarifying_questions.map(() => ""),
