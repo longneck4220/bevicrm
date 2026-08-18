@@ -555,12 +555,15 @@ export function TrialPage() {
           {output && (
             <OutputPanel
               output={output}
-              onAdoptMemory={handleAdoptMemory}
+              accountId={active?.id ?? ""}
+              currentMemory={active?.memory ?? ""}
+              visitId={visitId}
+              onMemorySaved={handleMemorySaved}
               onRate={handleRate}
               onClarifyingAnswers={handleClarifyingAnswers}
               loading={loading}
-              adoptedMemory={adoptedMemory}
             />
+
           )}
         </div>
       </div>
