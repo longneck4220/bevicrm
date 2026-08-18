@@ -69,7 +69,7 @@ export function TrialPage() {
   const audioChunksRef = useRef<Blob[]>([]);
 
   const generate = useServerFn(generateVisitIntelligence);
-  const saveMemory = useServerFn(updateAccountMemory);
+  const addAccount = useServerFn(createAccount);
   const addAccount = useServerFn(createAccount);
   const rate = useServerFn(rateVisit);
   const transcribe = useServerFn(transcribeAudio);
