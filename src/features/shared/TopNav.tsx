@@ -74,17 +74,10 @@ export function TopNav() {
     setMenuOpen(false);
   }, [path]);
 
-  const items: NavItem[] = [
-    ...publicLinks,
-    ...(user ? appLinks : []),
-    ...(isAdmin ? [adminLink] : []),
-  ];
-
-  // Shown inline in the header from `md` up. Every nav link used to live behind
-  // the hamburger on all viewports, so reaching the dashboard cost two clicks
-  // and a full-screen overlay. A signed-in rep works in the app rather than the
-  // marketing site, so their working set goes inline; the menu keeps the lot.
-  const inlineItems: NavItem[] = user
+  // Signed-in users are redirected away from the guest pages (see
+  // routes/_public.tsx), so publicLinks would be dead ends for them — the
+  // menu and the inline nav both show the same set based on sign-in state.
+  const items: NavItem[] = user
     ? [...appLinks, ...(isAdmin ? [adminLink] : [])]
     : publicLinks;
 
@@ -99,7 +92,7 @@ export function TopNav() {
           <BeviLogo />
 
           <nav className="hidden md:flex items-center gap-1">
-            {inlineItems.map((l) => {
+            {items.map((l) => {
               const isActive = isNavActive(path, l.to);
               return (
                 <Link

@@ -7,7 +7,7 @@ const DESCRIPTION =
 const URL = "https://bevicrm.lovable.app/";
 const OG_IMAGE = "https://bevicrm.lovable.app/og-image.jpg";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_public/")({
   component: LandingPage,
   head: () => ({
     meta: [
