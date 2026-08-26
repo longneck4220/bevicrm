@@ -6,7 +6,7 @@ const DESCRIPTION =
   "Enter a venue and a messy post-visit note and see BEVI rebuild it into a CRM-ready record, commercial signals, a follow-up email and the next best move. No signup, nothing saved.";
 const URL = "https://bevicrm.lovable.app/try";
 
-export const Route = createFileRoute("/try")({
+export const Route = createFileRoute("/_public/try")({
   component: TryDemoPage,
   head: () => ({
     meta: [

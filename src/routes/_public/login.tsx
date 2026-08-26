@@ -13,7 +13,7 @@ function safeNext(next: string | undefined) {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
 }
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/_public/login")({
   component: LoginPage,
   validateSearch: (s: Record<string, unknown>) => ({
     next: typeof s.next === "string" ? s.next : undefined,

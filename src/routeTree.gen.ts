@@ -9,17 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TryRouteImport } from './routes/try'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as McpRouteImport } from './routes/mcp'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AuthenticatedTrialRouteImport } from './routes/_authenticated/trial'
 import { Route as AuthenticatedMobileRouteImport } from './routes/_authenticated/mobile'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as PublicTryRouteImport } from './routes/_public/try'
+import { Route as PublicLoginRouteImport } from './routes/_public/login'
+import { Route as PublicHowItWorksRouteImport } from './routes/_public/how-it-works'
+import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedVisitIdRouteImport } from './routes/_authenticated/visit.$id'
@@ -28,11 +29,6 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as ApiPublicWaitlistExportRouteImport } from './routes/api/public/waitlist/export'
 
-const TryRoute = TryRouteImport.update({
-  id: '/try',
-  path: '/try',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -43,24 +39,33 @@ const McpRoute = McpRouteImport.update({
   path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HowItWorksRoute = HowItWorksRouteImport.update({
-  id: '/how-it-works',
-  path: '/how-it-works',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicTryRoute = PublicTryRouteImport.update({
+  id: '/try',
+  path: '/try',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicLoginRoute = PublicLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicHowItWorksRoute = PublicHowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicIndexRoute = PublicIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PublicRoute,
 } as any)
 const AuthenticatedTrialRoute = AuthenticatedTrialRouteImport.update({
   id: '/trial',
@@ -123,12 +128,12 @@ const ApiPublicWaitlistExportRoute = ApiPublicWaitlistExportRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/how-it-works': typeof HowItWorksRoute
-  '/login': typeof LoginRoute
+  '/': typeof PublicIndexRoute
+  '/how-it-works': typeof PublicHowItWorksRoute
+  '/login': typeof PublicLoginRoute
   '/mcp': typeof McpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/try': typeof TryRoute
+  '/try': typeof PublicTryRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -142,12 +147,12 @@ export interface FileRoutesByFullPath {
   '/api/public/waitlist/export': typeof ApiPublicWaitlistExportRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/how-it-works': typeof HowItWorksRoute
-  '/login': typeof LoginRoute
+  '/': typeof PublicIndexRoute
+  '/how-it-works': typeof PublicHowItWorksRoute
+  '/login': typeof PublicLoginRoute
   '/mcp': typeof McpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/try': typeof TryRoute
+  '/try': typeof PublicTryRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -162,13 +167,14 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/how-it-works': typeof HowItWorksRoute
-  '/login': typeof LoginRoute
+  '/_public': typeof PublicRouteWithChildren
   '/mcp': typeof McpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/try': typeof TryRoute
+  '/_public/': typeof PublicIndexRoute
+  '/_public/how-it-works': typeof PublicHowItWorksRoute
+  '/_public/login': typeof PublicLoginRoute
+  '/_public/try': typeof PublicTryRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -222,13 +228,14 @@ export interface FileRouteTypes {
     | '/api/public/waitlist/export'
   id:
     | '__root__'
-    | '/'
     | '/_authenticated'
-    | '/how-it-works'
-    | '/login'
+    | '/_public'
     | '/mcp'
     | '/sitemap.xml'
-    | '/try'
+    | '/_public/'
+    | '/_public/how-it-works'
+    | '/_public/login'
+    | '/_public/try'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
@@ -243,13 +250,10 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  HowItWorksRoute: typeof HowItWorksRoute
-  LoginRoute: typeof LoginRoute
+  PublicRoute: typeof PublicRouteWithChildren
   McpRoute: typeof McpRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  TryRoute: typeof TryRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -259,13 +263,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/try': {
-      id: '/try'
-      path: '/try'
-      fullPath: '/try'
-      preLoaderRoute: typeof TryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -280,20 +277,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/how-it-works': {
-      id: '/how-it-works'
-      path: '/how-it-works'
-      fullPath: '/how-it-works'
-      preLoaderRoute: typeof HowItWorksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -301,12 +284,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public/try': {
+      id: '/_public/try'
+      path: '/try'
+      fullPath: '/try'
+      preLoaderRoute: typeof PublicTryRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/login': {
+      id: '/_public/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof PublicLoginRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/how-it-works': {
+      id: '/_public/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof PublicHowItWorksRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/': {
+      id: '/_public/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof PublicIndexRouteImport
+      parentRoute: typeof PublicRoute
     }
     '/_authenticated/trial': {
       id: '/_authenticated/trial'
@@ -410,14 +421,29 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface PublicRouteChildren {
+  PublicIndexRoute: typeof PublicIndexRoute
+  PublicHowItWorksRoute: typeof PublicHowItWorksRoute
+  PublicLoginRoute: typeof PublicLoginRoute
+  PublicTryRoute: typeof PublicTryRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicIndexRoute: PublicIndexRoute,
+  PublicHowItWorksRoute: PublicHowItWorksRoute,
+  PublicLoginRoute: PublicLoginRoute,
+  PublicTryRoute: PublicTryRoute,
+}
+
+const PublicRouteWithChildren = PublicRoute._addFileChildren(
+  PublicRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  HowItWorksRoute: HowItWorksRoute,
-  LoginRoute: LoginRoute,
+  PublicRoute: PublicRouteWithChildren,
   McpRoute: McpRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  TryRoute: TryRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
