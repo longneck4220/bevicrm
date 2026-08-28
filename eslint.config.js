@@ -6,7 +6,11 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  // src/integrations/supabase/** is entirely Lovable-managed: every file there
+  // is regenerated from Lovable's own template (each starts with "Do not edit
+  // it directly"), so a hand-fixed lint issue there gets silently overwritten
+  // on the next sync — exclude it the same way generated build output is.
+  { ignores: ["dist", ".output", ".vinxi", "src/integrations/supabase/**"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
