@@ -11,16 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as McpRouteImport } from './routes/mcp'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as PublicRouteImport } from './routes/_public'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as PublicIndexRouteImport } from './routes/_public/index'
+import { Route as PublicTryRouteImport } from './routes/_public/try'
+import { Route as PublicLoginRouteImport } from './routes/_public/login'
+import { Route as PublicHowItWorksRouteImport } from './routes/_public/how-it-works'
 import { Route as AuthenticatedTrialRouteImport } from './routes/_authenticated/trial'
 import { Route as AuthenticatedMobileRouteImport } from './routes/_authenticated/mobile'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as PublicTryRouteImport } from './routes/_public/try'
-import { Route as PublicLoginRouteImport } from './routes/_public/login'
-import { Route as PublicHowItWorksRouteImport } from './routes/_public/how-it-works'
-import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedVisitIdRouteImport } from './routes/_authenticated/visit.$id'
@@ -39,13 +39,18 @@ const McpRoute = McpRouteImport.update({
   path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PublicRoute = PublicRouteImport.update({
-  id: '/_public',
-  getParentRoute: () => rootRouteImport,
+const PublicIndexRoute = PublicIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PublicRoute,
 } as any)
 const PublicTryRoute = PublicTryRouteImport.update({
   id: '/try',
@@ -60,11 +65,6 @@ const PublicLoginRoute = PublicLoginRouteImport.update({
 const PublicHowItWorksRoute = PublicHowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
-  getParentRoute: () => PublicRoute,
-} as any)
-const PublicIndexRoute = PublicIndexRouteImport.update({
-  id: '/',
-  path: '/',
   getParentRoute: () => PublicRoute,
 } as any)
 const AuthenticatedTrialRoute = AuthenticatedTrialRouteImport.update({
@@ -129,17 +129,17 @@ const ApiPublicWaitlistExportRoute = ApiPublicWaitlistExportRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
-  '/how-it-works': typeof PublicHowItWorksRoute
-  '/login': typeof PublicLoginRoute
   '/mcp': typeof McpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/try': typeof PublicTryRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/mobile': typeof AuthenticatedMobileRoute
   '/trial': typeof AuthenticatedTrialRoute
+  '/how-it-works': typeof PublicHowItWorksRoute
+  '/login': typeof PublicLoginRoute
+  '/try': typeof PublicTryRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
@@ -148,17 +148,17 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
-  '/how-it-works': typeof PublicHowItWorksRoute
-  '/login': typeof PublicLoginRoute
   '/mcp': typeof McpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/try': typeof PublicTryRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/mobile': typeof AuthenticatedMobileRoute
   '/trial': typeof AuthenticatedTrialRoute
+  '/how-it-works': typeof PublicHowItWorksRoute
+  '/login': typeof PublicLoginRoute
+  '/try': typeof PublicTryRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
@@ -171,16 +171,16 @@ export interface FileRoutesById {
   '/_public': typeof PublicRouteWithChildren
   '/mcp': typeof McpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/_public/': typeof PublicIndexRoute
-  '/_public/how-it-works': typeof PublicHowItWorksRoute
-  '/_public/login': typeof PublicLoginRoute
-  '/_public/try': typeof PublicTryRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/mobile': typeof AuthenticatedMobileRoute
   '/_authenticated/trial': typeof AuthenticatedTrialRoute
+  '/_public/how-it-works': typeof PublicHowItWorksRoute
+  '/_public/login': typeof PublicLoginRoute
+  '/_public/try': typeof PublicTryRoute
+  '/_public/': typeof PublicIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/conversation/$id': typeof AuthenticatedConversationIdRoute
@@ -191,17 +191,17 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/how-it-works'
-    | '/login'
     | '/mcp'
     | '/sitemap.xml'
-    | '/try'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/dashboard'
     | '/mobile'
     | '/trial'
+    | '/how-it-works'
+    | '/login'
+    | '/try'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/conversation/$id'
@@ -210,17 +210,17 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/how-it-works'
-    | '/login'
     | '/mcp'
     | '/sitemap.xml'
-    | '/try'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/dashboard'
     | '/mobile'
     | '/trial'
+    | '/how-it-works'
+    | '/login'
+    | '/try'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/conversation/$id'
@@ -232,16 +232,16 @@ export interface FileRouteTypes {
     | '/_public'
     | '/mcp'
     | '/sitemap.xml'
-    | '/_public/'
-    | '/_public/how-it-works'
-    | '/_public/login'
-    | '/_public/try'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/mobile'
     | '/_authenticated/trial'
+    | '/_public/how-it-works'
+    | '/_public/login'
+    | '/_public/try'
+    | '/_public/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/conversation/$id'
@@ -277,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -284,12 +291,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_public': {
-      id: '/_public'
-      path: ''
+    '/_public/': {
+      id: '/_public/'
+      path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof PublicRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof PublicIndexRouteImport
+      parentRoute: typeof PublicRoute
     }
     '/_public/try': {
       id: '/_public/try'
@@ -310,13 +317,6 @@ declare module '@tanstack/react-router' {
       path: '/how-it-works'
       fullPath: '/how-it-works'
       preLoaderRoute: typeof PublicHowItWorksRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_public/': {
-      id: '/_public/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof PublicIndexRouteImport
       parentRoute: typeof PublicRoute
     }
     '/_authenticated/trial': {
@@ -422,22 +422,21 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface PublicRouteChildren {
-  PublicIndexRoute: typeof PublicIndexRoute
   PublicHowItWorksRoute: typeof PublicHowItWorksRoute
   PublicLoginRoute: typeof PublicLoginRoute
   PublicTryRoute: typeof PublicTryRoute
+  PublicIndexRoute: typeof PublicIndexRoute
 }
 
 const PublicRouteChildren: PublicRouteChildren = {
-  PublicIndexRoute: PublicIndexRoute,
   PublicHowItWorksRoute: PublicHowItWorksRoute,
   PublicLoginRoute: PublicLoginRoute,
   PublicTryRoute: PublicTryRoute,
+  PublicIndexRoute: PublicIndexRoute,
 }
 
-const PublicRouteWithChildren = PublicRoute._addFileChildren(
-  PublicRouteChildren,
-)
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
