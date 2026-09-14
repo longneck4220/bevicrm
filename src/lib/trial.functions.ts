@@ -540,7 +540,6 @@ export const restoreAccountMemoryVersion = createServerFn({ method: "POST" })
     return { accountId: version.account_id, memory: version.memory };
   });
 
-
 export const rateVisit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
