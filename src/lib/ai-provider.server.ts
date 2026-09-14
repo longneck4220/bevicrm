@@ -1,18 +1,14 @@
 /**
- * Server-only AI provider switch.
+ * Server-only AI access.
  *
- * Two backends for JSON generation:
- *  - "anthropic": direct Anthropic Messages API (needs ANTHROPIC_API_KEY, billed by Anthropic)
- *  - "lovable":   Lovable AI Gateway chat completions (Gemini, billed in Lovable credits)
- *
- * Selection order: explicit `provider` argument -> AI_PROVIDER env -> "lovable".
- * Falls back to "lovable" when Anthropic is selected but no key is configured.
+ * Gateway-only by design: every AI call in this app goes through the Lovable AI
+ * Gateway. There is no direct-to-vendor path and no request-selectable provider.
+ * One code path, one model constant.
  */
 
-export type AiProvider = "anthropic" | "lovable";
+import { AI_MODEL } from "@/lib/ai-model";
 
-const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-5";
-const DEFAULT_LOVABLE_MODEL = "google/gemini-3.6-flash";
+export { AI_MODEL };
 
 function mapStatus(status: number, label: string, bodyText: string): Error {
   if (status === 429) return new Error("Rate limit — please try again in a moment.");
@@ -39,66 +35,10 @@ function extractJson(raw: string): unknown {
   throw new Error("AI returned non-JSON output");
 }
 
-/** Set once an Anthropic call fails auth, so we stop trying for the process lifetime. */
-let anthropicDisabled = false;
-
-class AnthropicAuthError extends Error {}
-
-export function resolveProvider(requested?: AiProvider): AiProvider {
-  const envChoice = (process.env.AI_PROVIDER ?? "").trim().toLowerCase();
-  const choice: AiProvider = requested ?? (envChoice === "anthropic" ? "anthropic" : "lovable");
-  if (choice === "anthropic" && (!process.env.ANTHROPIC_API_KEY || anthropicDisabled)) {
-    console.warn("[ai-provider] anthropic unavailable — using Lovable gateway");
-    return "lovable";
-  }
-  return choice;
-}
-
-async function callAnthropic(system: string, user: string): Promise<unknown> {
-  const apiKey = process.env.ANTHROPIC_API_KEY!;
-  const model = (process.env.ANTHROPIC_MODEL ?? "").trim() || DEFAULT_ANTHROPIC_MODEL;
-
-  const resp = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 4096,
-      system: `${system}\n\nRespond with a single valid JSON object and nothing else. No markdown fences, no commentary.`,
-      messages: [
-        { role: "user", content: user },
-        // Prefill forces the model to continue a JSON object.
-        { role: "assistant", content: "{" },
-      ],
-    }),
-  });
-
-  if (resp.status === 401 || resp.status === 403) {
-    anthropicDisabled = true;
-    console.warn("[ai-provider] Anthropic key rejected — falling back to Lovable gateway");
-    throw new AnthropicAuthError("anthropic auth failed");
-  }
-  if (!resp.ok) throw mapStatus(resp.status, "Anthropic", await resp.text());
-
-  const payload = (await resp.json()) as {
-    content?: Array<{ type?: string; text?: string }>;
-  };
-  const text = (payload.content ?? [])
-    .filter((b) => b?.type === "text" && typeof b.text === "string")
-    .map((b) => b.text as string)
-    .join("");
-
-  // Re-attach the prefilled opening brace.
-  return extractJson(text.trimStart().startsWith("{") ? text : `{${text}`);
-}
-
-async function callLovable(system: string, user: string): Promise<unknown> {
+/** Generate a JSON object from a system + user prompt via the Lovable AI Gateway. */
+export async function generateVisitJson<T>(args: { system: string; user: string }): Promise<T> {
   const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
+  if (!apiKey) throw new Error("AI is not configured. Please try again later.");
 
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -107,10 +47,10 @@ async function callLovable(system: string, user: string): Promise<unknown> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: DEFAULT_LOVABLE_MODEL,
+      model: AI_MODEL,
       messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
+        { role: "system", content: args.system },
+        { role: "user", content: args.user },
       ],
       response_format: { type: "json_object" },
     }),
@@ -120,23 +60,5 @@ async function callLovable(system: string, user: string): Promise<unknown> {
 
   const payload = await resp.json();
   const content: string = payload?.choices?.[0]?.message?.content ?? "";
-  return extractJson(content);
-}
-
-/** Generate a JSON object from a system + user prompt using the selected provider. */
-export async function generateVisitJson<T>(args: {
-  system: string;
-  user: string;
-  provider?: AiProvider;
-}): Promise<T> {
-  const provider = resolveProvider(args.provider);
-  if (provider === "anthropic") {
-    try {
-      return (await callAnthropic(args.system, args.user)) as T;
-    } catch (err) {
-      if (!(err instanceof AnthropicAuthError)) throw err;
-      // Bad/expired Anthropic key: transparently continue on the Lovable gateway.
-    }
-  }
-  return (await callLovable(args.system, args.user)) as T;
+  return extractJson(content) as T;
 }
