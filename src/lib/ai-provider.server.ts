@@ -6,8 +6,9 @@
  * One code path, one model constant.
  */
 
-/** The single model used by every AI call site in this app. */
-export const AI_MODEL = "google/gemini-3.6-flash";
+import { AI_MODEL } from "@/lib/ai-model";
+
+export { AI_MODEL };
 
 function mapStatus(status: number, label: string, bodyText: string): Error {
   if (status === 429) return new Error("Rate limit — please try again in a moment.");

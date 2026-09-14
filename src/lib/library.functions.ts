@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { AI_MODEL } from "@/lib/ai-provider.server";
+import { AI_MODEL } from "@/lib/ai-model";
 
 export type LibraryDeal = {
   product: string;
