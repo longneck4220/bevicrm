@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { AI_MODEL } from "@/lib/ai-provider.server";
 
 export type LibraryDeal = {
   product: string;
@@ -20,7 +21,7 @@ async function extractDeals(text: string, fileName: string): Promise<LibraryDeal
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: AI_MODEL,
         messages: [
           {
             role: "system",
