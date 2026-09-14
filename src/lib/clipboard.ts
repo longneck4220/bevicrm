@@ -40,6 +40,9 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.setAttribute("readonly", "");
+    // iPadOS needs a contenteditable host for select()+copy to take the plain
+    // text rather than a re-typed clipboard flavour.
+    ta.contentEditable = "true";
     ta.style.position = "fixed";
     ta.style.top = "0";
     ta.style.left = "0";
