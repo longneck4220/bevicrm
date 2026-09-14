@@ -4,6 +4,25 @@
 // Copies verbatim. Never transform the text on the way out — what the rep
 // sees on screen has to be exactly what lands in the paste buffer.
 export async function copyToClipboard(text: string): Promise<boolean> {
+  // Path 0: write an explicit text/plain flavour. On iPadOS/Safari a plain
+  // writeText of text that starts with or contains URL-ish fragments can be
+  // re-typed by the receiving app as a link, which is what produces %20 in
+  // place of spaces when pasted. Declaring text/plain up front prevents that.
+  try {
+    if (
+      typeof navigator !== "undefined" &&
+      navigator.clipboard?.write &&
+      typeof ClipboardItem !== "undefined"
+    ) {
+      const item = new ClipboardItem({
+        "text/plain": new Blob([text], { type: "text/plain" }),
+      });
+      await navigator.clipboard.write([item]);
+      return true;
+    }
+  } catch {
+    // fall through
+  }
   // Path 1: modern async clipboard API. Rejects silently in iframes lacking
   // the clipboard-write permission, so we fall through on any failure.
   try {
@@ -21,6 +40,9 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.setAttribute("readonly", "");
+    // iPadOS needs a contenteditable host for select()+copy to take the plain
+    // text rather than a re-typed clipboard flavour.
+    ta.contentEditable = "true";
     ta.style.position = "fixed";
     ta.style.top = "0";
     ta.style.left = "0";
