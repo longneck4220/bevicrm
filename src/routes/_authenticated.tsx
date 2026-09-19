@@ -23,7 +23,11 @@ function AuthenticatedLayout() {
     );
   }
 
-  if (!user) {
+  // Dev-only convenience: the manager view uses hardcoded sample data, so it can
+  // be opened without signing in while developing. Never applies to production.
+  const devOpenManager = import.meta.env.DEV && entryPathname.startsWith("/manager");
+
+  if (!user && !devOpenManager) {
     return <Navigate to="/login" search={{ next: entryPathname }} />;
   }
 
