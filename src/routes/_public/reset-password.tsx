@@ -91,7 +91,7 @@ function ResetPasswordPage() {
             <p className="mt-4 text-sm text-white/60">
               Open this page from the reset link in your email. If you arrived here directly, request
               a new link from the{" "}
-              <Link to="/login" className="underline">
+              <Link to="/login" search={{ next: undefined }} className="underline">
                 sign-in page
               </Link>
               .
