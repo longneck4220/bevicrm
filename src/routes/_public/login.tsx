@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 
@@ -43,6 +44,37 @@ function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(null);
+
+  async function handleSocial(provider: "google" | "apple") {
+    setError(null);
+    setNotice(null);
+    setSocialLoading(provider);
+    try {
+      // redirect_uri must be a public same-origin URL; the intended
+      // destination is restored below once the session is confirmed.
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) throw result.error;
+      if (result.redirected) return; // full-page flow — browser goes to the provider
+      const session = await supabase.auth.getSession();
+      if (!session.data.session) throw new Error("Sign-in did not complete");
+      if (redirectTo) {
+        window.location.href = redirectTo;
+        return;
+      }
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message
+          ? `${provider === "google" ? "Google" : "Apple"} sign-in failed: ${err.message}`
+          : `${provider === "google" ? "Google" : "Apple"} sign-in failed`,
+      );
+    } finally {
+      setSocialLoading(null);
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
