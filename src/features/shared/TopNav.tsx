@@ -74,6 +74,11 @@ export function TopNav() {
     setMenuOpen(false);
   }, [path]);
 
+  // The manager dashboard (/manager) is a standalone light-theme surface with
+  // its own header bar — the global dark nav would overlap it and block clicks.
+  if (path.startsWith("/manager")) return null;
+
+
   // Signed-in users are redirected away from the guest pages (see
   // routes/_public.tsx), so publicLinks would be dead ends for them — the
   // menu and the inline nav both show the same set based on sign-in state.
