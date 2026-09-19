@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 
@@ -43,6 +44,37 @@ function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(null);
+
+  async function handleSocial(provider: "google" | "apple") {
+    setError(null);
+    setNotice(null);
+    setSocialLoading(provider);
+    try {
+      // redirect_uri must be a public same-origin URL; the intended
+      // destination is restored below once the session is confirmed.
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) throw result.error;
+      if (result.redirected) return; // full-page flow — browser goes to the provider
+      const session = await supabase.auth.getSession();
+      if (!session.data.session) throw new Error("Sign-in did not complete");
+      if (redirectTo) {
+        window.location.href = redirectTo;
+        return;
+      }
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message
+          ? `${provider === "google" ? "Google" : "Apple"} sign-in failed: ${err.message}`
+          : `${provider === "google" ? "Google" : "Apple"} sign-in failed`,
+      );
+    } finally {
+      setSocialLoading(null);
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -152,6 +184,40 @@ function LoginPage() {
               {loading ? "…" : mode === "signin" ? "Sign in" : "Create account"}
             </button>
           </form>
+
+          <div className="mt-5 flex items-center gap-3" aria-hidden>
+            <div className="h-px flex-1 bg-white/10" />
+            <span className="text-[11px] uppercase tracking-[0.14em] text-white/40">or</span>
+            <div className="h-px flex-1 bg-white/10" />
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              disabled={socialLoading !== null}
+              onClick={() => handleSocial("google")}
+              className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-40"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
+                <path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.45a5.52 5.52 0 0 1-2.39 3.62v3h3.87c2.26-2.09 3.57-5.17 3.57-8.81Z" />
+                <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.87-3c-1.07.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.29v3.1A12 12 0 0 0 12 24Z" />
+                <path fill="#FBBC05" d="M5.27 14.28a7.2 7.2 0 0 1 0-4.56v-3.1H1.29a12 12 0 0 0 0 10.76l3.98-3.1Z" />
+                <path fill="#EA4335" d="M12 4.77c1.76 0 3.34.61 4.58 1.8l3.44-3.44A11.98 11.98 0 0 0 12 0 12 12 0 0 0 1.29 6.62l3.98 3.1C6.22 6.88 8.87 4.77 12 4.77Z" />
+              </svg>
+              {socialLoading === "google" ? "…" : "Google"}
+            </button>
+            <button
+              type="button"
+              disabled={socialLoading !== null}
+              onClick={() => handleSocial("apple")}
+              className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-40"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-white" aria-hidden>
+                <path d="M17.05 12.54c-.03-2.89 2.36-4.27 2.47-4.34-1.35-1.97-3.44-2.24-4.18-2.27-1.78-.18-3.47 1.05-4.37 1.05-.9 0-2.29-1.02-3.77-1-1.94.03-3.73 1.13-4.72 2.86-2.01 3.49-.51 8.66 1.45 11.49.96 1.39 2.1 2.94 3.6 2.88 1.45-.06 2-.93 3.75-.93s2.25.93 3.78.9c1.56-.03 2.55-1.41 3.5-2.8 1.1-1.61 1.55-3.17 1.58-3.25-.04-.02-3.03-1.16-3.09-4.59ZM14.16 4.05c.79-.96 1.33-2.3 1.18-3.63-1.14.05-2.53.76-3.35 1.72-.74.85-1.38 2.21-1.21 3.52 1.28.1 2.58-.65 3.38-1.61Z" />
+              </svg>
+              {socialLoading === "apple" ? "…" : "Apple"}
+            </button>
+          </div>
 
           <button
             type="button"
