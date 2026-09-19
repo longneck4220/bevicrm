@@ -24,7 +24,7 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
 }
 
 type NavItem = {
-  to: "/" | "/how-it-works" | "/try" | "/trial" | "/dashboard" | "/mobile" | "/admin";
+  to: "/" | "/how-it-works" | "/try" | "/trial" | "/dashboard" | "/mobile" | "/account" | "/admin";
   label: string;
 };
 
@@ -45,6 +45,7 @@ const appLinks: NavItem[] = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/trial", label: "Log a visit" },
   { to: "/mobile", label: "Mobile" },
+  { to: "/account", label: "Account" },
 ];
 const adminLink: NavItem = { to: "/admin", label: "Admin" };
 
@@ -118,12 +119,13 @@ export function TopNav() {
           <div className="flex min-w-0 items-center gap-2">
             {user ? (
               <>
-                <span
-                  className="max-w-[38vw] truncate rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white sm:max-w-[120px] lg:max-w-[220px]"
-                  title={displayName}
+                <Link
+                  to="/account"
+                  className="max-w-[38vw] truncate rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white hover:bg-white/10 sm:max-w-[120px] lg:max-w-[220px]"
+                  title={`${displayName} — account settings`}
                 >
                   {displayName}
-                </span>
+                </Link>
                 <button
                   onClick={async () => {
                     await signOut();
