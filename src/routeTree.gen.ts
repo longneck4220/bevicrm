@@ -15,6 +15,7 @@ import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as PublicTryRouteImport } from './routes/_public/try'
+import { Route as PublicResetPasswordRouteImport } from './routes/_public/reset-password'
 import { Route as PublicLoginRouteImport } from './routes/_public/login'
 import { Route as PublicHowItWorksRouteImport } from './routes/_public/how-it-works'
 import { Route as AuthenticatedTrialRouteImport } from './routes/_authenticated/trial'
@@ -59,6 +60,11 @@ const PublicIndexRoute = PublicIndexRouteImport.update({
 const PublicTryRoute = PublicTryRouteImport.update({
   id: '/try',
   path: '/try',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicResetPasswordRoute = PublicResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => PublicRoute,
 } as any)
 const PublicLoginRoute = PublicLoginRouteImport.update({
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/trial': typeof AuthenticatedTrialRoute
   '/how-it-works': typeof PublicHowItWorksRoute
   '/login': typeof PublicLoginRoute
+  '/reset-password': typeof PublicResetPasswordRoute
   '/try': typeof PublicTryRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/trial': typeof AuthenticatedTrialRoute
   '/how-it-works': typeof PublicHowItWorksRoute
   '/login': typeof PublicLoginRoute
+  '/reset-password': typeof PublicResetPasswordRoute
   '/try': typeof PublicTryRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/_authenticated/trial': typeof AuthenticatedTrialRoute
   '/_public/how-it-works': typeof PublicHowItWorksRoute
   '/_public/login': typeof PublicLoginRoute
+  '/_public/reset-password': typeof PublicResetPasswordRoute
   '/_public/try': typeof PublicTryRoute
   '/_public/': typeof PublicIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/trial'
     | '/how-it-works'
     | '/login'
+    | '/reset-password'
     | '/try'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/trial'
     | '/how-it-works'
     | '/login'
+    | '/reset-password'
     | '/try'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -286,6 +297,7 @@ export interface FileRouteTypes {
     | '/_authenticated/trial'
     | '/_public/how-it-works'
     | '/_public/login'
+    | '/_public/reset-password'
     | '/_public/try'
     | '/_public/'
     | '/.lovable/oauth/consent'
@@ -351,6 +363,13 @@ declare module '@tanstack/react-router' {
       path: '/try'
       fullPath: '/try'
       preLoaderRoute: typeof PublicTryRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/reset-password': {
+      id: '/_public/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof PublicResetPasswordRouteImport
       parentRoute: typeof PublicRoute
     }
     '/_public/login': {
@@ -517,6 +536,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 interface PublicRouteChildren {
   PublicHowItWorksRoute: typeof PublicHowItWorksRoute
   PublicLoginRoute: typeof PublicLoginRoute
+  PublicResetPasswordRoute: typeof PublicResetPasswordRoute
   PublicTryRoute: typeof PublicTryRoute
   PublicIndexRoute: typeof PublicIndexRoute
 }
@@ -524,6 +544,7 @@ interface PublicRouteChildren {
 const PublicRouteChildren: PublicRouteChildren = {
   PublicHowItWorksRoute: PublicHowItWorksRoute,
   PublicLoginRoute: PublicLoginRoute,
+  PublicResetPasswordRoute: PublicResetPasswordRoute,
   PublicTryRoute: PublicTryRoute,
   PublicIndexRoute: PublicIndexRoute,
 }

@@ -76,6 +76,26 @@ function LoginPage() {
     }
   }
 
+  async function handleForgotPassword() {
+    setError(null);
+    setNotice(null);
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      setError("Enter your email address first, then request the reset link.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      setError(error.message || "Could not send the reset email. Try again in a moment.");
+      return;
+    }
+    setNotice("Reset link sent. Check your email and follow the link to set a new password.");
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -219,6 +239,17 @@ function LoginPage() {
             </button>
           </div>
 
+          {mode === "signin" && (
+            <button
+              type="button"
+              disabled={loading}
+              onClick={handleForgotPassword}
+              className="mt-5 w-full text-xs text-white/60 hover:text-white disabled:opacity-40"
+            >
+              Forgot your password? Email me a reset link →
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => {
@@ -226,7 +257,7 @@ function LoginPage() {
               setError(null);
               setNotice(null);
             }}
-            className="mt-5 w-full text-xs text-white/60 hover:text-white"
+            className="mt-3 w-full text-xs text-white/60 hover:text-white"
           >
             {mode === "signin"
               ? "No account yet? Create one →"
