@@ -19,11 +19,14 @@ import { Route as PublicLoginRouteImport } from './routes/_public/login'
 import { Route as PublicHowItWorksRouteImport } from './routes/_public/how-it-works'
 import { Route as AuthenticatedTrialRouteImport } from './routes/_authenticated/trial'
 import { Route as AuthenticatedMobileRouteImport } from './routes/_authenticated/mobile'
+import { Route as AuthenticatedManagerRouteImport } from './routes/_authenticated/manager'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as AuthenticatedManagerIndexRouteImport } from './routes/_authenticated/manager.index'
 import { Route as AuthenticatedVisitIdRouteImport } from './routes/_authenticated/visit.$id'
+import { Route as AuthenticatedManagerRepIdRouteImport } from './routes/_authenticated/manager.$repId'
 import { Route as AuthenticatedConversationIdRouteImport } from './routes/_authenticated/conversation.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
@@ -77,6 +80,11 @@ const AuthenticatedMobileRoute = AuthenticatedMobileRouteImport.update({
   path: '/mobile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedManagerRoute = AuthenticatedManagerRouteImport.update({
+  id: '/manager',
+  path: '/manager',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -99,11 +107,23 @@ const Char91DotmcpChar93ListToolsRoute =
     path: '/.mcp/list-tools',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedManagerIndexRoute =
+  AuthenticatedManagerIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedManagerRoute,
+  } as any)
 const AuthenticatedVisitIdRoute = AuthenticatedVisitIdRouteImport.update({
   id: '/visit/$id',
   path: '/visit/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedManagerRepIdRoute =
+  AuthenticatedManagerRepIdRouteImport.update({
+    id: '/$repId',
+    path: '/$repId',
+    getParentRoute: () => AuthenticatedManagerRoute,
+  } as any)
 const AuthenticatedConversationIdRoute =
   AuthenticatedConversationIdRouteImport.update({
     id: '/conversation/$id',
@@ -135,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/manager': typeof AuthenticatedManagerRouteWithChildren
   '/mobile': typeof AuthenticatedMobileRoute
   '/trial': typeof AuthenticatedTrialRoute
   '/how-it-works': typeof PublicHowItWorksRoute
@@ -143,7 +164,9 @@ export interface FileRoutesByFullPath {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
+  '/manager/$repId': typeof AuthenticatedManagerRepIdRoute
   '/visit/$id': typeof AuthenticatedVisitIdRoute
+  '/manager/': typeof AuthenticatedManagerIndexRoute
   '/api/public/waitlist/export': typeof ApiPublicWaitlistExportRoute
 }
 export interface FileRoutesByTo {
@@ -162,7 +185,9 @@ export interface FileRoutesByTo {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
+  '/manager/$repId': typeof AuthenticatedManagerRepIdRoute
   '/visit/$id': typeof AuthenticatedVisitIdRoute
+  '/manager': typeof AuthenticatedManagerIndexRoute
   '/api/public/waitlist/export': typeof ApiPublicWaitlistExportRoute
 }
 export interface FileRoutesById {
@@ -175,6 +200,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/manager': typeof AuthenticatedManagerRouteWithChildren
   '/_authenticated/mobile': typeof AuthenticatedMobileRoute
   '/_authenticated/trial': typeof AuthenticatedTrialRoute
   '/_public/how-it-works': typeof PublicHowItWorksRoute
@@ -184,7 +210,9 @@ export interface FileRoutesById {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/conversation/$id': typeof AuthenticatedConversationIdRoute
+  '/_authenticated/manager/$repId': typeof AuthenticatedManagerRepIdRoute
   '/_authenticated/visit/$id': typeof AuthenticatedVisitIdRoute
+  '/_authenticated/manager/': typeof AuthenticatedManagerIndexRoute
   '/api/public/waitlist/export': typeof ApiPublicWaitlistExportRoute
 }
 export interface FileRouteTypes {
@@ -197,6 +225,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/dashboard'
+    | '/manager'
     | '/mobile'
     | '/trial'
     | '/how-it-works'
@@ -205,7 +234,9 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/conversation/$id'
+    | '/manager/$repId'
     | '/visit/$id'
+    | '/manager/'
     | '/api/public/waitlist/export'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -224,7 +255,9 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/conversation/$id'
+    | '/manager/$repId'
     | '/visit/$id'
+    | '/manager'
     | '/api/public/waitlist/export'
   id:
     | '__root__'
@@ -236,6 +269,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/_authenticated/manager'
     | '/_authenticated/mobile'
     | '/_authenticated/trial'
     | '/_public/how-it-works'
@@ -245,7 +279,9 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/conversation/$id'
+    | '/_authenticated/manager/$repId'
     | '/_authenticated/visit/$id'
+    | '/_authenticated/manager/'
     | '/api/public/waitlist/export'
   fileRoutesById: FileRoutesById
 }
@@ -333,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMobileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/manager': {
+      id: '/_authenticated/manager'
+      path: '/manager'
+      fullPath: '/manager'
+      preLoaderRoute: typeof AuthenticatedManagerRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -361,12 +404,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/manager/': {
+      id: '/_authenticated/manager/'
+      path: '/'
+      fullPath: '/manager/'
+      preLoaderRoute: typeof AuthenticatedManagerIndexRouteImport
+      parentRoute: typeof AuthenticatedManagerRoute
+    }
     '/_authenticated/visit/$id': {
       id: '/_authenticated/visit/$id'
       path: '/visit/$id'
       fullPath: '/visit/$id'
       preLoaderRoute: typeof AuthenticatedVisitIdRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/manager/$repId': {
+      id: '/_authenticated/manager/$repId'
+      path: '/$repId'
+      fullPath: '/manager/$repId'
+      preLoaderRoute: typeof AuthenticatedManagerRepIdRouteImport
+      parentRoute: typeof AuthenticatedManagerRoute
     }
     '/_authenticated/conversation/$id': {
       id: '/_authenticated/conversation/$id'
@@ -399,9 +456,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedManagerRouteChildren {
+  AuthenticatedManagerRepIdRoute: typeof AuthenticatedManagerRepIdRoute
+  AuthenticatedManagerIndexRoute: typeof AuthenticatedManagerIndexRoute
+}
+
+const AuthenticatedManagerRouteChildren: AuthenticatedManagerRouteChildren = {
+  AuthenticatedManagerRepIdRoute: AuthenticatedManagerRepIdRoute,
+  AuthenticatedManagerIndexRoute: AuthenticatedManagerIndexRoute,
+}
+
+const AuthenticatedManagerRouteWithChildren =
+  AuthenticatedManagerRoute._addFileChildren(AuthenticatedManagerRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedManagerRoute: typeof AuthenticatedManagerRouteWithChildren
   AuthenticatedMobileRoute: typeof AuthenticatedMobileRoute
   AuthenticatedTrialRoute: typeof AuthenticatedTrialRoute
   AuthenticatedConversationIdRoute: typeof AuthenticatedConversationIdRoute
@@ -411,6 +482,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedManagerRoute: AuthenticatedManagerRouteWithChildren,
   AuthenticatedMobileRoute: AuthenticatedMobileRoute,
   AuthenticatedTrialRoute: AuthenticatedTrialRoute,
   AuthenticatedConversationIdRoute: AuthenticatedConversationIdRoute,
