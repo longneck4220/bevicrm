@@ -49,10 +49,11 @@ function LoginPage() {
     setError(null);
     setNotice(null);
     setLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
     try {
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}${redirectTo ?? "/dashboard"}`,
@@ -70,7 +71,10 @@ function LoginPage() {
           return;
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
         if (error) throw error;
       }
       if (redirectTo) {
@@ -118,6 +122,11 @@ function LoginPage() {
             <input
               type="email"
               required
+              autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
