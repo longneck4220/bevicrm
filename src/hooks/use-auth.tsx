@@ -3,10 +3,13 @@ import type { Session, User } from "@supabase/supabase-js";
 import { useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { pickRole, type AppRole } from "@/lib/roles";
 
 type AuthCtx = {
   user: User | null;
   session: Session | null;
+  role: AppRole | null;
+  roleLoading: boolean;
   isAdmin: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
@@ -16,26 +19,33 @@ const Ctx = createContext<AuthCtx | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<AppRole | null>(null);
+  const [roleLoading, setRoleLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    function loadRole(userId: string) {
+      setRoleLoading(true);
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .then(({ data }) => {
+          setRole(pickRole((data ?? []).map((r) => r.role as string)));
+          setRoleLoading(false);
+        });
+    }
+
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       if (newSession?.user) {
-        setTimeout(() => {
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", newSession.user.id)
-            .then(({ data }) => {
-              setIsAdmin(!!data?.some((r) => r.role === "admin"));
-            });
-        }, 0);
+        // Deferred: Supabase forbids awaiting its own client inside this callback.
+        setTimeout(() => loadRole(newSession.user.id), 0);
       } else {
-        setIsAdmin(false);
+        setRole(null);
+        setRoleLoading(false);
       }
       router.invalidate();
       queryClient.invalidateQueries();
@@ -44,13 +54,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       if (data.session?.user) {
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.session.user.id)
-          .then(({ data: roles }) => {
-            setIsAdmin(!!roles?.some((r) => r.role === "admin"));
-          });
+        loadRole(data.session.user.id);
+      } else {
+        setRoleLoading(false);
       }
       setLoading(false);
     });
@@ -63,7 +69,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user: session?.user ?? null,
         session,
-        isAdmin,
+        role,
+        roleLoading,
+        isAdmin: role === "admin",
         loading,
         signOut: async () => {
           await supabase.auth.signOut();

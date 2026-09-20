@@ -270,9 +270,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "manager" | "rep"
       library_file_type: "pdf" | "xlsx" | "pptx" | "docx" | "other"
       memory_version_source: "ai_adopted" | "manual_edit" | "restore"
     }
@@ -402,7 +409,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "manager", "rep"],
       library_file_type: ["pdf", "xlsx", "pptx", "docx", "other"],
       memory_version_source: ["ai_adopted", "manual_edit", "restore"],
     },

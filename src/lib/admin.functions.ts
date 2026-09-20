@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
+import { pickRole, type AppRole } from "@/lib/roles";
 
 async function assertAdmin(supabase: SupabaseClient<Database>, userId: string) {
   const { data, error } = await supabase.rpc("has_role", {
@@ -28,6 +29,7 @@ export type AdminUser = {
   display_name: string | null;
   created_at: string;
   is_admin: boolean;
+  role: AppRole;
   account_count: number;
   accounts: AdminAccount[];
 };
@@ -45,7 +47,10 @@ export const listUsersForAdmin = createServerFn({ method: "GET" })
     if (pErr) throw new Error("Failed to load users");
 
     const { data: roles } = await supabaseAdmin.from("user_roles").select("user_id, role");
-    const adminIds = new Set((roles ?? []).filter((r) => r.role === "admin").map((r) => r.user_id));
+    const rolesByUser = new Map<string, string[]>();
+    for (const r of roles ?? []) {
+      rolesByUser.set(r.user_id, [...(rolesByUser.get(r.user_id) ?? []), r.role as string]);
+    }
 
     const { data: accounts, error: aErr } = await supabaseAdmin
       .from("accounts")
@@ -76,12 +81,14 @@ export const listUsersForAdmin = createServerFn({ method: "GET" })
 
     const users: AdminUser[] = (profiles ?? []).map((p) => {
       const accs = accountsByOwner.get(p.user_id) ?? [];
+      const role = pickRole(rolesByUser.get(p.user_id) ?? []) ?? "rep";
       return {
         user_id: p.user_id,
         email: p.email,
         display_name: p.display_name,
         created_at: p.created_at,
-        is_admin: adminIds.has(p.user_id),
+        is_admin: role === "admin",
+        role,
         account_count: accs.length,
         accounts: accs,
       };
@@ -89,6 +96,57 @@ export const listUsersForAdmin = createServerFn({ method: "GET" })
 
     return { users };
   });
+
+export const adminSetUserRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        role: z.enum(["admin", "manager", "rep"]),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    // The database function re-checks admin rights and refuses to strip your
+    // own admin role, so nobody can lock themselves out.
+    const { error } = await context.supabase.rpc("set_user_role", {
+      _user_id: data.userId,
+      _role: data.role,
+    });
+    if (error) {
+      throw new Error(
+        error.message.includes("Cannot remove your own admin role")
+          ? "You cannot remove your own admin role."
+          : "Could not update that role.",
+      );
+    }
+    return { ok: true, role: data.role as AppRole };
+  });
+
+export const adminInviteManager = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) =>
+    z.object({ email: z.string().email(), redirectTo: z.string().optional() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const email = data.email.trim().toLowerCase();
+    const redirectTo =
+      data.redirectTo && data.redirectTo.startsWith("https://") ? data.redirectTo : undefined;
+    const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo });
+    if (error) {
+      throw new Error(
+        error.message.toLowerCase().includes("already")
+          ? "That email already has an account — set their role in the table above."
+          : "Could not send the invite. Check the address and try again.",
+      );
+    }
+    return { ok: true, email };
+  });
+
 
 export const adminDeleteAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

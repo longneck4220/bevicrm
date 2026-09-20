@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrialPage } from "@/features/trial/TrialPage";
+import { RequireRole } from "@/features/shared/RequireRole";
 
 const TITLE = "Log a Visit · BEVI";
 const DESCRIPTION =
@@ -7,7 +8,11 @@ const DESCRIPTION =
 const URL = "https://bevicrm.lovable.app/trial";
 
 export const Route = createFileRoute("/_authenticated/trial")({
-  component: TrialPage,
+  component: () => (
+    <RequireRole allow={["rep", "admin"]}>
+      <TrialPage />
+    </RequireRole>
+  ),
   head: () => ({
     meta: [
       { title: TITLE },

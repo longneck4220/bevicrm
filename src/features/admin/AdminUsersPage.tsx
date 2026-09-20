@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,9 +8,12 @@ import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import {
   listUsersForAdmin,
   adminDeleteAccount,
+  adminSetUserRole,
+  adminInviteManager,
   type AdminUser,
   type AdminAccount,
 } from "@/lib/admin.functions";
+import { ROLE_LABEL, ROLE_OPTIONS, type AppRole } from "@/lib/roles";
 import { listWaitlist, type WaitlistRow } from "@/lib/waitlist.functions";
 
 export function AdminUsersPage() {
@@ -31,6 +34,15 @@ export function AdminUsersPage() {
 
   const del = useMutation({
     mutationFn: (accountId: string) => deleteFn({ data: { accountId } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
+  });
+
+  const setRoleFn = useServerFn(adminSetUserRole);
+  const [roleError, setRoleError] = useState<string | null>(null);
+  const roleMut = useMutation({
+    mutationFn: (vars: { userId: string; role: AppRole }) => setRoleFn({ data: vars }),
+    onMutate: () => setRoleError(null),
+    onError: (e: Error) => setRoleError(e.message || "Could not update that role."),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
   });
 
@@ -82,7 +94,16 @@ export function AdminUsersPage() {
           </p>
         </header>
 
+        <InviteManagerSection />
+
         <WaitlistSection />
+
+        {roleError && (
+          <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+            {roleError}
+          </div>
+        )}
+
 
 
 
@@ -108,35 +129,34 @@ export function AdminUsersPage() {
               const isOpen = openUser === u.user_id;
               return (
                 <GlassCard key={u.user_id} className="p-0 overflow-hidden">
-                  <button
-                    onClick={() => setOpenUser(isOpen ? null : u.user_id)}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
-                  >
-                    {isOpen ? (
-                      <ChevronDown className="w-4 h-4 text-white/50 shrink-0" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-white/50 shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-white truncate">
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <button
+                      onClick={() => setOpenUser(isOpen ? null : u.user_id)}
+                      className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                    >
+                      {isOpen ? (
+                        <ChevronDown className="w-4 h-4 text-white/50 shrink-0" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-white/50 shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white truncate">
                           {u.display_name || u.email || "Unknown user"}
-                        </span>
-                        {u.is_admin && (
-                          <span
-                            className="shrink-0 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider"
-                            style={{ background: "var(--brand-cyan)", color: "#000" }}
-                          >
-                            Admin
-                          </span>
-                        )}
+                        </div>
+                        <div className="text-xs text-white/50 truncate">
+                          {u.email} · joined {new Date(u.created_at).toLocaleDateString()} ·{" "}
+                          {u.account_count} account{u.account_count === 1 ? "" : "s"}
+                        </div>
                       </div>
-                      <div className="text-xs text-white/50 truncate">{u.email}</div>
-                    </div>
-                    <div className="shrink-0 text-xs text-white/60">
-                      {u.account_count} account{u.account_count === 1 ? "" : "s"}
-                    </div>
-                  </button>
+                    </button>
+
+                    <RolePicker
+                      value={u.role}
+                      saving={roleMut.isPending && roleMut.variables?.userId === u.user_id}
+                      onChange={(role) => roleMut.mutate({ userId: u.user_id, role })}
+                    />
+                  </div>
+
 
                   {isOpen && (
                     <div className="border-t border-white/5 px-4 py-3 space-y-2">
@@ -169,6 +189,95 @@ export function AdminUsersPage() {
     </div>
   );
 }
+
+function RolePicker({
+  value,
+  saving,
+  onChange,
+}: {
+  value: AppRole;
+  saving: boolean;
+  onChange: (role: AppRole) => void;
+}) {
+  return (
+    <label className="shrink-0">
+      <span className="sr-only">Role</span>
+      <select
+        value={value}
+        disabled={saving}
+        onChange={(e) => onChange(e.target.value as AppRole)}
+        className="rounded-lg border border-white/15 bg-[#1A2338] px-2 py-1.5 text-xs text-white/90 disabled:opacity-50"
+      >
+        {ROLE_OPTIONS.map((r) => (
+          <option key={r} value={r}>
+            {ROLE_LABEL[r]}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function InviteManagerSection() {
+  const inviteFn = useServerFn(adminInviteManager);
+  const [email, setEmail] = useState("");
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const invite = useMutation({
+    mutationFn: (address: string) =>
+      inviteFn({ data: { email: address, redirectTo: `${window.location.origin}/login` } }),
+    onSuccess: (res) => {
+      setSentTo(res.email);
+      setEmail("");
+    },
+    onError: (e: Error) => setError(e.message || "Could not send the invite."),
+  });
+
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSentTo(null);
+    const clean = email.trim().toLowerCase();
+    if (!clean) {
+      setError("Enter an email address.");
+      return;
+    }
+    invite.mutate(clean);
+  }
+
+  return (
+    <GlassCard className="p-5 mb-6">
+      <SignalLabel>Invite manager</SignalLabel>
+      <p className="mt-1 text-sm text-white/60">
+        Sends a sign-in link. Once they appear in the list below, set their role to Manager.
+      </p>
+      <form onSubmit={submit} className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          inputMode="email"
+          placeholder="Manager email address"
+          className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-[var(--brand-cyan)] focus:outline-none"
+        />
+        <button
+          type="submit"
+          disabled={invite.isPending}
+          className="min-h-[44px] rounded-lg border border-white/15 px-4 text-sm font-medium text-white/85 hover:bg-white/5 disabled:opacity-50"
+        >
+          {invite.isPending ? "Sending…" : "Send invite"}
+        </button>
+      </form>
+      {sentTo && <p className="mt-3 text-sm text-[var(--signal-positive)]">Invite sent to {sentTo}</p>}
+      {error && <p className="mt-3 text-sm text-[var(--signal-risk)]">{error}</p>}
+    </GlassCard>
+  );
+}
+
 
 function AccountRow({
   account,

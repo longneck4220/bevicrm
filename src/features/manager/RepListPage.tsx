@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { REPS, STATUS_COLOR } from "./data";
 import { RepRings, RingLegend, SplitBar } from "./RepRings";
+import { SignOutLink } from "./SignOutLink";
 
 export function RepListPage() {
   const weekOf = new Date().toLocaleDateString("en-AU", {
@@ -17,7 +18,10 @@ export function RepListPage() {
           <span className="absolute left-1/2 -translate-x-1/2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
             Team overview · Week of {weekOf}
           </span>
-          <span className="text-sm font-medium">Sarah Mitchell</span>
+          <span className="flex items-center gap-3">
+            <span className="text-sm font-medium">Sarah Mitchell</span>
+            <SignOutLink />
+          </span>
         </div>
       </header>
 

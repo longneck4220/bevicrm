@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { RequireRole } from "@/features/shared/RequireRole";
 
 const TITLE = "Sales Intelligence Dashboard · BEVI";
 const DESCRIPTION =
@@ -19,5 +20,9 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
     ],
     links: [{ rel: "canonical", href: URL }],
   }),
-  component: DashboardPage,
+  component: () => (
+    <RequireRole allow={["rep", "admin"]}>
+      <DashboardPage />
+    </RequireRole>
+  ),
 });
