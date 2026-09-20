@@ -1,9 +1,11 @@
 export type Status = "red" | "amber" | "green";
 
+// BEVI's own signal tokens (styles.css), not ad-hoc hex — keeps this section
+// in step with the same red/amber/green used everywhere else in the app.
 export const STATUS_COLOR: Record<Status, string> = {
-  red: "#EF4444",
-  amber: "#F59E0B",
-  green: "#10B981",
+  red: "var(--signal-risk)",
+  amber: "var(--signal-warning)",
+  green: "var(--signal-positive)",
 };
 
 export type Rings = {
@@ -69,7 +71,8 @@ export const REPS: Rep[] = [
         name: "Longtime",
         venueType: "Restaurant",
         status: "amber",
-        summary: "Rep pitching premium spirits to a value-focused operator — mismatch flagged twice.",
+        summary:
+          "Rep pitching premium spirits to a value-focused operator — mismatch flagged twice.",
         action: "Coach on reading buyer type before next visit.",
       },
       {
@@ -110,7 +113,8 @@ export const REPS: Rep[] = [
         name: "Burleigh Pavilion",
         venueType: "Bar",
         status: "amber",
-        summary: "Next move ('introduce new gin range') repeated across last 3 notes — not executing.",
+        summary:
+          "Next move ('introduce new gin range') repeated across last 3 notes — not executing.",
         action: "Find out what's blocking the conversation.",
       },
       {
