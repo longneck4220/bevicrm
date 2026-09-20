@@ -2,34 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { AiOutput } from "./trial.functions";
 import { pickRole } from "./roles";
+import { riskFromOutput, momentumFromTrend, type RiskLevel } from "./signals";
 import type { Status } from "@/features/manager/data";
 
 const DEFAULT_WEEKLY_TARGET = 40;
-const postureRank: Record<string, number> = { Push: 4, Recommend: 3, Suggest: 2, Hold: 1 };
-
-function accountRisk(latest: AiOutput | null): "low" | "medium" | "high" {
-  const flags = latest?.commercial_signals?.risk_flags?.length ?? 0;
-  if (flags >= 2) return "high";
-  if (flags === 1) return "medium";
-  return "low";
-}
-
-function accountMomentum(
-  sortedVisits: { ai_output: AiOutput | null }[],
-): "accelerating" | "steady" | "stalling" {
-  if (sortedVisits.length < 2) return "steady";
-  const latest =
-    postureRank[
-      sortedVisits[sortedVisits.length - 1].ai_output?.next_best_move?.commercial_posture ?? ""
-    ] ?? 0;
-  const prev =
-    postureRank[
-      sortedVisits[sortedVisits.length - 2].ai_output?.next_best_move?.commercial_posture ?? ""
-    ] ?? 0;
-  if (latest > prev) return "accelerating";
-  if (latest < prev) return "stalling";
-  return "steady";
-}
 
 export type ManagerAccountItem = {
   name: string;
@@ -118,7 +94,7 @@ export const listTeamOverview = createServerFn({ method: "GET" })
       let scoredAccounts = 0;
       const attention: ManagerAccountItem[] = [];
       const onTrack: ManagerAccountItem[] = [];
-      let worstRisk: "low" | "medium" | "high" = "low";
+      let worstRisk: RiskLevel = "low";
 
       for (const acc of repAccounts) {
         const accVisits = (visitsByAccount.get(acc.id) ?? []).sort((a, b) =>
@@ -132,11 +108,14 @@ export const listTeamOverview = createServerFn({ method: "GET" })
         if (accVisits.length === 0) continue;
 
         const latest = accVisits[accVisits.length - 1];
-        const risk = accountRisk(latest.ai_output);
+        const risk = riskFromOutput(latest.ai_output);
         if (risk === "high") worstRisk = "high";
         else if (risk === "medium" && worstRisk !== "high") worstRisk = "medium";
 
-        const momentum = accountMomentum(accVisits);
+        const momentum = momentumFromTrend(
+          accVisits[accVisits.length - 2]?.ai_output,
+          latest.ai_output,
+        );
         if (accVisits.length >= 2) {
           scoredAccounts++;
           if (momentum !== "stalling") accelOrSteady++;

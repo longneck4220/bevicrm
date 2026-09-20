@@ -16,31 +16,23 @@ import {
   type AccountBriefingVisit,
 } from "@/lib/trial.functions";
 import { ReviewImportedHistoryCard } from "@/features/prep/ReviewImportedHistoryCard";
+import { riskFromOutput, momentumFromTrend, type Momentum } from "@/lib/signals";
 
-const postureRank: Record<string, number> = { Push: 4, Recommend: 3, Suggest: 2, Hold: 1 };
-
-function risk(visits: AccountBriefingVisit[]): "low" | "medium" | "high" {
-  const flags = visits[0]?.ai_output?.commercial_signals?.risk_flags?.length ?? 0;
-  if (flags >= 2) return "high";
-  if (flags === 1) return "medium";
-  return "low";
+// `visits` is newest-first throughout this file (visits[0] is the latest).
+function risk(visits: AccountBriefingVisit[]) {
+  return riskFromOutput(visits[0]?.ai_output);
 }
 
-function momentum(visits: AccountBriefingVisit[]): "accelerating" | "steady" | "stalling" {
-  if (visits.length < 2) return "steady";
-  const latest = postureRank[visits[0].ai_output?.next_best_move?.commercial_posture ?? ""] ?? 0;
-  const prev = postureRank[visits[1].ai_output?.next_best_move?.commercial_posture ?? ""] ?? 0;
-  if (latest > prev) return "accelerating";
-  if (latest < prev) return "stalling";
-  return "steady";
+function momentum(visits: AccountBriefingVisit[]): Momentum {
+  return momentumFromTrend(visits[1]?.ai_output, visits[0]?.ai_output);
 }
 
 function standingLine(visits: AccountBriefingVisit[]): string {
   if (visits.length === 0) return "First visit — no history yet";
   const latest = visits[0];
-  const flags = latest.ai_output?.commercial_signals?.risk_flags?.length ?? 0;
   const posture = latest.ai_output?.next_best_move?.commercial_posture;
-  if (flags >= 2) return "At risk — multiple open flags from last visit";
+  if (riskFromOutput(latest.ai_output) === "high")
+    return "At risk — multiple open flags from last visit";
   if (posture === "Push") return "Strong — ready to push this visit";
   if (posture === "Hold") return "Holding — no clear opening yet";
   return "Steady — building toward the next move";

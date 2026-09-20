@@ -7,6 +7,7 @@ import { Search } from "lucide-react";
 import { GlassCard, RiskDot, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { listVisits, type VisitListItem } from "@/lib/trial.functions";
+import { riskFromOutput, postureScore } from "@/lib/signals";
 
 const confidenceRank: Record<string, number> = {
   high: 3,
@@ -16,18 +17,14 @@ const confidenceRank: Record<string, number> = {
   low: 1,
   Low: 1,
 };
-const postureRank: Record<string, number> = { Push: 4, Recommend: 3, Suggest: 2, Hold: 1 };
 
-function visitRisk(v: VisitListItem): "low" | "medium" | "high" {
-  const flags = v.ai_output?.commercial_signals?.risk_flags?.length ?? 0;
-  if (flags >= 2) return "high";
-  if (flags === 1) return "medium";
-  return "low";
+function visitRisk(v: VisitListItem) {
+  return riskFromOutput(v.ai_output);
 }
 
 function moveScore(v: VisitListItem): number {
   const c = confidenceRank[v.ai_output?.next_best_move?.confidence ?? ""] ?? 0;
-  const p = postureRank[v.ai_output?.next_best_move?.commercial_posture ?? ""] ?? 0;
+  const p = postureScore(v.ai_output);
   const recencyHours = (Date.now() - new Date(v.created_at).getTime()) / 36e5;
   const recency = Math.max(0, 72 - recencyHours) / 72; // 0..1 over 3 days
   return c * 10 + p * 5 + recency * 4;
