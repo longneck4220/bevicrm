@@ -199,6 +199,7 @@ const UploadInput = z.object({
   mime: z.string().max(200).default(""),
   base64: z.string().min(1).max(28_000_000),
   accountId: z.string().uuid().nullable().optional(),
+  pretext: z.string().max(200_000).optional(),
 });
 
 export const uploadLibraryFile = createServerFn({ method: "POST" })
