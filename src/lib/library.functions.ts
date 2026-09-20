@@ -141,15 +141,16 @@ function b64ToBytes(b64: string): Uint8Array {
   return out;
 }
 
-async function extract(bytes: Uint8Array, type: LibraryFileType, name: string): Promise<string> {
+async function extract(
+  bytes: Uint8Array,
+  type: LibraryFileType,
+  name: string,
+  pretext?: string,
+): Promise<string> {
   try {
     if (type === "image") return "";
-    if (type === "pdf") {
-      const { extractText, getDocumentProxy } = await import("unpdf");
-      const doc = await getDocumentProxy(bytes);
-      const { text } = await extractText(doc, { mergePages: true });
-      return clamp(typeof text === "string" ? text : (text as string[]).join("\n\n"));
-    }
+    // PDF text is extracted in the browser (pdf.js) and sent as `pretext`.
+    if (type === "pdf") return clamp(pretext ?? "");
     if (type === "docx") {
       const mammoth = await import("mammoth");
       const ab = new ArrayBuffer(bytes.byteLength);
@@ -198,6 +199,7 @@ const UploadInput = z.object({
   mime: z.string().max(200).default(""),
   base64: z.string().min(1).max(28_000_000),
   accountId: z.string().uuid().nullable().optional(),
+  pretext: z.string().max(200_000).optional(),
 });
 
 export const uploadLibraryFile = createServerFn({ method: "POST" })
@@ -234,7 +236,7 @@ export const uploadLibraryFile = createServerFn({ method: "POST" })
       throw new Error("Could not store the file. Please try again.");
     }
 
-    const extractedText = await extract(bytes, type, data.name);
+    const extractedText = await extract(bytes, type, data.name, data.pretext);
     const text = extractedText.trim() ? extractedText : noTextFallback(data.name, type);
     const deals = await extractDeals(extractedText, data.name);
 
