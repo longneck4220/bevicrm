@@ -1,6 +1,7 @@
 import { Link, useParams } from "@tanstack/react-router";
 import { getRep, STATUS_COLOR, type AccountItem } from "./data";
 import { RepRings, RingLegend } from "./RepRings";
+import { SignOutLink } from "./SignOutLink";
 
 function AccountCard({ account }: { account: AccountItem }) {
   return (
@@ -59,15 +60,17 @@ export function RepDetailPage() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Header bar */}
       <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-3xl items-center px-5">
+        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-5">
           <Link
             to="/manager"
             className="text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
           >
             ← Back
           </Link>
+          <SignOutLink />
         </div>
       </header>
+
 
       <main className="mx-auto max-w-3xl px-5 py-8">
         {/* Rep header: name + smaller rings */}

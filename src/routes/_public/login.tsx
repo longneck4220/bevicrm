@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
+import { fetchRoleForUser, homeForRole } from "@/lib/roles";
 
 const TITLE = "Sign in · BEVI";
 const DESCRIPTION =
@@ -64,7 +65,8 @@ function LoginPage() {
         window.location.href = redirectTo;
         return;
       }
-      navigate({ to: "/dashboard" });
+      const role = await fetchRoleForUser(session.data.session.user.id);
+      navigate({ to: homeForRole(role) });
     } catch (err) {
       setError(
         err instanceof Error && err.message
@@ -133,7 +135,9 @@ function LoginPage() {
         window.location.href = redirectTo;
         return;
       }
-      navigate({ to: "/dashboard" });
+      const { data: current } = await supabase.auth.getUser();
+      const role = current.user ? await fetchRoleForUser(current.user.id) : null;
+      navigate({ to: homeForRole(role) });
     } catch (err) {
       const message =
         err instanceof Error && err.message.toLowerCase().includes("invalid login credentials")

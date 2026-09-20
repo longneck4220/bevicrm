@@ -24,7 +24,16 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
 }
 
 type NavItem = {
-  to: "/" | "/how-it-works" | "/try" | "/trial" | "/dashboard" | "/mobile" | "/account" | "/admin";
+  to:
+    | "/"
+    | "/how-it-works"
+    | "/try"
+    | "/trial"
+    | "/dashboard"
+    | "/mobile"
+    | "/account"
+    | "/admin"
+    | "/manager";
   label: string;
 };
 
@@ -41,17 +50,18 @@ const publicLinks: NavItem[] = [
   { to: "/how-it-works", label: "How it works" },
   { to: "/try", label: "Try a visit note" },
 ];
-const appLinks: NavItem[] = [
+const repLinks: NavItem[] = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/trial", label: "Log a visit" },
   { to: "/mobile", label: "Mobile" },
-  { to: "/account", label: "Account" },
 ];
+const accountLink: NavItem = { to: "/account", label: "Account" };
+const managerLink: NavItem = { to: "/manager", label: "Team" };
 const adminLink: NavItem = { to: "/admin", label: "Admin" };
 
 export function TopNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [getBevi, setGetBevi] = useState(false);
@@ -82,10 +92,17 @@ export function TopNav() {
 
   // Signed-in users are redirected away from the guest pages (see
   // routes/_public.tsx), so publicLinks would be dead ends for them — the
-  // menu and the inline nav both show the same set based on sign-in state.
-  const items: NavItem[] = user
-    ? [...appLinks, ...(isAdmin ? [adminLink] : [])]
-    : publicLinks;
+  // menu and the inline nav both show the same set based on sign-in state
+  // and what the person's role can actually open.
+  const items: NavItem[] = !user
+    ? publicLinks
+    : role === "manager"
+      ? [managerLink, accountLink]
+      : [
+          ...repLinks,
+          ...(role === "admin" ? [managerLink, adminLink] : []),
+          accountLink,
+        ];
 
   return (
     <>

@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
+import { fetchRoleForUser, homeForRole } from "@/lib/roles";
 
 const TITLE = "Set a new password · BEVI";
 const DESCRIPTION = "Choose a new password for your BEVI account.";
@@ -69,7 +70,9 @@ function ResetPasswordPage() {
       setError(error.message || "Could not update the password. Request a new link and try again.");
       return;
     }
-    navigate({ to: "/dashboard" });
+    const { data: current } = await supabase.auth.getUser();
+    const role = current.user ? await fetchRoleForUser(current.user.id) : null;
+    navigate({ to: homeForRole(role) });
   }
 
   return (
