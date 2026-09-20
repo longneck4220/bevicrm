@@ -111,12 +111,24 @@ export function LibraryPanel({
           continue;
         }
         const base64 = await fileToBase64(file);
+        // PDF text is read here in the browser (pdf.js) and sent along with the file.
+        let pretext: string | undefined;
+        const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+        if (isPdf) {
+          try {
+            const { extractFileText } = await import("./extractFileText");
+            pretext = (await extractFileText(file)).slice(0, 200_000);
+          } catch {
+            pretext = undefined;
+          }
+        }
         await upload({
           data: {
             name: file.name,
             mime: file.type,
             base64,
             accountId: pinToAccount ? activeAccountId : null,
+            pretext,
           },
         });
       }
