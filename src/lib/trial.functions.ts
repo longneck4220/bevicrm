@@ -472,6 +472,26 @@ export const updateAccountMemory = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Clears an account's imported memory_draft once the rep has confirmed it
+ * (via updateAccountMemory, called separately). Deliberately standalone so
+ * updateAccountMemory's own behavior stays untouched.
+ */
+export const clearAccountMemoryDraft = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ accountId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("accounts")
+      .update({ memory_draft: null })
+      .eq("id", data.accountId);
+    if (error) {
+      console.error("[DB error] clear account memory draft", error);
+      throw new Error("Could not update account. Please try again.");
+    }
+    return { ok: true };
+  });
+
 export const listAccountMemoryVersions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ accountId: z.string().uuid() }).parse(d))
@@ -661,5 +681,62 @@ export const getVisit = createServerFn({ method: "GET" })
       raw_note: row.raw_note as string,
       supporting_context: row.supporting_context as string,
       ai_output: (row.ai_output as AiOutput | null) ?? null,
+    };
+  });
+
+export type AccountBriefingVisit = {
+  id: string;
+  created_at: string;
+  rating: string | null;
+  ai_output: AiOutput | null;
+};
+
+export type AccountBriefing = {
+  id: string;
+  name: string;
+  contact: string | null;
+  memory: string;
+  memoryDraft: string | null;
+  visits: AccountBriefingVisit[];
+};
+
+export const getAccountBriefing = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ accountId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }): Promise<AccountBriefing | null> => {
+    const { data: account, error: accountError } = await context.supabase
+      .from("accounts")
+      .select("id, name, contact, memory, memory_draft")
+      .eq("id", data.accountId)
+      .maybeSingle();
+    if (accountError) {
+      console.error("[DB error] get account briefing (account)", accountError);
+      throw new Error("Could not load account.");
+    }
+    if (!account) return null;
+
+    const { data: visits, error: visitsError } = await context.supabase
+      .from("visits")
+      .select("id, created_at, rating, ai_output")
+      .eq("account_id", data.accountId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (visitsError) {
+      console.error("[DB error] get account briefing (visits)", visitsError);
+      throw new Error("Could not load visit history.");
+    }
+
+    return {
+      id: account.id,
+      name: account.name,
+      contact: account.contact,
+      memory: account.memory ?? "",
+      memoryDraft: account.memory_draft,
+      visits: (visits ?? []).map((v) => ({
+        id: v.id,
+        created_at: v.created_at,
+        rating: v.rating as string | null,
+        ai_output: (v.ai_output as AiOutput | null) ?? null,
+      })),
     };
   });

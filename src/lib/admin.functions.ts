@@ -147,7 +147,6 @@ export const adminInviteManager = createServerFn({ method: "POST" })
     return { ok: true, email };
   });
 
-
 export const adminDeleteAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => z.object({ accountId: z.string().uuid() }).parse(data))
@@ -157,4 +156,209 @@ export const adminDeleteAccount = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.from("accounts").delete().eq("id", data.accountId);
     if (error) throw new Error("Failed to delete account");
     return { ok: true };
+  });
+
+const CallNoteImportRow = z.object({
+  rowNumber: z.number().int().positive(),
+  repName: z.string().min(1).max(200),
+  accountName: z.string().min(1).max(200),
+  suburb: z.string().max(200).optional().default(""),
+  callDate: z.string().min(1),
+  rawNote: z.string().min(1).max(12000),
+});
+
+const ImportCallNotesInput = z.object({
+  rows: z.array(CallNoteImportRow).min(1).max(500),
+});
+
+/** Parses a "DD/MM/YYYY" string into an ISO date, rejecting anything that isn't a real calendar date. */
+function parseDdMmYyyy(input: string): string | null {
+  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(input.trim());
+  if (!match) return null;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const iso = `${year.toString().padStart(4, "0")}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+  const check = new Date(`${iso}T00:00:00Z`);
+  if (
+    check.getUTCFullYear() !== year ||
+    check.getUTCMonth() + 1 !== month ||
+    check.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return iso;
+}
+
+export type ImportCallNotesResult = {
+  imported: number;
+  accountsCreated: string[];
+  accountsMatched: number;
+  failed: { row: number; reason: string }[];
+  /** IDs of every account that received a call_notes row in this batch — feeds generateMemoryDrafts. */
+  accountIds: string[];
+};
+
+/**
+ * Bulk-imports historical call notes for the admin's CSV import flow. Called
+ * in batches from the client (see CsvImportSection) so the UI can show real
+ * per-batch progress instead of one opaque request. Never touches
+ * accounts.memory or public.visits — imported notes are raw and unprocessed.
+ */
+export const importCallNotes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) => ImportCallNotesInput.parse(data))
+  .handler(async ({ data, context }): Promise<ImportCallNotesResult> => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: existingAccounts, error: existingErr } = await supabaseAdmin
+      .from("accounts")
+      .select("id, name, suburb");
+    if (existingErr) throw new Error("Failed to load existing accounts");
+
+    const keyOf = (name: string, suburb: string) =>
+      `${name.trim().toLowerCase()}|${suburb.trim().toLowerCase()}`;
+    const byKey = new Map<string, { id: string; suburb: string | null }>();
+    for (const a of existingAccounts ?? []) {
+      byKey.set(keyOf(a.name, a.suburb ?? ""), { id: a.id, suburb: a.suburb });
+    }
+
+    let imported = 0;
+    let accountsMatched = 0;
+    const accountsCreated: string[] = [];
+    const failed: { row: number; reason: string }[] = [];
+    const touchedAccountIds = new Set<string>();
+
+    for (const row of data.rows) {
+      try {
+        const callDate = parseDdMmYyyy(row.callDate);
+        if (!callDate) {
+          throw new Error(`Invalid date "${row.callDate}" — expected DD/MM/YYYY`);
+        }
+
+        const key = keyOf(row.accountName, row.suburb);
+        let account = byKey.get(key);
+        if (!account) {
+          const { data: created, error: createErr } = await supabaseAdmin
+            .from("accounts")
+            .insert({
+              name: row.accountName.trim(),
+              suburb: row.suburb.trim() || null,
+              owner_id: context.userId,
+              memory: "",
+            })
+            .select("id, suburb")
+            .single();
+          if (createErr || !created)
+            throw new Error(createErr?.message ?? "Could not create account");
+          account = { id: created.id, suburb: created.suburb };
+          byKey.set(key, account);
+          accountsCreated.push(row.accountName.trim());
+        } else {
+          accountsMatched++;
+          if (!account.suburb && row.suburb.trim()) {
+            await supabaseAdmin
+              .from("accounts")
+              .update({ suburb: row.suburb.trim() })
+              .eq("id", account.id);
+            account.suburb = row.suburb.trim();
+          }
+        }
+
+        const { error: noteErr } = await supabaseAdmin.from("call_notes").insert({
+          owner_id: context.userId,
+          account_id: account.id,
+          rep_name: row.repName.trim(),
+          call_date: callDate,
+          raw_note: row.rawNote,
+        });
+        if (noteErr) throw new Error(noteErr.message);
+
+        touchedAccountIds.add(account.id);
+        imported++;
+      } catch (e) {
+        failed.push({
+          row: row.rowNumber,
+          reason: e instanceof Error ? e.message : "Unknown error",
+        });
+      }
+    }
+
+    return {
+      imported,
+      accountsCreated,
+      accountsMatched,
+      failed,
+      accountIds: [...touchedAccountIds],
+    };
+  });
+
+const GenerateMemoryDraftsInput = z.object({
+  accountIds: z.array(z.string().uuid()).min(1).max(200),
+});
+
+export type GenerateMemoryDraftsResult = {
+  draftsGenerated: number;
+};
+
+const MEMORY_DRAFT_SYSTEM = `You are building an account memory for a field sales rep in the liquor industry. Below are historical call notes for this account, ordered oldest to newest. Summarise what is known into a concise account memory: who the key contact is and their role, what has been ordered or distributed, what objections or blockers have appeared, and what the current status and next best move is. Be specific and factual. Do not invent anything not present in the notes. Return JSON: {"memory": "<plain text, 150 words maximum>"}.`;
+
+/**
+ * Runs after a CSV import completes (see CsvImportSection): drafts an initial
+ * accounts.memory_draft from imported call_notes for accounts that don't
+ * already have real memory. Never writes accounts.memory itself — the rep
+ * reviews and confirms the draft on the pre-visit page.
+ */
+export const generateMemoryDrafts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) => GenerateMemoryDraftsInput.parse(data))
+  .handler(async ({ data, context }): Promise<GenerateMemoryDraftsResult> => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { generateVisitJson } = await import("@/lib/ai-provider.server");
+
+    let draftsGenerated = 0;
+
+    for (const accountId of data.accountIds) {
+      try {
+        const { data: account, error: accErr } = await supabaseAdmin
+          .from("accounts")
+          .select("id, memory")
+          .eq("id", accountId)
+          .maybeSingle();
+        if (accErr || !account || (account.memory ?? "").trim().length > 0) continue;
+
+        const { data: notes, error: notesErr } = await supabaseAdmin
+          .from("call_notes")
+          .select("raw_note, call_date, rep_name")
+          .eq("account_id", accountId)
+          .order("call_date", { ascending: true });
+        if (notesErr || !notes || notes.length === 0) continue;
+
+        const notesBlock = notes
+          .map((n) => `[${n.call_date}] (rep: ${n.rep_name}) ${n.raw_note}`)
+          .join("\n");
+
+        const parsed = await generateVisitJson<{ memory: string }>({
+          system: MEMORY_DRAFT_SYSTEM,
+          user: `Historical call notes for this account:\n"""\n${notesBlock}\n"""`,
+        });
+        const draft = (parsed.memory ?? "").trim();
+        if (!draft) continue;
+
+        const { error: updateErr } = await supabaseAdmin
+          .from("accounts")
+          .update({ memory_draft: draft })
+          .eq("id", accountId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        draftsGenerated++;
+      } catch (e) {
+        console.error("[memory draft] failed for account", accountId, e);
+      }
+    }
+
+    return { draftsGenerated };
   });
