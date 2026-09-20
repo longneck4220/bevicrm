@@ -254,48 +254,27 @@ function PasswordSection() {
     <GlassCard className="p-6 sm:p-7">
       <SignalLabel>Change password</SignalLabel>
       <form onSubmit={submit} className="mt-4 max-w-md space-y-4">
-        <div>
-          <label className={labelClass} htmlFor="pw-current">
-            Current password
-          </label>
-          <input
-            id="pw-current"
-            type="password"
-            className={inputClass}
-            value={current}
-            onChange={(e) => setCurrent(e.target.value)}
-            autoComplete="current-password"
-            required
-          />
-        </div>
-        <div>
-          <label className={labelClass} htmlFor="pw-new">
-            New password
-          </label>
-          <input
-            id="pw-new"
-            type="password"
-            className={inputClass}
-            value={next}
-            onChange={(e) => setNext(e.target.value)}
-            autoComplete="new-password"
-            required
-          />
-        </div>
-        <div>
-          <label className={labelClass} htmlFor="pw-confirm">
-            Confirm new password
-          </label>
-          <input
-            id="pw-confirm"
-            type="password"
-            className={inputClass}
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            autoComplete="new-password"
-            required
-          />
-        </div>
+        <PasswordField
+          id="pw-current"
+          label="Current password"
+          value={current}
+          onChange={setCurrent}
+          autoComplete="current-password"
+        />
+        <PasswordField
+          id="pw-new"
+          label="New password"
+          value={next}
+          onChange={setNext}
+          autoComplete="new-password"
+        />
+        <PasswordField
+          id="pw-confirm"
+          label="Confirm new password"
+          value={confirm}
+          onChange={setConfirm}
+          autoComplete="new-password"
+        />
         <button type="submit" disabled={saving} className={outlineBtn}>
           {saving ? "Updating…" : "Update password"}
         </button>
