@@ -61,7 +61,7 @@ const adminLink: NavItem = { to: "/admin", label: "Admin" };
 
 export function TopNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [getBevi, setGetBevi] = useState(false);
