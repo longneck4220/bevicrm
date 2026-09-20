@@ -65,6 +65,7 @@ export type Database = {
           created_at: string
           id: string
           memory: string
+          memory_draft: string | null
           name: string
           owner_id: string
           suburb: string | null
@@ -75,6 +76,7 @@ export type Database = {
           created_at?: string
           id?: string
           memory?: string
+          memory_draft?: string | null
           name: string
           owner_id: string
           suburb?: string | null
@@ -85,6 +87,7 @@ export type Database = {
           created_at?: string
           id?: string
           memory?: string
+          memory_draft?: string | null
           name?: string
           owner_id?: string
           suburb?: string | null

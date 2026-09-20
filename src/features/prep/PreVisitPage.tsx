@@ -15,6 +15,7 @@ import {
   type AccountBriefing,
   type AccountBriefingVisit,
 } from "@/lib/trial.functions";
+import { ReviewImportedHistoryCard } from "@/features/prep/ReviewImportedHistoryCard";
 
 const postureRank: Record<string, number> = { Push: 4, Recommend: 3, Suggest: 2, Hold: 1 };
 
@@ -117,8 +118,16 @@ export function PreVisitView({ data }: { data: AccountBriefing }) {
           </Link>
         </header>
 
+        {data.memory.trim().length === 0 &&
+          data.memoryDraft &&
+          data.memoryDraft.trim().length > 0 && (
+            <div className="mt-8">
+              <ReviewImportedHistoryCard accountId={data.id} memoryDraft={data.memoryDraft} />
+            </div>
+          )}
+
         {/* Standing line */}
-        <GlassCard tone="strong" className="mt-8 p-6">
+        <GlassCard tone="strong" className="mt-6 p-6">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-3">
               <RiskDot risk={risk(visits)} />

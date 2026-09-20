@@ -2,15 +2,20 @@ import { useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { UploadCloud } from "lucide-react";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
-import { importCallNotes, type ImportCallNotesResult } from "@/lib/admin.functions";
+import {
+  importCallNotes,
+  generateMemoryDrafts,
+  type ImportCallNotesResult,
+} from "@/lib/admin.functions";
 import { parseCallNotesCsv, type CallNoteCsvRow } from "@/lib/csv";
 
 const BATCH_SIZE = 25;
 
-type Step = "upload" | "preview" | "importing" | "done";
+type Step = "upload" | "preview" | "importing" | "summarizing" | "done";
 
 export function CsvImportSection() {
   const importFn = useServerFn(importCallNotes);
+  const draftsFn = useServerFn(generateMemoryDrafts);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<Step>("upload");
@@ -20,6 +25,8 @@ export function CsvImportSection() {
   const [rows, setRows] = useState<CallNoteCsvRow[]>([]);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [result, setResult] = useState<ImportCallNotesResult | null>(null);
+  const [touchedAccountCount, setTouchedAccountCount] = useState(0);
+  const [draftsGenerated, setDraftsGenerated] = useState<number | null>(null);
 
   const repNames = useMemo(() => [...new Set(rows.map((r) => r.repName).filter(Boolean))], [rows]);
 
@@ -51,6 +58,8 @@ export function CsvImportSection() {
     setParseError(null);
     setResult(null);
     setProgress({ done: 0, total: 0 });
+    setTouchedAccountCount(0);
+    setDraftsGenerated(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -62,7 +71,9 @@ export function CsvImportSection() {
       accountsCreated: [],
       accountsMatched: 0,
       failed: [],
+      accountIds: [],
     };
+    const accountIds = new Set<string>();
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
       const batch = rows.slice(i, i + BATCH_SIZE);
       try {
@@ -71,6 +82,7 @@ export function CsvImportSection() {
         merged.accountsCreated.push(...res.accountsCreated);
         merged.accountsMatched += res.accountsMatched;
         merged.failed.push(...res.failed);
+        res.accountIds.forEach((id) => accountIds.add(id));
       } catch (e) {
         merged.failed.push(
           ...batch.map((b) => ({
@@ -81,7 +93,19 @@ export function CsvImportSection() {
       }
       setProgress({ done: Math.min(i + BATCH_SIZE, rows.length), total: rows.length });
     }
+    merged.accountIds = [...accountIds];
     setResult(merged);
+
+    if (merged.accountIds.length > 0) {
+      setTouchedAccountCount(merged.accountIds.length);
+      setStep("summarizing");
+      try {
+        const draftRes = await draftsFn({ data: { accountIds: merged.accountIds } });
+        setDraftsGenerated(draftRes.draftsGenerated);
+      } catch {
+        setDraftsGenerated(0);
+      }
+    }
     setStep("done");
   }
 
@@ -113,7 +137,10 @@ export function CsvImportSection() {
           />
         )}
         {step === "importing" && <ImportingStep progress={progress} />}
-        {step === "done" && result && <DoneStep result={result} onDone={reset} />}
+        {step === "summarizing" && <SummarizingStep accountCount={touchedAccountCount} />}
+        {step === "done" && result && (
+          <DoneStep result={result} draftsGenerated={draftsGenerated} onDone={reset} />
+        )}
       </div>
     </GlassCard>
   );
@@ -275,7 +302,24 @@ function ImportingStep({ progress }: { progress: { done: number; total: number }
   );
 }
 
-function DoneStep({ result, onDone }: { result: ImportCallNotesResult; onDone: () => void }) {
+function SummarizingStep({ accountCount }: { accountCount: number }) {
+  return (
+    <div className="flex items-center gap-3 text-sm text-white/70">
+      <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white/20 border-t-[var(--brand-cyan)]" />
+      Generating memory drafts for {accountCount} account{accountCount === 1 ? "" : "s"}…
+    </div>
+  );
+}
+
+function DoneStep({
+  result,
+  draftsGenerated,
+  onDone,
+}: {
+  result: ImportCallNotesResult;
+  draftsGenerated: number | null;
+  onDone: () => void;
+}) {
   return (
     <div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -284,6 +328,12 @@ function DoneStep({ result, onDone }: { result: ImportCallNotesResult; onDone: (
         <Stat label="Accounts matched" value={result.accountsMatched} />
         <Stat label="Rows skipped" value={result.failed.length} risky={result.failed.length > 0} />
       </div>
+
+      {draftsGenerated !== null && (
+        <p className="mt-4 text-sm text-[var(--brand-cyan)]">
+          {draftsGenerated} memory draft{draftsGenerated === 1 ? "" : "s"} ready for rep review.
+        </p>
+      )}
 
       <div className="mt-4 text-sm">
         <div className="text-white/70">New accounts:</div>

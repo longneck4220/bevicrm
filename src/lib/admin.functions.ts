@@ -196,6 +196,8 @@ export type ImportCallNotesResult = {
   accountsCreated: string[];
   accountsMatched: number;
   failed: { row: number; reason: string }[];
+  /** IDs of every account that received a call_notes row in this batch — feeds generateMemoryDrafts. */
+  accountIds: string[];
 };
 
 /**
@@ -227,6 +229,7 @@ export const importCallNotes = createServerFn({ method: "POST" })
     let accountsMatched = 0;
     const accountsCreated: string[] = [];
     const failed: { row: number; reason: string }[] = [];
+    const touchedAccountIds = new Set<string>();
 
     for (const row of data.rows) {
       try {
@@ -273,6 +276,7 @@ export const importCallNotes = createServerFn({ method: "POST" })
         });
         if (noteErr) throw new Error(noteErr.message);
 
+        touchedAccountIds.add(account.id);
         imported++;
       } catch (e) {
         failed.push({
@@ -282,5 +286,79 @@ export const importCallNotes = createServerFn({ method: "POST" })
       }
     }
 
-    return { imported, accountsCreated, accountsMatched, failed };
+    return {
+      imported,
+      accountsCreated,
+      accountsMatched,
+      failed,
+      accountIds: [...touchedAccountIds],
+    };
+  });
+
+const GenerateMemoryDraftsInput = z.object({
+  accountIds: z.array(z.string().uuid()).min(1).max(200),
+});
+
+export type GenerateMemoryDraftsResult = {
+  draftsGenerated: number;
+};
+
+const MEMORY_DRAFT_SYSTEM = `You are building an account memory for a field sales rep in the liquor industry. Below are historical call notes for this account, ordered oldest to newest. Summarise what is known into a concise account memory: who the key contact is and their role, what has been ordered or distributed, what objections or blockers have appeared, and what the current status and next best move is. Be specific and factual. Do not invent anything not present in the notes. Return JSON: {"memory": "<plain text, 150 words maximum>"}.`;
+
+/**
+ * Runs after a CSV import completes (see CsvImportSection): drafts an initial
+ * accounts.memory_draft from imported call_notes for accounts that don't
+ * already have real memory. Never writes accounts.memory itself — the rep
+ * reviews and confirms the draft on the pre-visit page.
+ */
+export const generateMemoryDrafts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) => GenerateMemoryDraftsInput.parse(data))
+  .handler(async ({ data, context }): Promise<GenerateMemoryDraftsResult> => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { generateVisitJson } = await import("@/lib/ai-provider.server");
+
+    let draftsGenerated = 0;
+
+    for (const accountId of data.accountIds) {
+      try {
+        const { data: account, error: accErr } = await supabaseAdmin
+          .from("accounts")
+          .select("id, memory")
+          .eq("id", accountId)
+          .maybeSingle();
+        if (accErr || !account || (account.memory ?? "").trim().length > 0) continue;
+
+        const { data: notes, error: notesErr } = await supabaseAdmin
+          .from("call_notes")
+          .select("raw_note, call_date, rep_name")
+          .eq("account_id", accountId)
+          .order("call_date", { ascending: true });
+        if (notesErr || !notes || notes.length === 0) continue;
+
+        const notesBlock = notes
+          .map((n) => `[${n.call_date}] (rep: ${n.rep_name}) ${n.raw_note}`)
+          .join("\n");
+
+        const parsed = await generateVisitJson<{ memory: string }>({
+          system: MEMORY_DRAFT_SYSTEM,
+          user: `Historical call notes for this account:\n"""\n${notesBlock}\n"""`,
+        });
+        const draft = (parsed.memory ?? "").trim();
+        if (!draft) continue;
+
+        const { error: updateErr } = await supabaseAdmin
+          .from("accounts")
+          .update({ memory_draft: draft })
+          .eq("id", accountId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        draftsGenerated++;
+      } catch (e) {
+        console.error("[memory draft] failed for account", accountId, e);
+      }
+    }
+
+    return { draftsGenerated };
   });

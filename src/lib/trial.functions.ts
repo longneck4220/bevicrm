@@ -472,6 +472,26 @@ export const updateAccountMemory = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Clears an account's imported memory_draft once the rep has confirmed it
+ * (via updateAccountMemory, called separately). Deliberately standalone so
+ * updateAccountMemory's own behavior stays untouched.
+ */
+export const clearAccountMemoryDraft = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ accountId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("accounts")
+      .update({ memory_draft: null })
+      .eq("id", data.accountId);
+    if (error) {
+      console.error("[DB error] clear account memory draft", error);
+      throw new Error("Could not update account. Please try again.");
+    }
+    return { ok: true };
+  });
+
 export const listAccountMemoryVersions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ accountId: z.string().uuid() }).parse(d))
@@ -676,6 +696,7 @@ export type AccountBriefing = {
   name: string;
   contact: string | null;
   memory: string;
+  memoryDraft: string | null;
   visits: AccountBriefingVisit[];
 };
 
@@ -685,7 +706,7 @@ export const getAccountBriefing = createServerFn({ method: "GET" })
   .handler(async ({ data, context }): Promise<AccountBriefing | null> => {
     const { data: account, error: accountError } = await context.supabase
       .from("accounts")
-      .select("id, name, contact, memory")
+      .select("id, name, contact, memory, memory_draft")
       .eq("id", data.accountId)
       .maybeSingle();
     if (accountError) {
@@ -710,6 +731,7 @@ export const getAccountBriefing = createServerFn({ method: "GET" })
       name: account.name,
       contact: account.contact,
       memory: account.memory ?? "",
+      memoryDraft: account.memory_draft,
       visits: (visits ?? []).map((v) => ({
         id: v.id,
         created_at: v.created_at,

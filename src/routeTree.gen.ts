@@ -31,6 +31,7 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 import { Route as AuthenticatedConversationIdRouteImport } from './routes/_authenticated/conversation.$id'
 import { Route as AuthenticatedManagerIndexRouteImport } from './routes/_authenticated/manager.index'
 import { Route as AuthenticatedManagerRepIdRouteImport } from './routes/_authenticated/manager.$repId'
+import { Route as AuthenticatedPrepAccountIdRouteImport } from './routes/_authenticated/prep.$accountId'
 import { Route as AuthenticatedVisitIdRouteImport } from './routes/_authenticated/visit.$id'
 import { Route as ApiPublicWaitlistExportRouteImport } from './routes/api/public/waitlist/export'
 
@@ -148,6 +149,12 @@ const AuthenticatedManagerRepIdRoute =
     path: '/$repId',
     getParentRoute: () => AuthenticatedManagerRoute,
   } as any)
+const AuthenticatedPrepAccountIdRoute =
+  AuthenticatedPrepAccountIdRouteImport.update({
+    id: '/prep/$accountId',
+    path: '/prep/$accountId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedVisitIdRoute = AuthenticatedVisitIdRouteImport.update({
   id: '/visit/$id',
   path: '/visit/$id',
@@ -179,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/manager/$repId': typeof AuthenticatedManagerRepIdRoute
+  '/prep/$accountId': typeof AuthenticatedPrepAccountIdRoute
   '/visit/$id': typeof AuthenticatedVisitIdRoute
   '/manager/': typeof AuthenticatedManagerIndexRoute
   '/api/public/waitlist/export': typeof ApiPublicWaitlistExportRoute
@@ -202,6 +210,7 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/manager/$repId': typeof AuthenticatedManagerRepIdRoute
+  '/prep/$accountId': typeof AuthenticatedPrepAccountIdRoute
   '/visit/$id': typeof AuthenticatedVisitIdRoute
   '/manager': typeof AuthenticatedManagerIndexRoute
   '/api/public/waitlist/export': typeof ApiPublicWaitlistExportRoute
@@ -229,6 +238,7 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/_authenticated/manager/$repId': typeof AuthenticatedManagerRepIdRoute
+  '/_authenticated/prep/$accountId': typeof AuthenticatedPrepAccountIdRoute
   '/_authenticated/visit/$id': typeof AuthenticatedVisitIdRoute
   '/_authenticated/manager/': typeof AuthenticatedManagerIndexRoute
   '/api/public/waitlist/export': typeof ApiPublicWaitlistExportRoute
@@ -255,6 +265,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/conversation/$id'
     | '/manager/$repId'
+    | '/prep/$accountId'
     | '/visit/$id'
     | '/manager/'
     | '/api/public/waitlist/export'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/conversation/$id'
     | '/manager/$repId'
+    | '/prep/$accountId'
     | '/visit/$id'
     | '/manager'
     | '/api/public/waitlist/export'
@@ -304,6 +316,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/conversation/$id'
     | '/_authenticated/manager/$repId'
+    | '/_authenticated/prep/$accountId'
     | '/_authenticated/visit/$id'
     | '/_authenticated/manager/'
     | '/api/public/waitlist/export'
@@ -477,6 +490,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagerRepIdRouteImport
       parentRoute: typeof AuthenticatedManagerRoute
     }
+    '/_authenticated/prep/$accountId': {
+      id: '/_authenticated/prep/$accountId'
+      path: '/prep/$accountId'
+      fullPath: '/prep/$accountId'
+      preLoaderRoute: typeof AuthenticatedPrepAccountIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/visit/$id': {
       id: '/_authenticated/visit/$id'
       path: '/visit/$id'
@@ -515,6 +535,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMobileRoute: typeof AuthenticatedMobileRoute
   AuthenticatedTrialRoute: typeof AuthenticatedTrialRoute
   AuthenticatedConversationIdRoute: typeof AuthenticatedConversationIdRoute
+  AuthenticatedPrepAccountIdRoute: typeof AuthenticatedPrepAccountIdRoute
   AuthenticatedVisitIdRoute: typeof AuthenticatedVisitIdRoute
 }
 
@@ -526,6 +547,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMobileRoute: AuthenticatedMobileRoute,
   AuthenticatedTrialRoute: AuthenticatedTrialRoute,
   AuthenticatedConversationIdRoute: AuthenticatedConversationIdRoute,
+  AuthenticatedPrepAccountIdRoute: AuthenticatedPrepAccountIdRoute,
   AuthenticatedVisitIdRoute: AuthenticatedVisitIdRoute,
 }
 
