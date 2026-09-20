@@ -663,3 +663,58 @@ export const getVisit = createServerFn({ method: "GET" })
       ai_output: (row.ai_output as AiOutput | null) ?? null,
     };
   });
+
+export type AccountBriefingVisit = {
+  id: string;
+  created_at: string;
+  rating: string | null;
+  ai_output: AiOutput | null;
+};
+
+export type AccountBriefing = {
+  id: string;
+  name: string;
+  contact: string | null;
+  memory: string;
+  visits: AccountBriefingVisit[];
+};
+
+export const getAccountBriefing = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ accountId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }): Promise<AccountBriefing | null> => {
+    const { data: account, error: accountError } = await context.supabase
+      .from("accounts")
+      .select("id, name, contact, memory")
+      .eq("id", data.accountId)
+      .maybeSingle();
+    if (accountError) {
+      console.error("[DB error] get account briefing (account)", accountError);
+      throw new Error("Could not load account.");
+    }
+    if (!account) return null;
+
+    const { data: visits, error: visitsError } = await context.supabase
+      .from("visits")
+      .select("id, created_at, rating, ai_output")
+      .eq("account_id", data.accountId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (visitsError) {
+      console.error("[DB error] get account briefing (visits)", visitsError);
+      throw new Error("Could not load visit history.");
+    }
+
+    return {
+      id: account.id,
+      name: account.name,
+      contact: account.contact,
+      memory: account.memory ?? "",
+      visits: (visits ?? []).map((v) => ({
+        id: v.id,
+        created_at: v.created_at,
+        rating: v.rating as string | null,
+        ai_output: (v.ai_output as AiOutput | null) ?? null,
+      })),
+    };
+  });

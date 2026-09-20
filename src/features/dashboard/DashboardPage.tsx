@@ -246,11 +246,14 @@ export function DashboardPage() {
                 ) : (
                   <ul className="divide-y divide-white/5">
                     {displayed.map((v) => (
-                      <li key={v.account_id}>
+                      <li
+                        key={v.account_id}
+                        className="flex items-center gap-1 rounded-md pr-1 hover:bg-white/[0.03] transition-colors"
+                      >
                         <Link
                           to="/visit/$id"
                           params={{ id: v.id }}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-white/[0.03] transition-colors"
+                          className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5"
                         >
                           <RiskDot risk={visitRisk(v)} />
                           <div className="min-w-0 flex-1 flex items-baseline gap-2">
@@ -265,6 +268,13 @@ export function DashboardPage() {
                             {formatDate(v.created_at)}
                           </span>
                           <span className="text-white/30 shrink-0">→</span>
+                        </Link>
+                        <Link
+                          to="/prep/$accountId"
+                          params={{ accountId: v.account_id }}
+                          className="shrink-0 rounded-md px-2 py-1 text-[10px] font-mono uppercase tracking-[0.14em] text-white/50 hover:bg-white/10 hover:text-white"
+                        >
+                          Prep
                         </Link>
                       </li>
                     ))}
