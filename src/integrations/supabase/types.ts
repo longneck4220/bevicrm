@@ -67,6 +67,7 @@ export type Database = {
           memory: string
           name: string
           owner_id: string
+          suburb: string | null
           updated_at: string
         }
         Insert: {
@@ -76,6 +77,7 @@ export type Database = {
           memory?: string
           name: string
           owner_id: string
+          suburb?: string | null
           updated_at?: string
         }
         Update: {
@@ -85,9 +87,48 @@ export type Database = {
           memory?: string
           name?: string
           owner_id?: string
+          suburb?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      call_notes: {
+        Row: {
+          account_id: string
+          call_date: string
+          created_at: string
+          id: string
+          owner_id: string
+          raw_note: string
+          rep_name: string
+        }
+        Insert: {
+          account_id: string
+          call_date: string
+          created_at?: string
+          id?: string
+          owner_id: string
+          raw_note: string
+          rep_name: string
+        }
+        Update: {
+          account_id?: string
+          call_date?: string
+          created_at?: string
+          id?: string
+          owner_id?: string
+          raw_note?: string
+          rep_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_notes_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       library_files: {
         Row: {

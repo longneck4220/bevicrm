@@ -147,7 +147,6 @@ export const adminInviteManager = createServerFn({ method: "POST" })
     return { ok: true, email };
   });
 
-
 export const adminDeleteAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => z.object({ accountId: z.string().uuid() }).parse(data))
@@ -157,4 +156,131 @@ export const adminDeleteAccount = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.from("accounts").delete().eq("id", data.accountId);
     if (error) throw new Error("Failed to delete account");
     return { ok: true };
+  });
+
+const CallNoteImportRow = z.object({
+  rowNumber: z.number().int().positive(),
+  repName: z.string().min(1).max(200),
+  accountName: z.string().min(1).max(200),
+  suburb: z.string().max(200).optional().default(""),
+  callDate: z.string().min(1),
+  rawNote: z.string().min(1).max(12000),
+});
+
+const ImportCallNotesInput = z.object({
+  rows: z.array(CallNoteImportRow).min(1).max(500),
+});
+
+/** Parses a "DD/MM/YYYY" string into an ISO date, rejecting anything that isn't a real calendar date. */
+function parseDdMmYyyy(input: string): string | null {
+  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(input.trim());
+  if (!match) return null;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const iso = `${year.toString().padStart(4, "0")}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+  const check = new Date(`${iso}T00:00:00Z`);
+  if (
+    check.getUTCFullYear() !== year ||
+    check.getUTCMonth() + 1 !== month ||
+    check.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return iso;
+}
+
+export type ImportCallNotesResult = {
+  imported: number;
+  accountsCreated: string[];
+  accountsMatched: number;
+  failed: { row: number; reason: string }[];
+};
+
+/**
+ * Bulk-imports historical call notes for the admin's CSV import flow. Called
+ * in batches from the client (see CsvImportSection) so the UI can show real
+ * per-batch progress instead of one opaque request. Never touches
+ * accounts.memory or public.visits — imported notes are raw and unprocessed.
+ */
+export const importCallNotes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) => ImportCallNotesInput.parse(data))
+  .handler(async ({ data, context }): Promise<ImportCallNotesResult> => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: existingAccounts, error: existingErr } = await supabaseAdmin
+      .from("accounts")
+      .select("id, name, suburb");
+    if (existingErr) throw new Error("Failed to load existing accounts");
+
+    const keyOf = (name: string, suburb: string) =>
+      `${name.trim().toLowerCase()}|${suburb.trim().toLowerCase()}`;
+    const byKey = new Map<string, { id: string; suburb: string | null }>();
+    for (const a of existingAccounts ?? []) {
+      byKey.set(keyOf(a.name, a.suburb ?? ""), { id: a.id, suburb: a.suburb });
+    }
+
+    let imported = 0;
+    let accountsMatched = 0;
+    const accountsCreated: string[] = [];
+    const failed: { row: number; reason: string }[] = [];
+
+    for (const row of data.rows) {
+      try {
+        const callDate = parseDdMmYyyy(row.callDate);
+        if (!callDate) {
+          throw new Error(`Invalid date "${row.callDate}" — expected DD/MM/YYYY`);
+        }
+
+        const key = keyOf(row.accountName, row.suburb);
+        let account = byKey.get(key);
+        if (!account) {
+          const { data: created, error: createErr } = await supabaseAdmin
+            .from("accounts")
+            .insert({
+              name: row.accountName.trim(),
+              suburb: row.suburb.trim() || null,
+              owner_id: context.userId,
+              memory: "",
+            })
+            .select("id, suburb")
+            .single();
+          if (createErr || !created)
+            throw new Error(createErr?.message ?? "Could not create account");
+          account = { id: created.id, suburb: created.suburb };
+          byKey.set(key, account);
+          accountsCreated.push(row.accountName.trim());
+        } else {
+          accountsMatched++;
+          if (!account.suburb && row.suburb.trim()) {
+            await supabaseAdmin
+              .from("accounts")
+              .update({ suburb: row.suburb.trim() })
+              .eq("id", account.id);
+            account.suburb = row.suburb.trim();
+          }
+        }
+
+        const { error: noteErr } = await supabaseAdmin.from("call_notes").insert({
+          owner_id: context.userId,
+          account_id: account.id,
+          rep_name: row.repName.trim(),
+          call_date: callDate,
+          raw_note: row.rawNote,
+        });
+        if (noteErr) throw new Error(noteErr.message);
+
+        imported++;
+      } catch (e) {
+        failed.push({
+          row: row.rowNumber,
+          reason: e instanceof Error ? e.message : "Unknown error",
+        });
+      }
+    }
+
+    return { imported, accountsCreated, accountsMatched, failed };
   });

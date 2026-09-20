@@ -15,6 +15,7 @@ import {
 } from "@/lib/admin.functions";
 import { ROLE_LABEL, ROLE_OPTIONS, type AppRole } from "@/lib/roles";
 import { listWaitlist, type WaitlistRow } from "@/lib/waitlist.functions";
+import { CsvImportSection } from "@/features/admin/CsvImportSection";
 
 export function AdminUsersPage() {
   const { isAdmin, loading } = useAuth();
@@ -185,6 +186,10 @@ export function AdminUsersPage() {
             })}
           </div>
         )}
+
+        <div className="mt-10">
+          <CsvImportSection />
+        </div>
       </div>
     </div>
   );
