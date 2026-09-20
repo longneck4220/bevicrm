@@ -214,19 +214,33 @@ function PasswordSection() {
       setNote({ kind: "error", text: "The new passwords don’t match." });
       return;
     }
+    if (next === current) {
+      setNote({ kind: "error", text: "Choose a password different from your current one." });
+      return;
+    }
+    const email = user?.email;
+    if (!email) {
+      setNote({ kind: "error", text: "Please sign in again before changing your password." });
+      return;
+    }
     setSaving(true);
-    const { error } = await supabase.auth.updateUser({
-      password: next,
-      // Signed-in password changes may require the current password.
-      current_password: current,
-    } as Parameters<typeof supabase.auth.updateUser>[0]);
+    // Verify the current password by re-signing in; this also refreshes the session
+    // so the password update is accepted and you stay signed in afterwards.
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email,
+      password: current,
+    });
+    if (verifyError) {
+      setSaving(false);
+      setNote({ kind: "error", text: "Your current password isn’t right." });
+      return;
+    }
+    const { error } = await supabase.auth.updateUser({ password: next });
     setSaving(false);
     if (error) {
-      const msg = /current password/i.test(error.message)
-        ? "Your current password isn’t right."
-        : /should be different|same/i.test(error.message)
-          ? "Choose a password different from your current one."
-          : "Could not change your password. Please try again.";
+      const msg = /should be different|same/i.test(error.message)
+        ? "Choose a password different from your current one."
+        : "Could not change your password. Please try again.";
       setNote({ kind: "error", text: msg });
       return;
     }
