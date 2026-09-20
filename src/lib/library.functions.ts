@@ -236,7 +236,7 @@ export const uploadLibraryFile = createServerFn({ method: "POST" })
       throw new Error("Could not store the file. Please try again.");
     }
 
-    const extractedText = await extract(bytes, type, data.name);
+    const extractedText = await extract(bytes, type, data.name, data.pretext);
     const text = extractedText.trim() ? extractedText : noTextFallback(data.name, type);
     const deals = await extractDeals(extractedText, data.name);
 
