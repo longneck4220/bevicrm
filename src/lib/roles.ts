@@ -1,3 +1,5 @@
+import type { User } from "@supabase/supabase-js";
+
 export type AppRole = "admin" | "manager" | "rep";
 
 export const ROLE_LABEL: Record<AppRole, string> = {
@@ -26,6 +28,17 @@ export function pickRole(roles: string[]): AppRole | null {
   if (roles.includes("manager")) return "manager";
   if (roles.includes("rep") || roles.includes("user")) return "rep";
   return null;
+}
+
+/** The name shown in nav headers: full name from signup metadata, else the email's local part. */
+export function displayNameFor(user: User | null | undefined, fallback = "Account"): string {
+  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
+  return (
+    (typeof meta.full_name === "string" && meta.full_name) ||
+    (typeof meta.name === "string" && meta.name) ||
+    user?.email?.split("@")[0] ||
+    fallback
+  );
 }
 
 /**

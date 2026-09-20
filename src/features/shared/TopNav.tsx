@@ -3,6 +3,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { BeviMark } from "./BeviMark";
 import { GetBeviDialog } from "./GetBeviDialog";
 import { useAuth } from "@/hooks/use-auth";
+import { displayNameFor } from "@/lib/roles";
 
 export function BeviLogo({ compact = false }: { compact?: boolean }) {
   return (
@@ -66,12 +67,7 @@ export function TopNav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [getBevi, setGetBevi] = useState(false);
   const [compact, setCompact] = useState(false);
-  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
-  const displayName =
-    (typeof meta.full_name === "string" && meta.full_name) ||
-    (typeof meta.name === "string" && meta.name) ||
-    user?.email?.split("@")[0] ||
-    "Account";
+  const displayName = displayNameFor(user);
 
 
   useEffect(() => {

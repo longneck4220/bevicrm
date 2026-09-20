@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { BeviLogo } from "@/features/shared/TopNav";
 import { useAuth } from "@/hooks/use-auth";
+import { displayNameFor } from "@/lib/roles";
 import { SignOutLink } from "./SignOutLink";
 
 /**
@@ -12,12 +13,7 @@ import { SignOutLink } from "./SignOutLink";
  */
 export function ManagerHeader({ subtitle }: { subtitle?: string }) {
   const { user } = useAuth();
-  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
-  const displayName =
-    (typeof meta.full_name === "string" && meta.full_name) ||
-    (typeof meta.name === "string" && meta.name) ||
-    user?.email?.split("@")[0] ||
-    "Manager";
+  const displayName = displayNameFor(user, "Manager");
 
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-xl">
