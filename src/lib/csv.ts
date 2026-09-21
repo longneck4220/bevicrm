@@ -73,10 +73,17 @@ function classify(header: string): ColumnKind {
   if (h.includes("date")) return "date";
   if (h.includes("note") || h.includes("comment") || h.includes("summary")) return "note";
   if (h.includes("rep") || h.includes("salesperson") || h.includes("bdm")) return "rep";
+  const outlettish =
+    h.includes("outlet") ||
+    h.includes("account") ||
+    h.includes("venue") ||
+    h.includes("customer") ||
+    h.includes("store");
+  // "Outlet Name & Suburb" is one combined column — treat it as the outlet and
+  // split the suburb back out of the cell value.
+  if (outlettish) return "outlet";
   if (h.includes("suburb") || h.includes("location") || h.includes("area") || h.includes("town"))
     return "suburb";
-  if (h.includes("outlet") || h.includes("account") || h.includes("venue") || h.includes("customer"))
-    return "outlet";
   return null;
 }
 
