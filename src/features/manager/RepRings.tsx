@@ -6,9 +6,24 @@ import { STATUS_COLOR } from "./data";
 const TRACK = "rgba(255,255,255,0.08)";
 
 export const RING_META = [
-  { key: "volume", label: "Calls", Icon: Phone },
-  { key: "quality", label: "Notes", Icon: Pencil },
-  { key: "progression", label: "Progress", Icon: ArrowRight },
+  {
+    key: "volume",
+    label: "Calls",
+    Icon: Phone,
+    color: "var(--brand-cyan)",
+  },
+  {
+    key: "quality",
+    label: "Notes",
+    Icon: Pencil,
+    color: "var(--brand-violet)",
+  },
+  {
+    key: "progression",
+    label: "Progress",
+    Icon: ArrowRight,
+    color: "var(--brand-blue)",
+  },
 ] as const;
 
 export function RepRings({
@@ -22,15 +37,22 @@ export function RepRings({
 }) {
   const color = STATUS_COLOR[status];
   const [hover, setHover] = useState<number | null>(null);
-  const sw = size > 60 ? 5 : 4;
+  const sw = size > 80 ? 6 : size > 60 ? 5.5 : 4.5;
   const c = size / 2;
+  const gap = size > 80 ? 4 : 2;
   const circles = [
     { r: c - sw / 2, pct: rings.volume },
-    { r: c - sw * 1.5 - 2, pct: rings.quality },
-    { r: c - sw * 2.5 - 4, pct: rings.progression },
+    { r: c - sw * 1.5 - gap, pct: rings.quality },
+    { r: c - sw * 2.5 - gap * 2, pct: rings.progression },
   ];
   return (
-    <svg width={size} height={size} aria-label="Activity rings" role="img">
+    <svg
+      width={size}
+      height={size}
+      aria-label="Activity rings"
+      role="img"
+      style={{ filter: `drop-shadow(0 0 6px ${color}55)` }}
+    >
       {circles.map(({ r, pct }, i) => {
         const circumference = 2 * Math.PI * r;
         const meta = RING_META[i];
@@ -49,8 +71,8 @@ export function RepRings({
               cy={c}
               r={r}
               fill="none"
-              stroke={color}
-              strokeWidth={hover === i ? sw + 1.5 : sw}
+              stroke={meta.color}
+              strokeWidth={hover === i ? sw + 2 : sw}
               strokeLinecap="round"
               strokeDasharray={`${circumference * Math.min(Math.max(pct, 0), 1)} ${circumference}`}
               style={{ transition: "stroke-width 120ms ease-out" }}
@@ -90,7 +112,7 @@ export function RepRings({
             textAnchor="middle"
             fontSize={9}
             style={{
-              fill: "var(--foreground)",
+              fill: RING_META[hover].color,
               fontFamily: "var(--font-mono)",
               letterSpacing: "0.1em",
             }}
@@ -106,12 +128,13 @@ export function RepRings({
 export function RingLegend() {
   return (
     <div className="flex flex-col gap-1.5" aria-hidden="true">
-      {RING_META.map(({ label, Icon }) => (
+      {RING_META.map(({ label, Icon, color }) => (
         <div
           key={label}
-          className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground"
+          className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em]"
+          style={{ color }}
         >
-          <Icon size={11} strokeWidth={2} />
+          <Icon size={12} strokeWidth={2.5} />
           {label}
         </div>
       ))}
