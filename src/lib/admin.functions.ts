@@ -160,10 +160,10 @@ export const adminDeleteAccount = createServerFn({ method: "POST" })
 
 const CallNoteImportRow = z.object({
   rowNumber: z.number().int().positive(),
-  repName: z.string().min(1).max(200),
+  repName: z.string().max(200).optional().default(""),
   accountName: z.string().min(1).max(200),
   suburb: z.string().max(200).optional().default(""),
-  callDate: z.string().min(1),
+  callDate: z.string().optional().default(""),
   rawNote: z.string().min(1).max(12000),
 });
 
