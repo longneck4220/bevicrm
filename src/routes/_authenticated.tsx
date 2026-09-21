@@ -23,11 +23,10 @@ function AuthenticatedLayout() {
     );
   }
 
-  // Dev-only convenience: the manager view uses hardcoded sample data, so it can
-  // be opened without signing in while developing. Never applies to production.
-  const devOpenManager = import.meta.env.DEV && entryPathname.startsWith("/manager");
-
-  if (!user && !devOpenManager) {
+  // The manager view now reads real visit data through an authenticated server
+  // function, so the old dev-only "open /manager without signing in" shortcut
+  // can no longer work — it left the page blank on an Unauthorized data call.
+  if (!user) {
     return <Navigate to="/login" search={{ next: entryPathname }} />;
   }
 
