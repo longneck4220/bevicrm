@@ -150,8 +150,8 @@ export function CsvImportSection() {
     <GlassCard className="p-5 mb-6">
       <SignalLabel>Import call notes</SignalLabel>
       <p className="mt-1 text-sm text-white/60">
-        Load historical call notes from a CSV export. Notes are stored as-is — no AI processing runs
-        at import time.
+        Load historical call notes from a CSV or Excel export, in whatever column order they come
+        in. Notes are stored as-is — no AI processing runs at import time.
       </p>
 
       <div className="mt-4">
@@ -169,6 +169,9 @@ export function CsvImportSection() {
             fileName={fileName}
             rows={rows}
             repNames={repNames}
+            missingDates={missingDates}
+            missingReps={missingReps}
+            onRepName={applyRepName}
             onCancel={reset}
             onImport={runImport}
           />
