@@ -121,8 +121,11 @@ export function CsvImportSection() {
       accountsMatched: 0,
       failed: [],
       accountIds: [],
+      repAssignments: [],
+      reassignedAccounts: 0,
     };
     const accountIds = new Set<string>();
+    const repTotals = new Map<string, ImportCallNotesResult["repAssignments"][number]>();
     const fallbackRep = repOverride.trim();
     const allRows = rows.map((r) => (r.repName ? r : { ...r, repName: fallbackRep }));
     for (let i = 0; i < allRows.length; i += BATCH_SIZE) {
@@ -134,7 +137,16 @@ export function CsvImportSection() {
         merged.accountsCreated.push(...res.accountsCreated);
         merged.accountsMatched += res.accountsMatched;
         merged.failed.push(...res.failed);
+        merged.reassignedAccounts += res.reassignedAccounts;
         res.accountIds.forEach((id) => accountIds.add(id));
+        for (const ra of res.repAssignments) {
+          const prev = repTotals.get(ra.repName);
+          repTotals.set(ra.repName, {
+            ...ra,
+            created: (prev?.created ?? false) || ra.created,
+            notes: (prev?.notes ?? 0) + ra.notes,
+          });
+        }
       } catch (e) {
         merged.failed.push(
           ...batch.map((b) => ({
@@ -146,6 +158,7 @@ export function CsvImportSection() {
       setProgress({ done: Math.min(i + BATCH_SIZE, rows.length), total: rows.length });
     }
     merged.accountIds = [...accountIds];
+    merged.repAssignments = [...repTotals.values()].sort((a, b) => b.notes - a.notes);
     setResult(merged);
 
     if (merged.accountIds.length > 0) {
@@ -483,6 +496,33 @@ function DoneStep({
           {draftsGenerated} memory draft{draftsGenerated === 1 ? "" : "s"} ready for rep review.
         </p>
       )}
+
+      {result.repAssignments.length > 0 && (
+        <div className="mt-4">
+          <div className="text-sm text-white/70">Outlets handed to:</div>
+          <ul className="mt-1 space-y-1 text-sm text-white/60">
+            {result.repAssignments.map((ra) => (
+              <li key={ra.repName}>
+                <span className="text-white/85">{ra.repName}</span> — {ra.notes} note
+                {ra.notes === 1 ? "" : "s"}
+                {ra.created
+                  ? " · holding login created, ready for them to sign up"
+                  : ra.matched
+                    ? " · live on their BEVI login"
+                    : " · left under your account"}
+              </li>
+            ))}
+          </ul>
+          {result.reassignedAccounts > 0 && (
+            <p className="mt-1 text-xs text-white/50">
+              {result.reassignedAccounts} existing outlet
+              {result.reassignedAccounts === 1 ? "" : "s"} moved from your account to their rep.
+            </p>
+          )}
+        </div>
+      )}
+
+
 
       <div className="mt-4 text-sm">
         <div className="text-white/70">New accounts:</div>

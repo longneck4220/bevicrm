@@ -238,8 +238,14 @@ export type ImportCallNotesResult = {
   failed: { row: number; reason: string }[];
   /** IDs of every account that received a call_notes row in this batch — feeds generateMemoryDrafts. */
   accountIds: string[];
-  /** Per-rep outcome: matched to a BEVI account, or left under the importer. */
-  repAssignments: { repName: string; matched: boolean; userId: string | null; notes: number }[];
+  /** Per-rep outcome: matched to a BEVI login, newly created holding login, or left under the importer. */
+  repAssignments: {
+    repName: string;
+    matched: boolean;
+    userId: string | null;
+    created: boolean;
+    notes: number;
+  }[];
   /** Existing outlets moved from the importer to their rep in this batch. */
   reassignedAccounts: number;
 };
@@ -259,29 +265,43 @@ export const importCallNotes = createServerFn({ method: "POST" })
 
     const { data: existingAccounts, error: existingErr } = await supabaseAdmin
       .from("accounts")
-      .select("id, name, suburb");
+      .select("id, name, suburb, owner_id");
     if (existingErr) throw new Error("Failed to load existing accounts");
 
     const keyOf = (name: string, suburb: string) =>
       `${name.trim().toLowerCase()}|${suburb.trim().toLowerCase()}`;
-    const byKey = new Map<string, { id: string; suburb: string | null }>();
+    const byKey = new Map<string, { id: string; suburb: string | null; ownerId: string }>();
     for (const a of existingAccounts ?? []) {
-      byKey.set(keyOf(a.name, a.suburb ?? ""), { id: a.id, suburb: a.suburb });
+      byKey.set(keyOf(a.name, a.suburb ?? ""), {
+        id: a.id,
+        suburb: a.suburb,
+        ownerId: a.owner_id,
+      });
     }
+
+    // Every outlet must end up owned by the rep the file names, so the rep sees
+    // it the moment they sign in. Reps who don't have a BEVI login yet get a
+    // holding account created for them, keyed on their name.
+    const repNames = [...new Set(data.rows.map((r) => r.repName.trim()).filter(Boolean))];
+    const repOwners = await resolveRepOwners(supabaseAdmin, repNames);
 
     let imported = 0;
     let skipped = 0;
     let accountsMatched = 0;
+    let reassignedAccounts = 0;
     const accountsCreated: string[] = [];
     const failed: { row: number; reason: string }[] = [];
     const touchedAccountIds = new Set<string>();
+    const notesPerRep = new Map<string, number>();
 
     for (const row of data.rows) {
       try {
         // An unreadable or missing date must not cost us the note — the row is
         // still imported, just without a call date.
         const callDate = parseDdMmYyyy(row.callDate);
-
+        const repName = row.repName.trim();
+        const rep = repName ? repOwners.get(normaliseRepName(repName)) : undefined;
+        const ownerId = rep?.userId ?? context.userId;
 
         const key = keyOf(row.accountName, row.suburb);
         let account = byKey.get(key);
@@ -291,14 +311,14 @@ export const importCallNotes = createServerFn({ method: "POST" })
             .insert({
               name: row.accountName.trim(),
               suburb: row.suburb.trim() || null,
-              owner_id: context.userId,
+              owner_id: ownerId,
               memory: "",
             })
-            .select("id, suburb")
+            .select("id, suburb, owner_id")
             .single();
           if (createErr || !created)
             throw new Error(createErr?.message ?? "Could not create account");
-          account = { id: created.id, suburb: created.suburb };
+          account = { id: created.id, suburb: created.suburb, ownerId: created.owner_id };
           byKey.set(key, account);
           accountsCreated.push(row.accountName.trim());
         } else {
@@ -309,6 +329,16 @@ export const importCallNotes = createServerFn({ method: "POST" })
               .update({ suburb: row.suburb.trim() })
               .eq("id", account.id);
             account.suburb = row.suburb.trim();
+          }
+          // Outlets imported before rep assignment existed sit under the
+          // importer; hand them to their rep now.
+          if (rep && account.ownerId !== ownerId && account.ownerId === context.userId) {
+            await supabaseAdmin
+              .from("accounts")
+              .update({ owner_id: ownerId })
+              .eq("id", account.id);
+            account.ownerId = ownerId;
+            reassignedAccounts++;
           }
         }
 
@@ -329,9 +359,9 @@ export const importCallNotes = createServerFn({ method: "POST" })
         }
 
         const { error: noteErr } = await supabaseAdmin.from("call_notes").insert({
-          owner_id: context.userId,
+          owner_id: account.ownerId,
           account_id: account.id,
-          rep_name: row.repName.trim(),
+          rep_name: repName,
           call_date: callDate,
           raw_note: row.rawNote,
         });
@@ -339,6 +369,7 @@ export const importCallNotes = createServerFn({ method: "POST" })
 
         touchedAccountIds.add(account.id);
         imported++;
+        if (repName) notesPerRep.set(repName, (notesPerRep.get(repName) ?? 0) + 1);
       } catch (e) {
         failed.push({
           row: row.rowNumber,
@@ -347,6 +378,17 @@ export const importCallNotes = createServerFn({ method: "POST" })
       }
     }
 
+    const repAssignments = [...notesPerRep.entries()].map(([repName, notes]) => {
+      const rep = repOwners.get(normaliseRepName(repName));
+      return {
+        repName,
+        matched: Boolean(rep),
+        userId: rep?.userId ?? null,
+        created: rep?.created ?? false,
+        notes,
+      };
+    });
+
     return {
       imported,
       skipped,
@@ -354,8 +396,85 @@ export const importCallNotes = createServerFn({ method: "POST" })
       accountsMatched,
       failed,
       accountIds: [...touchedAccountIds],
+      repAssignments,
+      reassignedAccounts,
     };
   });
+
+function normaliseRepName(name: string) {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/** "Mark Pinel" -> "mark.pinel@reps.bevipvi.com" — a holding login until the rep signs up for real. */
+function placeholderEmailFor(name: string) {
+  const slug =
+    normaliseRepName(name)
+      .replace(/[^a-z0-9]+/g, ".")
+      .replace(/^\.+|\.+$/g, "") || "rep";
+  return `${slug}@reps.bevipvi.com`;
+}
+
+type ResolvedRep = { userId: string; created: boolean };
+
+/**
+ * Maps each rep name in an import to a real BEVI user id. Matches on profile
+ * display name first, then the local part of their email; anyone still
+ * unmatched gets a confirmed holding login so their outlets are owned by them
+ * from day one and appear as soon as they sign in.
+ */
+async function resolveRepOwners(
+  supabaseAdmin: Awaited<
+    typeof import("@/integrations/supabase/client.server")
+  >["supabaseAdmin"],
+  repNames: string[],
+): Promise<Map<string, ResolvedRep>> {
+  const resolved = new Map<string, ResolvedRep>();
+  if (repNames.length === 0) return resolved;
+
+  const { data: profiles } = await supabaseAdmin
+    .from("profiles")
+    .select("user_id, display_name, email");
+
+  const byName = new Map<string, string>();
+  for (const p of profiles ?? []) {
+    if (p.display_name) byName.set(normaliseRepName(p.display_name), p.user_id);
+    if (p.email) {
+      const local = p.email.split("@")[0] ?? "";
+      byName.set(normaliseRepName(local.replace(/[._-]+/g, " ")), p.user_id);
+      byName.set(normaliseRepName(p.email), p.user_id);
+    }
+  }
+
+  for (const name of repNames) {
+    const norm = normaliseRepName(name);
+    const existing = byName.get(norm);
+    if (existing) {
+      resolved.set(norm, { userId: existing, created: false });
+      continue;
+    }
+    const email = placeholderEmailFor(name);
+    const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      password: crypto.randomUUID() + crypto.randomUUID(),
+      user_metadata: { full_name: name.trim(), display_name: name.trim(), placeholder_rep: true },
+    });
+    if (error || !created?.user) {
+      // Already exists (or can't be created) — fall back to a lookup by email.
+      const { data: again } = await supabaseAdmin
+        .from("profiles")
+        .select("user_id")
+        .eq("email", email)
+        .maybeSingle();
+      if (again?.user_id) resolved.set(norm, { userId: again.user_id, created: false });
+      continue;
+    }
+    byName.set(norm, created.user.id);
+    resolved.set(norm, { userId: created.user.id, created: true });
+  }
+
+  return resolved;
+}
 
 const GenerateMemoryDraftsInput = z.object({
   accountIds: z.array(z.string().uuid()).min(1).max(200),
