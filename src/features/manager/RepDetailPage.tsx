@@ -92,7 +92,7 @@ export function RepDetailPage() {
                   progression: rep.progression,
                 }}
                 status={rep.status}
-                size={56}
+                size={80}
               />
               <RingLegend />
             </div>

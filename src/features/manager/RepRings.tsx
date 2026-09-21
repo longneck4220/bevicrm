@@ -112,7 +112,7 @@ export function RepRings({
             textAnchor="middle"
             fontSize={9}
             style={{
-              fill: "var(--foreground)",
+              fill: RING_META[hover].color,
               fontFamily: "var(--font-mono)",
               letterSpacing: "0.1em",
             }}
@@ -128,12 +128,13 @@ export function RepRings({
 export function RingLegend() {
   return (
     <div className="flex flex-col gap-1.5" aria-hidden="true">
-      {RING_META.map(({ label, Icon }) => (
+      {RING_META.map(({ label, Icon, color }) => (
         <div
           key={label}
-          className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground"
+          className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em]"
+          style={{ color }}
         >
-          <Icon size={11} strokeWidth={2} />
+          <Icon size={12} strokeWidth={2.5} />
           {label}
         </div>
       ))}
