@@ -98,7 +98,7 @@ export type Database = {
       call_notes: {
         Row: {
           account_id: string
-          call_date: string
+          call_date: string | null
           created_at: string
           id: string
           owner_id: string
@@ -108,7 +108,7 @@ export type Database = {
         }
         Insert: {
           account_id: string
-          call_date: string
+          call_date?: string | null
           created_at?: string
           id?: string
           owner_id: string
@@ -118,7 +118,7 @@ export type Database = {
         }
         Update: {
           account_id?: string
-          call_date?: string
+          call_date?: string | null
           created_at?: string
           id?: string
           owner_id?: string

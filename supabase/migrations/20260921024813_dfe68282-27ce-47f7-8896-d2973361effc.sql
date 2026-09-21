@@ -1,0 +1,1 @@
+ALTER TABLE public.call_notes ALTER COLUMN call_date DROP NOT NULL;
