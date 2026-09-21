@@ -261,12 +261,18 @@ function PreviewStep({
   fileName,
   rows,
   repNames,
+  missingDates,
+  missingReps,
+  onRepName,
   onCancel,
   onImport,
 }: {
   fileName: string;
   rows: CallNoteCsvRow[];
   repNames: string[];
+  missingDates: number;
+  missingReps: number;
+  onRepName: (name: string) => void;
   onCancel: () => void;
   onImport: () => void;
 }) {
