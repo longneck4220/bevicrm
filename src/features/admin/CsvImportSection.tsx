@@ -254,8 +254,9 @@ function UploadStep({
         name becomes the rep — otherwise the file name is used, and you can correct it in the next
         step.
       </div>
-      <p className="mt-2 text-xs text-[var(--signal-risk)]">
-        Importing the same file twice will create duplicate entries. Check before uploading.
+      <p className="mt-2 text-xs text-white/60">
+        Safe to re-upload — a note already on file for the same outlet and date is skipped, so top-up
+        files only add what's new.
       </p>
     </div>
   );
