@@ -219,7 +219,7 @@ export function normaliseDate(raw: string, monthFirst = false): string {
  */
 export function rowsToCallNotes(
   table: string[][],
-  options: { repName?: string; startRow?: number } = {},
+  options: { repName?: string; startRow?: number; monthFirst?: boolean } = {},
 ): CallNoteCsvRow[] {
   if (table.length === 0) return [];
 
