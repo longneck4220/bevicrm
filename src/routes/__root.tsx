@@ -11,6 +11,7 @@ import {
 import appCss from "../styles.css?url";
 import { TopNav } from "@/features/shared/TopNav";
 import { AuthProvider } from "@/hooks/use-auth";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -149,6 +150,7 @@ function RootComponent() {
       <AuthProvider>
         <TopNav />
         <Outlet />
+        <Toaster />
       </AuthProvider>
     </QueryClientProvider>
   );
