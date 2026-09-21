@@ -332,6 +332,7 @@ function PreviewStep({
             id="import-rep-name"
             type="text"
             placeholder="e.g. Ryan Pearce"
+            value={repName}
             onChange={(e) => onRepName(e.target.value)}
             className="mt-1 w-full max-w-xs rounded-lg border border-white/15 bg-white/[0.04] px-3 py-2 text-sm text-white/90 outline-none focus:border-[var(--brand-cyan)]"
           />
