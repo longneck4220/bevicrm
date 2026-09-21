@@ -406,11 +406,12 @@ function DoneStep({
 }) {
   return (
     <div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Stat label="Notes imported" value={result.imported} />
+        <Stat label="Already on file" value={result.skipped} />
         <Stat label="Accounts created" value={result.accountsCreated.length} />
         <Stat label="Accounts matched" value={result.accountsMatched} />
-        <Stat label="Rows skipped" value={result.failed.length} risky={result.failed.length > 0} />
+        <Stat label="Rows failed" value={result.failed.length} risky={result.failed.length > 0} />
       </div>
 
       {draftsGenerated !== null && (
