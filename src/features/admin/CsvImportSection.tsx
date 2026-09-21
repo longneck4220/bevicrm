@@ -229,7 +229,7 @@ function UploadStep({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".csv"
+          accept=".csv,.tsv,.txt,.xlsx,.xls"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -242,9 +242,13 @@ function UploadStep({
 
       <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.03] p-3 text-xs text-white/60">
         <div className="mb-1 font-mono uppercase tracking-[0.14em] text-white/40">
-          Expected columns (in this order)
+          What the file can look like
         </div>
-        Rep Name · Account Name · Suburb · Call Date (DD/MM/YYYY) · Call Notes
+        Columns are matched by their heading, in any order. A heading like
+        “Outlet Name &amp; Suburb” is split into the outlet and its suburb. Dates in any common
+        format are read automatically. In an Excel file, each tab is treated as one rep and the tab
+        name becomes the rep — otherwise the file name is used, and you can correct it in the next
+        step.
       </div>
       <p className="mt-2 text-xs text-[var(--signal-risk)]">
         Importing the same file twice will create duplicate entries. Check before uploading.
