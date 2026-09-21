@@ -193,6 +193,8 @@ function parseDdMmYyyy(input: string): string | null {
 
 export type ImportCallNotesResult = {
   imported: number;
+  /** Notes already stored for that account and date — re-imports don't duplicate. */
+  skipped: number;
   accountsCreated: string[];
   accountsMatched: number;
   failed: { row: number; reason: string }[];
