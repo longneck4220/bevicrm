@@ -420,8 +420,45 @@ function DoneStep({
   draftsGenerated: number | null;
   onDone: () => void;
 }) {
+  const ok = result.failed.length === 0;
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, []);
+
   return (
-    <div>
+    <div ref={ref}>
+      <div
+        role="status"
+        aria-live="polite"
+        className="mb-4 flex items-start gap-3 rounded-lg border p-4"
+        style={{
+          borderColor: ok
+            ? "color-mix(in oklab, var(--signal-positive) 40%, transparent)"
+            : "color-mix(in oklab, var(--signal-warning) 40%, transparent)",
+          background: ok
+            ? "color-mix(in oklab, var(--signal-positive) 10%, transparent)"
+            : "color-mix(in oklab, var(--signal-warning) 10%, transparent)",
+        }}
+      >
+        <CheckCircle2
+          className="mt-0.5 h-5 w-5 shrink-0"
+          style={{ color: ok ? "var(--signal-positive)" : "var(--signal-warning)" }}
+        />
+        <div>
+          <div className="text-sm font-semibold text-white">
+            {ok ? "Upload complete" : "Upload finished with some problems"}
+          </div>
+          <div className="mt-1 text-sm text-white/70">
+            {result.imported} note{result.imported === 1 ? "" : "s"} saved
+            {result.skipped > 0
+              ? ` · ${result.skipped} already on file and skipped`
+              : ""}
+            {result.failed.length > 0 ? ` · ${result.failed.length} row(s) failed` : ""}.
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Stat label="Notes imported" value={result.imported} />
         <Stat label="Already on file" value={result.skipped} />
