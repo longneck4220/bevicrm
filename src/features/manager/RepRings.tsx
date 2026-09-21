@@ -6,9 +6,24 @@ import { STATUS_COLOR } from "./data";
 const TRACK = "rgba(255,255,255,0.08)";
 
 export const RING_META = [
-  { key: "volume", label: "Calls", Icon: Phone },
-  { key: "quality", label: "Notes", Icon: Pencil },
-  { key: "progression", label: "Progress", Icon: ArrowRight },
+  {
+    key: "volume",
+    label: "Calls",
+    Icon: Phone,
+    color: "var(--brand-cyan)",
+  },
+  {
+    key: "quality",
+    label: "Notes",
+    Icon: Pencil,
+    color: "var(--brand-violet)",
+  },
+  {
+    key: "progression",
+    label: "Progress",
+    Icon: ArrowRight,
+    color: "var(--brand-blue)",
+  },
 ] as const;
 
 export function RepRings({
