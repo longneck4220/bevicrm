@@ -97,6 +97,44 @@ export const listUsersForAdmin = createServerFn({ method: "GET" })
     return { users };
   });
 
+export type RepProfileOption = {
+  userId: string;
+  displayName: string | null;
+  email: string | null;
+  role: AppRole;
+};
+
+/**
+ * Lightweight roster for the import preview: lets the UI check each rep name
+ * in an uploaded file against a real BEVI account before anything is written.
+ */
+export const listRepProfiles = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: profiles, error: pErr } = await supabaseAdmin
+      .from("profiles")
+      .select("user_id, display_name, email")
+      .order("display_name", { ascending: true });
+    if (pErr) throw new Error("Failed to load users");
+
+    const { data: roles } = await supabaseAdmin.from("user_roles").select("user_id, role");
+    const rolesByUser = new Map<string, string[]>();
+    for (const r of roles ?? []) {
+      rolesByUser.set(r.user_id, [...(rolesByUser.get(r.user_id) ?? []), r.role as string]);
+    }
+
+    const users: RepProfileOption[] = (profiles ?? []).map((p) => ({
+      userId: p.user_id,
+      displayName: p.display_name,
+      email: p.email,
+      role: pickRole(rolesByUser.get(p.user_id) ?? []) ?? "rep",
+    }));
+    return { users };
+  });
+
 export const adminSetUserRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) =>
@@ -200,6 +238,10 @@ export type ImportCallNotesResult = {
   failed: { row: number; reason: string }[];
   /** IDs of every account that received a call_notes row in this batch — feeds generateMemoryDrafts. */
   accountIds: string[];
+  /** Per-rep outcome: matched to a BEVI account, or left under the importer. */
+  repAssignments: { repName: string; matched: boolean; userId: string | null; notes: number }[];
+  /** Existing outlets moved from the importer to their rep in this batch. */
+  reassignedAccounts: number;
 };
 
 /**
