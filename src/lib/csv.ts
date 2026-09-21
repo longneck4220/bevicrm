@@ -87,9 +87,25 @@ function classify(header: string): ColumnKind {
   return null;
 }
 
-/** Splits "Otto, Fortitude Valley" / "Otto - Fortitude Valley" into name + suburb. */
+/** Drops a trailing phone number, e.g. "GPO Hotel / FORTITUDE VALLEY - 07  5526 9222". */
+function stripTrailingPhone(value: string): string {
+  return value.replace(/[\s,–—-]*(?:\+?\d[\d\s()-]{6,})$/, "").trim();
+}
+
+/**
+ * Splits a combined outlet cell into name + suburb. Handles
+ * "Otto, Fortitude Valley", "Otto - Fortitude Valley" and
+ * "GPO Hotel / FORTITUDE VALLEY - 07  5526 9222".
+ */
 export function splitOutlet(value: string): { accountName: string; suburb: string } {
-  const v = value.trim();
+  const v = stripTrailingPhone(value.trim());
+  // A slash is the strongest signal — take the last one as the suburb boundary.
+  const slash = v.lastIndexOf("/");
+  if (slash > 0) {
+    const name = v.slice(0, slash).trim();
+    const suburb = v.slice(slash + 1).trim();
+    if (name && suburb) return { accountName: name, suburb };
+  }
   const m = /^(.*?)[\s]*[,–—-][\s]*([^,–—-]+)$/.exec(v);
   if (m && m[1].trim() && m[2].trim()) {
     return { accountName: m[1].trim(), suburb: m[2].trim() };
@@ -116,8 +132,27 @@ function pad(n: number) {
   return n.toString().padStart(2, "0");
 }
 
+/**
+ * Decides whether a column of numeric dates is month-first (US, 9/14/2026) or
+ * day-first (Australian, 14/9/2026). Any value whose first part is above 12 can
+ * only be a day, and vice versa; ties default to day-first.
+ */
+export function detectMonthFirst(values: string[]): boolean {
+  let dayFirst = 0;
+  let monthFirst = 0;
+  for (const v of values) {
+    const m = /^(\d{1,2})[-/.](\d{1,2})[-/.]\d{2,4}/.exec(v.trim());
+    if (!m) continue;
+    const a = Number(m[1]);
+    const b = Number(m[2]);
+    if (a > 12 && b <= 12) dayFirst++;
+    else if (b > 12 && a <= 12) monthFirst++;
+  }
+  return monthFirst > dayFirst;
+}
+
 /** Accepts DD/MM/YYYY, D-M-YY, YYYY-MM-DD, "12 Sep 2025", "Sep 12 2025" and Excel serial numbers. */
-export function normaliseDate(raw: string): string {
+export function normaliseDate(raw: string, monthFirst = false): string {
   const v = raw.trim();
   if (!v) return "";
 
@@ -132,12 +167,19 @@ export function normaliseDate(raw: string): string {
   let m = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/.exec(v);
   if (m) return `${pad(Number(m[3]))}/${pad(Number(m[2]))}/${m[1]}`;
 
-  // D/M/Y (day first — Australian format)
+  // Numeric pair + year. Day-first unless the file reads as month-first, and a
+  // part above 12 always wins over the assumed order.
   m = /^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/.exec(v);
   if (m) {
     let year = Number(m[3]);
     if (year < 100) year += year > 70 ? 1900 : 2000;
-    return `${pad(Number(m[1]))}/${pad(Number(m[2]))}/${year}`;
+    const a = Number(m[1]);
+    const b = Number(m[2]);
+    let day = monthFirst ? b : a;
+    let month = monthFirst ? a : b;
+    if (month > 12 && day <= 12) [day, month] = [month, day];
+    if (month > 12 || month < 1 || day < 1 || day > 31) return "";
+    return `${pad(day)}/${pad(month)}/${year}`;
   }
 
   // 12 Sep 2025 / 12-Sep-25
@@ -177,7 +219,7 @@ export function normaliseDate(raw: string): string {
  */
 export function rowsToCallNotes(
   table: string[][],
-  options: { repName?: string; startRow?: number } = {},
+  options: { repName?: string; startRow?: number; monthFirst?: boolean } = {},
 ): CallNoteCsvRow[] {
   if (table.length === 0) return [];
 
@@ -227,13 +269,22 @@ export function rowsToCallNotes(
 
   const body = hasHeader ? table.slice(1) : table;
   const offset = (options.startRow ?? 1) + (hasHeader ? 1 : 0);
+  const monthFirst =
+    options.monthFirst ??
+    (dateCol >= 0 ? detectMonthFirst(body.map((r) => r[dateCol] ?? "")) : false);
 
   const out: CallNoteCsvRow[] = [];
+  // Grouping rows ("Rank 1, Outlet / SUBURB - phone") name the outlet for the
+  // rows beneath them, so remember the last outlet seen and reuse it when a
+  // row's own outlet cell is blank.
+  let lastOutlet = "";
   body.forEach((r, i) => {
     const cell = (idx: number) => (idx >= 0 ? (r[idx] ?? "").trim() : "");
     const note = cell(noteCol);
-    const outletRaw = cell(outletCol);
-    if (!note && !outletRaw) return;
+    const outletRaw = cell(outletCol) || lastOutlet;
+    if (outletRaw) lastOutlet = outletRaw;
+    // A row with no note carries no intelligence — that's a grouping/header row.
+    if (!note) return;
 
     const split = splitOutlet(outletRaw);
     const suburbCell = cell(suburbCol);
@@ -242,7 +293,7 @@ export function rowsToCallNotes(
       repName: cell(repCol) || options.repName || "",
       accountName: split.accountName,
       suburb: suburbCell || split.suburb,
-      callDate: normaliseDate(cell(dateCol)),
+      callDate: normaliseDate(cell(dateCol), monthFirst),
       rawNote: note,
     });
   });

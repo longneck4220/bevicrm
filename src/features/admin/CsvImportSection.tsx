@@ -104,6 +104,7 @@ export function CsvImportSection() {
     setProgress({ done: 0, total: rows.length });
     const merged: ImportCallNotesResult = {
       imported: 0,
+      skipped: 0,
       accountsCreated: [],
       accountsMatched: 0,
       failed: [],
@@ -117,6 +118,7 @@ export function CsvImportSection() {
       try {
         const res = await importFn({ data: { rows: batch } });
         merged.imported += res.imported;
+        merged.skipped += res.skipped;
         merged.accountsCreated.push(...res.accountsCreated);
         merged.accountsMatched += res.accountsMatched;
         merged.failed.push(...res.failed);
@@ -252,8 +254,9 @@ function UploadStep({
         name becomes the rep — otherwise the file name is used, and you can correct it in the next
         step.
       </div>
-      <p className="mt-2 text-xs text-[var(--signal-risk)]">
-        Importing the same file twice will create duplicate entries. Check before uploading.
+      <p className="mt-2 text-xs text-white/60">
+        Safe to re-upload — a note already on file for the same outlet and date is skipped, so top-up
+        files only add what's new.
       </p>
     </div>
   );
@@ -404,11 +407,12 @@ function DoneStep({
 }) {
   return (
     <div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Stat label="Notes imported" value={result.imported} />
+        <Stat label="Already on file" value={result.skipped} />
         <Stat label="Accounts created" value={result.accountsCreated.length} />
         <Stat label="Accounts matched" value={result.accountsMatched} />
-        <Stat label="Rows skipped" value={result.failed.length} risky={result.failed.length > 0} />
+        <Stat label="Rows failed" value={result.failed.length} risky={result.failed.length > 0} />
       </div>
 
       {draftsGenerated !== null && (
