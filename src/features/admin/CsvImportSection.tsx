@@ -55,14 +55,18 @@ export function CsvImportSection() {
       if (isExcel) {
         // One sheet per rep: the tab name becomes the rep for every row on it.
         const XLSX = await import("xlsx");
-        const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
-        for (const sheetName of wb.SheetNames) {
-          const table = XLSX.utils.sheet_to_json<string[]>(wb.Sheets[sheetName], {
+        const wb = XLSX.read(new Uint8Array(await file.arrayBuffer()), { type: "array" });
+        for (const sheetName of wb.SheetNames ?? []) {
+          const sheet = wb.Sheets?.[sheetName];
+          if (!sheet) continue;
+          const table = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
             header: 1,
             raw: false,
             defval: "",
           });
-          const cells = table.map((r) => r.map((c) => String(c ?? "")));
+          const cells = (table ?? []).map((r) =>
+            Array.isArray(r) ? r.map((c) => (c === null || c === undefined ? "" : String(c))) : [],
+          );
           parsed.push(
             ...rowsToCallNotes(cells, { repName: sheetName.trim() }).map((r, i) => ({
               ...r,
@@ -76,14 +80,21 @@ export function CsvImportSection() {
       }
 
       if (parsed.length === 0) {
-        setParseError("No call notes found in that file.");
+        setParseError(
+          isExcel
+            ? "No call notes found in that workbook. Each tab needs a date column, an outlet column and a notes column."
+            : "No call notes found in that file.",
+        );
         return;
       }
       setFileName(file.name);
       setRows(parsed);
       setStep("preview");
-    } catch {
-      setParseError("Could not read that file. Try saving it as CSV or Excel and upload again.");
+    } catch (e) {
+      console.error("[call notes import] failed to read file", e);
+      setParseError(
+        `Could not read that file (${e instanceof Error ? e.message : "unknown error"}). Try saving it as CSV or Excel and upload again.`,
+      );
     }
   }
 
