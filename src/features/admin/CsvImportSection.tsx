@@ -265,6 +265,7 @@ function PreviewStep({
   repNames,
   missingDates,
   missingReps,
+  repName,
   onRepName,
   onCancel,
   onImport,
@@ -274,6 +275,7 @@ function PreviewStep({
   repNames: string[];
   missingDates: number;
   missingReps: number;
+  repName: string;
   onRepName: (name: string) => void;
   onCancel: () => void;
   onImport: () => void;
