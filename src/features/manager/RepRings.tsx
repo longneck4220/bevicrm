@@ -37,15 +37,22 @@ export function RepRings({
 }) {
   const color = STATUS_COLOR[status];
   const [hover, setHover] = useState<number | null>(null);
-  const sw = size > 60 ? 5 : 4;
+  const sw = size > 80 ? 6 : size > 60 ? 5.5 : 4.5;
   const c = size / 2;
+  const gap = size > 80 ? 4 : 2;
   const circles = [
     { r: c - sw / 2, pct: rings.volume },
-    { r: c - sw * 1.5 - 2, pct: rings.quality },
-    { r: c - sw * 2.5 - 4, pct: rings.progression },
+    { r: c - sw * 1.5 - gap, pct: rings.quality },
+    { r: c - sw * 2.5 - gap * 2, pct: rings.progression },
   ];
   return (
-    <svg width={size} height={size} aria-label="Activity rings" role="img">
+    <svg
+      width={size}
+      height={size}
+      aria-label="Activity rings"
+      role="img"
+      style={{ filter: `drop-shadow(0 0 6px ${color}55)` }}
+    >
       {circles.map(({ r, pct }, i) => {
         const circumference = 2 * Math.PI * r;
         const meta = RING_META[i];
@@ -64,8 +71,8 @@ export function RepRings({
               cy={c}
               r={r}
               fill="none"
-              stroke={color}
-              strokeWidth={hover === i ? sw + 1.5 : sw}
+              stroke={meta.color}
+              strokeWidth={hover === i ? sw + 2 : sw}
               strokeLinecap="round"
               strokeDasharray={`${circumference * Math.min(Math.max(pct, 0), 1)} ${circumference}`}
               style={{ transition: "stroke-width 120ms ease-out" }}
