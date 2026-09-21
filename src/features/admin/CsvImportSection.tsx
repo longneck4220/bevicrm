@@ -7,11 +7,16 @@ import {
   generateMemoryDrafts,
   type ImportCallNotesResult,
 } from "@/lib/admin.functions";
-import { parseCallNotesCsv, type CallNoteCsvRow } from "@/lib/csv";
+import { parseCallNotesCsv, rowsToCallNotes, type CallNoteCsvRow } from "@/lib/csv";
 
 const BATCH_SIZE = 25;
 
 type Step = "upload" | "preview" | "importing" | "summarizing" | "done";
+
+/** "Ryan Pearce FY25 calls.csv" -> "Ryan Pearce" is good enough as a fallback. */
+function repFromFileName(name: string) {
+  return name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim();
+}
 
 export function CsvImportSection() {
   const importFn = useServerFn(importCallNotes);
@@ -29,26 +34,56 @@ export function CsvImportSection() {
   const [draftsGenerated, setDraftsGenerated] = useState<number | null>(null);
 
   const repNames = useMemo(() => [...new Set(rows.map((r) => r.repName).filter(Boolean))], [rows]);
+  const missingDates = useMemo(() => rows.filter((r) => !r.callDate).length, [rows]);
+  const missingReps = useMemo(() => rows.filter((r) => !r.repName).length, [rows]);
 
-  function loadFile(file: File) {
+  // Typed once in the preview step and applied to every row that has no rep of
+  // its own when the import runs.
+  const [repOverride, setRepOverride] = useState("");
+
+  async function loadFile(file: File) {
     setParseError(null);
-    if (!file.name.toLowerCase().endsWith(".csv")) {
-      setParseError("Please choose a .csv file.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const parsed = parseCallNotesCsv(String(reader.result ?? ""));
+    const lower = file.name.toLowerCase();
+    const isExcel = lower.endsWith(".xlsx") || lower.endsWith(".xls");
+    const isText =
+      lower.endsWith(".csv") || lower.endsWith(".tsv") || lower.endsWith(".txt") || !isExcel;
+
+    try {
+      let parsed: CallNoteCsvRow[] = [];
+
+      if (isExcel) {
+        // One sheet per rep: the tab name becomes the rep for every row on it.
+        const XLSX = await import("xlsx");
+        const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+        for (const sheetName of wb.SheetNames) {
+          const table = XLSX.utils.sheet_to_json<string[]>(wb.Sheets[sheetName], {
+            header: 1,
+            raw: false,
+            defval: "",
+          });
+          const cells = table.map((r) => r.map((c) => String(c ?? "")));
+          parsed.push(
+            ...rowsToCallNotes(cells, { repName: sheetName.trim() }).map((r, i) => ({
+              ...r,
+              rowNumber: parsed.length + i + 1,
+            })),
+          );
+        }
+      } else if (isText) {
+        const text = await file.text();
+        parsed = parseCallNotesCsv(text, repFromFileName(file.name));
+      }
+
       if (parsed.length === 0) {
-        setParseError("No rows found in that file.");
+        setParseError("No call notes found in that file.");
         return;
       }
       setFileName(file.name);
       setRows(parsed);
       setStep("preview");
-    };
-    reader.onerror = () => setParseError("Could not read that file.");
-    reader.readAsText(file);
+    } catch {
+      setParseError("Could not read that file. Try saving it as CSV or Excel and upload again.");
+    }
   }
 
   function reset() {
@@ -63,6 +98,7 @@ export function CsvImportSection() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
+
   async function runImport() {
     setStep("importing");
     setProgress({ done: 0, total: rows.length });
@@ -74,8 +110,10 @@ export function CsvImportSection() {
       accountIds: [],
     };
     const accountIds = new Set<string>();
-    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-      const batch = rows.slice(i, i + BATCH_SIZE);
+    const fallbackRep = repOverride.trim();
+    const allRows = rows.map((r) => (r.repName ? r : { ...r, repName: fallbackRep }));
+    for (let i = 0; i < allRows.length; i += BATCH_SIZE) {
+      const batch = allRows.slice(i, i + BATCH_SIZE);
       try {
         const res = await importFn({ data: { rows: batch } });
         merged.imported += res.imported;
@@ -113,8 +151,8 @@ export function CsvImportSection() {
     <GlassCard className="p-5 mb-6">
       <SignalLabel>Import call notes</SignalLabel>
       <p className="mt-1 text-sm text-white/60">
-        Load historical call notes from a CSV export. Notes are stored as-is — no AI processing runs
-        at import time.
+        Load historical call notes from a CSV or Excel export, in whatever column order they come
+        in. Notes are stored as-is — no AI processing runs at import time.
       </p>
 
       <div className="mt-4">
@@ -132,6 +170,10 @@ export function CsvImportSection() {
             fileName={fileName}
             rows={rows}
             repNames={repNames}
+            missingDates={missingDates}
+            missingReps={missingReps}
+            repName={repOverride}
+            onRepName={setRepOverride}
             onCancel={reset}
             onImport={runImport}
           />
@@ -189,7 +231,7 @@ function UploadStep({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".csv"
+          accept=".csv,.tsv,.txt,.xlsx,.xls"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -202,9 +244,13 @@ function UploadStep({
 
       <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.03] p-3 text-xs text-white/60">
         <div className="mb-1 font-mono uppercase tracking-[0.14em] text-white/40">
-          Expected columns (in this order)
+          What the file can look like
         </div>
-        Rep Name · Account Name · Suburb · Call Date (DD/MM/YYYY) · Call Notes
+        Columns are matched by their heading, in any order. A heading like
+        “Outlet Name &amp; Suburb” is split into the outlet and its suburb. Dates in any common
+        format are read automatically. In an Excel file, each tab is treated as one rep and the tab
+        name becomes the rep — otherwise the file name is used, and you can correct it in the next
+        step.
       </div>
       <p className="mt-2 text-xs text-[var(--signal-risk)]">
         Importing the same file twice will create duplicate entries. Check before uploading.
@@ -217,12 +263,20 @@ function PreviewStep({
   fileName,
   rows,
   repNames,
+  missingDates,
+  missingReps,
+  repName,
+  onRepName,
   onCancel,
   onImport,
 }: {
   fileName: string;
   rows: CallNoteCsvRow[];
   repNames: string[];
+  missingDates: number;
+  missingReps: number;
+  repName: string;
+  onRepName: (name: string) => void;
   onCancel: () => void;
   onImport: () => void;
 }) {
@@ -253,7 +307,7 @@ function PreviewStep({
                 <td className="px-3 py-2 text-white/85">{r.repName}</td>
                 <td className="px-3 py-2 text-white/85">{r.accountName}</td>
                 <td className="px-3 py-2 text-white/70">{r.suburb || "—"}</td>
-                <td className="px-3 py-2 text-white/70">{r.callDate}</td>
+                <td className="px-3 py-2 text-white/70">{r.callDate || "—"}</td>
                 <td className="max-w-xs truncate px-3 py-2 text-white/70">{r.rawNote}</td>
               </tr>
             ))}
@@ -262,8 +316,36 @@ function PreviewStep({
       </div>
 
       <p className="mt-3 text-xs text-white/50">
-        <span className="text-white/70">Reps found in file:</span> {repNames.join(", ")}
+        <span className="text-white/70">Reps found in file:</span>{" "}
+        {repNames.length > 0 ? repNames.join(", ") : "none — set one below"}
       </p>
+
+      {missingReps > 0 && (
+        <div className="mt-3">
+          <label
+            htmlFor="import-rep-name"
+            className="block font-mono text-[10px] uppercase tracking-[0.12em] text-white/40"
+          >
+            Rep name for {missingReps} row{missingReps === 1 ? "" : "s"} without one
+          </label>
+          <input
+            id="import-rep-name"
+            type="text"
+            placeholder="e.g. Ryan Pearce"
+            value={repName}
+            onChange={(e) => onRepName(e.target.value)}
+            className="mt-1 w-full max-w-xs rounded-lg border border-white/15 bg-white/[0.04] px-3 py-2 text-sm text-white/90 outline-none focus:border-[var(--brand-cyan)]"
+          />
+        </div>
+      )}
+
+      {missingDates > 0 && (
+        <p className="mt-3 text-xs text-white/50">
+          {missingDates} row{missingDates === 1 ? "" : "s"} had no readable date — the notes will
+          still be imported, just without one.
+        </p>
+      )}
+
 
       <div className="mt-4 flex items-center gap-2">
         <button
