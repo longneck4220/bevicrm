@@ -12,7 +12,7 @@ import { SignOutLink } from "./SignOutLink";
  * name, not a placeholder.
  */
 export function ManagerHeader({ subtitle }: { subtitle?: string }) {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const displayName = displayNameFor(user, "Manager");
 
   return (
@@ -25,6 +25,14 @@ export function ManagerHeader({ subtitle }: { subtitle?: string }) {
           </span>
         )}
         <span className="flex items-center gap-3">
+          {role === "admin" && (
+            <Link
+              to="/admin"
+              className="rounded-lg border border-border px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground transition-colors duration-200 hover:text-foreground"
+            >
+              Admin
+            </Link>
+          )}
           <Link
             to="/account"
             className="text-sm font-medium text-foreground transition-colors duration-200 hover:text-muted-foreground"
