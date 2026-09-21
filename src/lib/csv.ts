@@ -132,8 +132,27 @@ function pad(n: number) {
   return n.toString().padStart(2, "0");
 }
 
+/**
+ * Decides whether a column of numeric dates is month-first (US, 9/14/2026) or
+ * day-first (Australian, 14/9/2026). Any value whose first part is above 12 can
+ * only be a day, and vice versa; ties default to day-first.
+ */
+export function detectMonthFirst(values: string[]): boolean {
+  let dayFirst = 0;
+  let monthFirst = 0;
+  for (const v of values) {
+    const m = /^(\d{1,2})[-/.](\d{1,2})[-/.]\d{2,4}/.exec(v.trim());
+    if (!m) continue;
+    const a = Number(m[1]);
+    const b = Number(m[2]);
+    if (a > 12 && b <= 12) dayFirst++;
+    else if (b > 12 && a <= 12) monthFirst++;
+  }
+  return monthFirst > dayFirst;
+}
+
 /** Accepts DD/MM/YYYY, D-M-YY, YYYY-MM-DD, "12 Sep 2025", "Sep 12 2025" and Excel serial numbers. */
-export function normaliseDate(raw: string): string {
+export function normaliseDate(raw: string, monthFirst = false): string {
   const v = raw.trim();
   if (!v) return "";
 
@@ -148,12 +167,19 @@ export function normaliseDate(raw: string): string {
   let m = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/.exec(v);
   if (m) return `${pad(Number(m[3]))}/${pad(Number(m[2]))}/${m[1]}`;
 
-  // D/M/Y (day first — Australian format)
+  // Numeric pair + year. Day-first unless the file reads as month-first, and a
+  // part above 12 always wins over the assumed order.
   m = /^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/.exec(v);
   if (m) {
     let year = Number(m[3]);
     if (year < 100) year += year > 70 ? 1900 : 2000;
-    return `${pad(Number(m[1]))}/${pad(Number(m[2]))}/${year}`;
+    const a = Number(m[1]);
+    const b = Number(m[2]);
+    let day = monthFirst ? b : a;
+    let month = monthFirst ? a : b;
+    if (month > 12 && day <= 12) [day, month] = [month, day];
+    if (month > 12 || month < 1 || day < 1 || day > 31) return "";
+    return `${pad(day)}/${pad(month)}/${year}`;
   }
 
   // 12 Sep 2025 / 12-Sep-25
