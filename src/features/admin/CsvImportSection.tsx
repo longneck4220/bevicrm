@@ -110,8 +110,10 @@ export function CsvImportSection() {
       accountIds: [],
     };
     const accountIds = new Set<string>();
-    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-      const batch = rows.slice(i, i + BATCH_SIZE);
+    const fallbackRep = repOverride.trim();
+    const allRows = rows.map((r) => (r.repName ? r : { ...r, repName: fallbackRep }));
+    for (let i = 0; i < allRows.length; i += BATCH_SIZE) {
+      const batch = allRows.slice(i, i + BATCH_SIZE);
       try {
         const res = await importFn({ data: { rows: batch } });
         merged.imported += res.imported;
