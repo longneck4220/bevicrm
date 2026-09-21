@@ -150,6 +150,7 @@ function RootComponent() {
       <AuthProvider>
         <TopNav />
         <Outlet />
+        <Toaster />
       </AuthProvider>
     </QueryClientProvider>
   );
