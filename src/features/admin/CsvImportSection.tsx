@@ -104,6 +104,7 @@ export function CsvImportSection() {
     setProgress({ done: 0, total: rows.length });
     const merged: ImportCallNotesResult = {
       imported: 0,
+      skipped: 0,
       accountsCreated: [],
       accountsMatched: 0,
       failed: [],
