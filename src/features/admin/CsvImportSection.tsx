@@ -1,6 +1,7 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { UploadCloud } from "lucide-react";
+import { CheckCircle2, UploadCloud } from "lucide-react";
+import { toast } from "sonner";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import {
   importCallNotes,
