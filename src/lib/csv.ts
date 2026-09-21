@@ -87,9 +87,25 @@ function classify(header: string): ColumnKind {
   return null;
 }
 
-/** Splits "Otto, Fortitude Valley" / "Otto - Fortitude Valley" into name + suburb. */
+/** Drops a trailing phone number, e.g. "GPO Hotel / FORTITUDE VALLEY - 07  5526 9222". */
+function stripTrailingPhone(value: string): string {
+  return value.replace(/[\s,–—-]*(?:\+?\d[\d\s()-]{6,})$/, "").trim();
+}
+
+/**
+ * Splits a combined outlet cell into name + suburb. Handles
+ * "Otto, Fortitude Valley", "Otto - Fortitude Valley" and
+ * "GPO Hotel / FORTITUDE VALLEY - 07  5526 9222".
+ */
 export function splitOutlet(value: string): { accountName: string; suburb: string } {
-  const v = value.trim();
+  const v = stripTrailingPhone(value.trim());
+  // A slash is the strongest signal — take the last one as the suburb boundary.
+  const slash = v.lastIndexOf("/");
+  if (slash > 0) {
+    const name = v.slice(0, slash).trim();
+    const suburb = v.slice(slash + 1).trim();
+    if (name && suburb) return { accountName: name, suburb };
+  }
   const m = /^(.*?)[\s]*[,–—-][\s]*([^,–—-]+)$/.exec(v);
   if (m && m[1].trim() && m[2].trim()) {
     return { accountName: m[1].trim(), suburb: m[2].trim() };
