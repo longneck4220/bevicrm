@@ -88,11 +88,19 @@ export function AdminUsersPage() {
   return (
     <div className="min-h-screen pt-28 pb-16 px-6">
       <div className="mx-auto max-w-5xl">
-        <header className="mb-6">
-          <h1 className="text-3xl font-semibold text-white tracking-tight">Users & Accounts</h1>
-          <p className="mt-2 text-white/60 text-sm">
-            Manage every user's accounts. Use this to clean up duplicates or remove stale records.
-          </p>
+        <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold text-white tracking-tight">Users & Accounts</h1>
+            <p className="mt-2 text-white/60 text-sm">
+              Manage every user's accounts. Use this to clean up duplicates or remove stale records.
+            </p>
+          </div>
+          <Link
+            to="/manager"
+            className="shrink-0 rounded-lg border border-white/10 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-white/70 transition-colors duration-200 hover:border-white/25 hover:text-white"
+          >
+            Team overview
+          </Link>
         </header>
 
         <InviteManagerSection />
