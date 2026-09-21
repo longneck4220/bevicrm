@@ -226,6 +226,7 @@ export const importCallNotes = createServerFn({ method: "POST" })
     }
 
     let imported = 0;
+    let skipped = 0;
     let accountsMatched = 0;
     const accountsCreated: string[] = [];
     const failed: { row: number; reason: string }[] = [];
