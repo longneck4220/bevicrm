@@ -497,6 +497,33 @@ function DoneStep({
         </p>
       )}
 
+      {result.repAssignments.length > 0 && (
+        <div className="mt-4">
+          <div className="text-sm text-white/70">Outlets handed to:</div>
+          <ul className="mt-1 space-y-1 text-sm text-white/60">
+            {result.repAssignments.map((ra) => (
+              <li key={ra.repName}>
+                <span className="text-white/85">{ra.repName}</span> — {ra.notes} note
+                {ra.notes === 1 ? "" : "s"}
+                {ra.created
+                  ? " · holding login created, ready for them to sign up"
+                  : ra.matched
+                    ? " · live on their BEVI login"
+                    : " · left under your account"}
+              </li>
+            ))}
+          </ul>
+          {result.reassignedAccounts > 0 && (
+            <p className="mt-1 text-xs text-white/50">
+              {result.reassignedAccounts} existing outlet
+              {result.reassignedAccounts === 1 ? "" : "s"} moved from your account to their rep.
+            </p>
+          )}
+        </div>
+      )}
+
+
+
       <div className="mt-4 text-sm">
         <div className="text-white/70">New accounts:</div>
         <div className="mt-1 text-white/50">
