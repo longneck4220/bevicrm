@@ -269,13 +269,22 @@ export function rowsToCallNotes(
 
   const body = hasHeader ? table.slice(1) : table;
   const offset = (options.startRow ?? 1) + (hasHeader ? 1 : 0);
+  const monthFirst =
+    options.monthFirst ??
+    (dateCol >= 0 ? detectMonthFirst(body.map((r) => r[dateCol] ?? "")) : false);
 
   const out: CallNoteCsvRow[] = [];
+  // Grouping rows ("Rank 1, Outlet / SUBURB - phone") name the outlet for the
+  // rows beneath them, so remember the last outlet seen and reuse it when a
+  // row's own outlet cell is blank.
+  let lastOutlet = "";
   body.forEach((r, i) => {
     const cell = (idx: number) => (idx >= 0 ? (r[idx] ?? "").trim() : "");
     const note = cell(noteCol);
-    const outletRaw = cell(outletCol);
-    if (!note && !outletRaw) return;
+    const outletRaw = cell(outletCol) || lastOutlet;
+    if (outletRaw) lastOutlet = outletRaw;
+    // A row with no note carries no intelligence — that's a grouping/header row.
+    if (!note) return;
 
     const split = splitOutlet(outletRaw);
     const suburbCell = cell(suburbCol);
@@ -284,7 +293,7 @@ export function rowsToCallNotes(
       repName: cell(repCol) || options.repName || "",
       accountName: split.accountName,
       suburb: suburbCell || split.suburb,
-      callDate: normaliseDate(cell(dateCol)),
+      callDate: normaliseDate(cell(dateCol), monthFirst),
       rawNote: note,
     });
   });
