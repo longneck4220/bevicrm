@@ -238,8 +238,14 @@ export type ImportCallNotesResult = {
   failed: { row: number; reason: string }[];
   /** IDs of every account that received a call_notes row in this batch — feeds generateMemoryDrafts. */
   accountIds: string[];
-  /** Per-rep outcome: matched to a BEVI account, or left under the importer. */
-  repAssignments: { repName: string; matched: boolean; userId: string | null; notes: number }[];
+  /** Per-rep outcome: matched to a BEVI login, newly created holding login, or left under the importer. */
+  repAssignments: {
+    repName: string;
+    matched: boolean;
+    userId: string | null;
+    created: boolean;
+    notes: number;
+  }[];
   /** Existing outlets moved from the importer to their rep in this batch. */
   reassignedAccounts: number;
 };
