@@ -7,11 +7,16 @@ import {
   generateMemoryDrafts,
   type ImportCallNotesResult,
 } from "@/lib/admin.functions";
-import { parseCallNotesCsv, type CallNoteCsvRow } from "@/lib/csv";
+import { parseCallNotesCsv, rowsToCallNotes, type CallNoteCsvRow } from "@/lib/csv";
 
 const BATCH_SIZE = 25;
 
 type Step = "upload" | "preview" | "importing" | "summarizing" | "done";
+
+/** "Ryan Pearce FY25 calls.csv" -> "Ryan Pearce" is good enough as a fallback. */
+function repFromFileName(name: string) {
+  return name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim();
+}
 
 export function CsvImportSection() {
   const importFn = useServerFn(importCallNotes);
@@ -29,26 +34,57 @@ export function CsvImportSection() {
   const [draftsGenerated, setDraftsGenerated] = useState<number | null>(null);
 
   const repNames = useMemo(() => [...new Set(rows.map((r) => r.repName).filter(Boolean))], [rows]);
+  const missingDates = useMemo(() => rows.filter((r) => !r.callDate).length, [rows]);
+  const missingReps = useMemo(() => rows.filter((r) => !r.repName).length, [rows]);
 
-  function loadFile(file: File) {
+  function applyRepName(name: string) {
+    const clean = name.trim();
+    setRows((prev) => prev.map((r) => (r.repName ? r : { ...r, repName: clean })));
+  }
+
+  async function loadFile(file: File) {
     setParseError(null);
-    if (!file.name.toLowerCase().endsWith(".csv")) {
-      setParseError("Please choose a .csv file.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const parsed = parseCallNotesCsv(String(reader.result ?? ""));
+    const lower = file.name.toLowerCase();
+    const isExcel = lower.endsWith(".xlsx") || lower.endsWith(".xls");
+    const isText =
+      lower.endsWith(".csv") || lower.endsWith(".tsv") || lower.endsWith(".txt") || !isExcel;
+
+    try {
+      let parsed: CallNoteCsvRow[] = [];
+
+      if (isExcel) {
+        // One sheet per rep: the tab name becomes the rep for every row on it.
+        const XLSX = await import("xlsx");
+        const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+        for (const sheetName of wb.SheetNames) {
+          const table = XLSX.utils.sheet_to_json<string[]>(wb.Sheets[sheetName], {
+            header: 1,
+            raw: false,
+            defval: "",
+          });
+          const cells = table.map((r) => r.map((c) => String(c ?? "")));
+          parsed.push(
+            ...rowsToCallNotes(cells, { repName: sheetName.trim() }).map((r, i) => ({
+              ...r,
+              rowNumber: parsed.length + i + 1,
+            })),
+          );
+        }
+      } else if (isText) {
+        const text = await file.text();
+        parsed = parseCallNotesCsv(text, repFromFileName(file.name));
+      }
+
       if (parsed.length === 0) {
-        setParseError("No rows found in that file.");
+        setParseError("No call notes found in that file.");
         return;
       }
       setFileName(file.name);
       setRows(parsed);
       setStep("preview");
-    };
-    reader.onerror = () => setParseError("Could not read that file.");
-    reader.readAsText(file);
+    } catch {
+      setParseError("Could not read that file. Try saving it as CSV or Excel and upload again.");
+    }
   }
 
   function reset() {
@@ -62,6 +98,7 @@ export function CsvImportSection() {
     setDraftsGenerated(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
+
 
   async function runImport() {
     setStep("importing");
