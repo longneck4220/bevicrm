@@ -104,6 +104,7 @@ export type Database = {
           owner_id: string
           raw_note: string
           rep_name: string
+          updated_at: string
         }
         Insert: {
           account_id: string
@@ -112,7 +113,8 @@ export type Database = {
           id?: string
           owner_id: string
           raw_note: string
-          rep_name: string
+          rep_name?: string
+          updated_at?: string
         }
         Update: {
           account_id?: string
@@ -122,6 +124,7 @@ export type Database = {
           owner_id?: string
           raw_note?: string
           rep_name?: string
+          updated_at?: string
         }
         Relationships: [
           {
