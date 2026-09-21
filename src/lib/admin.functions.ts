@@ -267,6 +267,22 @@ export const importCallNotes = createServerFn({ method: "POST" })
           }
         }
 
+        // The ongoing top-up file re-sends history alongside new calls, so an
+        // identical note for the same account and date is skipped instead of
+        // stored twice.
+        let dupeQuery = supabaseAdmin
+          .from("call_notes")
+          .select("id")
+          .eq("account_id", account.id)
+          .eq("raw_note", row.rawNote)
+          .limit(1);
+        dupeQuery = callDate ? dupeQuery.eq("call_date", callDate) : dupeQuery.is("call_date", null);
+        const { data: dupes } = await dupeQuery;
+        if (dupes && dupes.length > 0) {
+          skipped++;
+          continue;
+        }
+
         const { error: noteErr } = await supabaseAdmin.from("call_notes").insert({
           owner_id: context.userId,
           account_id: account.id,
