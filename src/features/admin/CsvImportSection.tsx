@@ -148,6 +148,20 @@ export function CsvImportSection() {
       }
     }
     setStep("done");
+
+    if (merged.failed.length > 0 && merged.imported === 0) {
+      toast.error("Upload finished with errors — nothing was saved.");
+    } else if (merged.failed.length > 0) {
+      toast.warning(
+        `Upload finished — ${merged.imported} note${merged.imported === 1 ? "" : "s"} saved, ${merged.failed.length} row${merged.failed.length === 1 ? "" : "s"} failed.`,
+      );
+    } else {
+      toast.success(
+        `Upload complete — ${merged.imported} note${merged.imported === 1 ? "" : "s"} saved${
+          merged.skipped > 0 ? `, ${merged.skipped} already on file` : ""
+        }.`,
+      );
+    }
   }
 
   return (
