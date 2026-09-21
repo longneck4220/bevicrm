@@ -118,6 +118,7 @@ export function CsvImportSection() {
       try {
         const res = await importFn({ data: { rows: batch } });
         merged.imported += res.imported;
+        merged.skipped += res.skipped;
         merged.accountsCreated.push(...res.accountsCreated);
         merged.accountsMatched += res.accountsMatched;
         merged.failed.push(...res.failed);
