@@ -307,6 +307,7 @@ export const importCallNotes = createServerFn({ method: "POST" })
 
     return {
       imported,
+      skipped,
       accountsCreated,
       accountsMatched,
       failed,
