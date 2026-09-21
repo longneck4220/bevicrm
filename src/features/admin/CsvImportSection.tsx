@@ -121,8 +121,11 @@ export function CsvImportSection() {
       accountsMatched: 0,
       failed: [],
       accountIds: [],
+      repAssignments: [],
+      reassignedAccounts: 0,
     };
     const accountIds = new Set<string>();
+    const repTotals = new Map<string, ImportCallNotesResult["repAssignments"][number]>();
     const fallbackRep = repOverride.trim();
     const allRows = rows.map((r) => (r.repName ? r : { ...r, repName: fallbackRep }));
     for (let i = 0; i < allRows.length; i += BATCH_SIZE) {
@@ -134,7 +137,16 @@ export function CsvImportSection() {
         merged.accountsCreated.push(...res.accountsCreated);
         merged.accountsMatched += res.accountsMatched;
         merged.failed.push(...res.failed);
+        merged.reassignedAccounts += res.reassignedAccounts;
         res.accountIds.forEach((id) => accountIds.add(id));
+        for (const ra of res.repAssignments) {
+          const prev = repTotals.get(ra.repName);
+          repTotals.set(ra.repName, {
+            ...ra,
+            created: (prev?.created ?? false) || ra.created,
+            notes: (prev?.notes ?? 0) + ra.notes,
+          });
+        }
       } catch (e) {
         merged.failed.push(
           ...batch.map((b) => ({
@@ -146,6 +158,7 @@ export function CsvImportSection() {
       setProgress({ done: Math.min(i + BATCH_SIZE, rows.length), total: rows.length });
     }
     merged.accountIds = [...accountIds];
+    merged.repAssignments = [...repTotals.values()].sort((a, b) => b.notes - a.notes);
     setResult(merged);
 
     if (merged.accountIds.length > 0) {
