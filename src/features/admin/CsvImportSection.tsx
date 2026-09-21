@@ -172,7 +172,8 @@ export function CsvImportSection() {
             repNames={repNames}
             missingDates={missingDates}
             missingReps={missingReps}
-            onRepName={applyRepName}
+            repName={repOverride}
+            onRepName={setRepOverride}
             onCancel={reset}
             onImport={runImport}
           />
