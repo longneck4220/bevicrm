@@ -37,10 +37,9 @@ export function CsvImportSection() {
   const missingDates = useMemo(() => rows.filter((r) => !r.callDate).length, [rows]);
   const missingReps = useMemo(() => rows.filter((r) => !r.repName).length, [rows]);
 
-  function applyRepName(name: string) {
-    const clean = name.trim();
-    setRows((prev) => prev.map((r) => (r.repName ? r : { ...r, repName: clean })));
-  }
+  // Typed once in the preview step and applied to every row that has no rep of
+  // its own when the import runs.
+  const [repOverride, setRepOverride] = useState("");
 
   async function loadFile(file: File) {
     setParseError(null);
