@@ -233,10 +233,10 @@ export const importCallNotes = createServerFn({ method: "POST" })
 
     for (const row of data.rows) {
       try {
+        // An unreadable or missing date must not cost us the note — the row is
+        // still imported, just without a call date.
         const callDate = parseDdMmYyyy(row.callDate);
-        if (!callDate) {
-          throw new Error(`Invalid date "${row.callDate}" — expected DD/MM/YYYY`);
-        }
+
 
         const key = keyOf(row.accountName, row.suburb);
         let account = byKey.get(key);
