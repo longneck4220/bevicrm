@@ -26,7 +26,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    // Tracks whose role is currently loaded/loading, so a token refresh for
+    // the same user doesn't re-trigger a role fetch (see below).
+    let roleLoadedForUserId: string | null = null;
+
     function loadRole(userId: string) {
+      roleLoadedForUserId = userId;
       setRoleLoading(true);
       supabase
         .from("user_roles")
@@ -40,10 +45,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
-      if (newSession?.user) {
-        // Deferred: Supabase forbids awaiting its own client inside this callback.
-        setTimeout(() => loadRole(newSession.user.id), 0);
+      const newUserId = newSession?.user?.id ?? null;
+      if (newUserId) {
+        // Supabase re-fires this event for routine token refreshes (e.g. a
+        // backgrounded tab regaining focus), not just on sign-in. Re-running
+        // loadRole every time flips roleLoading back to true, and
+        // RequireRole unmounts its children while roleLoading is true —
+        // wiping any in-progress page state (e.g. an unsaved /trial note).
+        // Only reload the role when the signed-in user actually changes.
+        if (newUserId !== roleLoadedForUserId) {
+          // Deferred: Supabase forbids awaiting its own client inside this callback.
+          setTimeout(() => loadRole(newUserId), 0);
+        }
       } else {
+        roleLoadedForUserId = null;
         setRole(null);
         setRoleLoading(false);
       }
