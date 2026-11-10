@@ -56,14 +56,26 @@ type Draft = {
 };
 
 const DRAFT_KEY = "bevi:trial:draft";
+// On iOS Safari, switching to another app and back routinely kills and
+// reloads the page's process - sessionStorage is scoped to that process/tab
+// lifetime and does not reliably survive it, which is exactly the case this
+// draft needs to survive. localStorage is disk-backed and does. The
+// trade-off is it's shared across tabs of this origin (not per-tab like
+// sessionStorage) and outlives the tab being closed, so a timestamp bounds
+// how long a stale draft can resurface.
+const DRAFT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 function loadDraft(): Draft | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.sessionStorage.getItem(DRAFT_KEY);
+    const raw = window.localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return null;
+    if (typeof parsed.savedAt !== "number" || Date.now() - parsed.savedAt > DRAFT_MAX_AGE_MS) {
+      window.localStorage.removeItem(DRAFT_KEY);
+      return null;
+    }
     return {
       activeId: typeof parsed.activeId === "string" ? parsed.activeId : null,
       rawNote: typeof parsed.rawNote === "string" ? parsed.rawNote : "",
@@ -85,9 +97,9 @@ function saveDraft(draft: Draft) {
     draft.attachments.length === 0;
   try {
     if (isEmpty) {
-      window.sessionStorage.removeItem(DRAFT_KEY);
+      window.localStorage.removeItem(DRAFT_KEY);
     } else {
-      window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, savedAt: Date.now() }));
     }
   } catch {
     // Storage can be unavailable (private browsing, quota) - losing the
@@ -116,7 +128,7 @@ export function TrialPage() {
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   // Skips the very first run of the account-switch reset effect below, so it
-  // doesn't immediately wipe out a draft just restored from sessionStorage.
+  // doesn't immediately wipe out a draft just restored from localStorage.
   const hasMountedRef = useRef(false);
 
   const generate = useServerFn(generateVisitIntelligence);
