@@ -48,25 +48,76 @@ type AiOutput = {
   }>;
 };
 
+type Draft = {
+  activeId: string | null;
+  rawNote: string;
+  supportingContext: string;
+  attachments: Attachment[];
+};
+
+const DRAFT_KEY = "bevi:trial:draft";
+
+function loadDraft(): Draft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+    return {
+      activeId: typeof parsed.activeId === "string" ? parsed.activeId : null,
+      rawNote: typeof parsed.rawNote === "string" ? parsed.rawNote : "",
+      supportingContext:
+        typeof parsed.supportingContext === "string" ? parsed.supportingContext : "",
+      attachments: Array.isArray(parsed.attachments) ? parsed.attachments : [],
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(draft: Draft) {
+  if (typeof window === "undefined") return;
+  const isEmpty =
+    !draft.activeId &&
+    !draft.rawNote.trim() &&
+    !draft.supportingContext.trim() &&
+    draft.attachments.length === 0;
+  try {
+    if (isEmpty) {
+      window.sessionStorage.removeItem(DRAFT_KEY);
+    } else {
+      window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }
+  } catch {
+    // Storage can be unavailable (private browsing, quota) - losing the
+    // autosave is strictly no worse than before this fix, so just skip it.
+  }
+}
+
 export function TrialPage() {
+  const [draft] = useState(loadDraft);
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [supportingContext, setSupportingContext] = useState("");
-  const [rawNote, setRawNote] = useState("");
+  const [activeId, setActiveId] = useState<string | null>(draft?.activeId ?? null);
+  const [supportingContext, setSupportingContext] = useState(draft?.supportingContext ?? "");
+  const [rawNote, setRawNote] = useState(draft?.rawNote ?? "");
   const [output, setOutput] = useState<AiOutput | null>(null);
   const [visitId, setVisitId] = useState<string | null>(null);
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const [newContact, setNewContact] = useState("");
   const [recognizing, setRecognizing] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>(draft?.attachments ?? []);
   const [memoryOpen, setMemoryOpen] = useState(true);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  // Skips the very first run of the account-switch reset effect below, so it
+  // doesn't immediately wipe out a draft just restored from sessionStorage.
+  const hasMountedRef = useRef(false);
 
   const generate = useServerFn(generateVisitIntelligence);
   const addAccount = useServerFn(createAccount);
@@ -99,8 +150,18 @@ export function TrialPage() {
   }
 
   useEffect(() => {
-    loadAccounts();
+    loadAccounts(draft?.activeId ?? undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Saves the in-progress note as a draft so it survives a tab switch or a
+  // phone reloading the page in the background (both wipe React state, and
+  // mobile browsers do the latter routinely) - without this, half-finished
+  // field notes get lost and reps disengage. Cleared automatically once
+  // there's nothing left worth keeping.
+  useEffect(() => {
+    saveDraft({ activeId, rawNote, supportingContext, attachments });
+  }, [activeId, rawNote, supportingContext, attachments]);
 
   useEffect(() => {
     return () => {
@@ -121,6 +182,10 @@ export function TrialPage() {
   // mutates the active account's `memory` field in place) - that would wipe out
   // whatever the user is mid-typing.
   useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
     if (active) {
       setOutput(null);
       setVisitId(null);
