@@ -28,7 +28,6 @@ import { Route as PublicResetPasswordRouteImport } from './routes/_public/reset-
 import { Route as PublicTryRouteImport } from './routes/_public/try'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
-import { Route as AuthenticatedConversationIdRouteImport } from './routes/_authenticated/conversation.$id'
 import { Route as AuthenticatedManagerIndexRouteImport } from './routes/_authenticated/manager.index'
 import { Route as AuthenticatedManagerRepIdRouteImport } from './routes/_authenticated/manager.$repId'
 import { Route as AuthenticatedPrepAccountIdRouteImport } from './routes/_authenticated/prep.$accountId'
@@ -131,12 +130,6 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedConversationIdRoute =
-  AuthenticatedConversationIdRouteImport.update({
-    id: '/conversation/$id',
-    path: '/conversation/$id',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedManagerIndexRoute =
   AuthenticatedManagerIndexRouteImport.update({
     id: '/',
@@ -184,7 +177,6 @@ export interface FileRoutesByFullPath {
   '/try': typeof PublicTryRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/manager/$repId': typeof AuthenticatedManagerRepIdRoute
   '/prep/$accountId': typeof AuthenticatedPrepAccountIdRoute
   '/visit/$id': typeof AuthenticatedVisitIdRoute
@@ -208,7 +200,6 @@ export interface FileRoutesByTo {
   '/try': typeof PublicTryRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/manager/$repId': typeof AuthenticatedManagerRepIdRoute
   '/prep/$accountId': typeof AuthenticatedPrepAccountIdRoute
   '/visit/$id': typeof AuthenticatedVisitIdRoute
@@ -236,7 +227,6 @@ export interface FileRoutesById {
   '/_public/': typeof PublicIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/_authenticated/conversation/$id': typeof AuthenticatedConversationIdRoute
   '/_authenticated/manager/$repId': typeof AuthenticatedManagerRepIdRoute
   '/_authenticated/prep/$accountId': typeof AuthenticatedPrepAccountIdRoute
   '/_authenticated/visit/$id': typeof AuthenticatedVisitIdRoute
@@ -263,7 +253,6 @@ export interface FileRouteTypes {
     | '/try'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
-    | '/conversation/$id'
     | '/manager/$repId'
     | '/prep/$accountId'
     | '/visit/$id'
@@ -287,7 +276,6 @@ export interface FileRouteTypes {
     | '/try'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
-    | '/conversation/$id'
     | '/manager/$repId'
     | '/prep/$accountId'
     | '/visit/$id'
@@ -314,7 +302,6 @@ export interface FileRouteTypes {
     | '/_public/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
-    | '/_authenticated/conversation/$id'
     | '/_authenticated/manager/$repId'
     | '/_authenticated/prep/$accountId'
     | '/_authenticated/visit/$id'
@@ -469,13 +456,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/conversation/$id': {
-      id: '/_authenticated/conversation/$id'
-      path: '/conversation/$id'
-      fullPath: '/conversation/$id'
-      preLoaderRoute: typeof AuthenticatedConversationIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/manager/': {
       id: '/_authenticated/manager/'
       path: '/'
@@ -534,7 +514,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedManagerRoute: typeof AuthenticatedManagerRouteWithChildren
   AuthenticatedMobileRoute: typeof AuthenticatedMobileRoute
   AuthenticatedTrialRoute: typeof AuthenticatedTrialRoute
-  AuthenticatedConversationIdRoute: typeof AuthenticatedConversationIdRoute
   AuthenticatedPrepAccountIdRoute: typeof AuthenticatedPrepAccountIdRoute
   AuthenticatedVisitIdRoute: typeof AuthenticatedVisitIdRoute
 }
@@ -546,7 +525,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedManagerRoute: AuthenticatedManagerRouteWithChildren,
   AuthenticatedMobileRoute: AuthenticatedMobileRoute,
   AuthenticatedTrialRoute: AuthenticatedTrialRoute,
-  AuthenticatedConversationIdRoute: AuthenticatedConversationIdRoute,
   AuthenticatedPrepAccountIdRoute: AuthenticatedPrepAccountIdRoute,
   AuthenticatedVisitIdRoute: AuthenticatedVisitIdRoute,
 }
