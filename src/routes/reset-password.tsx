@@ -8,7 +8,7 @@ import { fetchRoleForUser, homeForRole } from "@/lib/roles";
 const TITLE = "Set a new password · BEVI";
 const DESCRIPTION = "Choose a new password for your BEVI account.";
 
-export const Route = createFileRoute("/_public/reset-password")({
+export const Route = createFileRoute("/reset-password")({
   component: ResetPasswordPage,
   head: () => ({
     meta: [
@@ -17,6 +17,8 @@ export const Route = createFileRoute("/_public/reset-password")({
       { name: "robots", content: "noindex" },
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESCRIPTION },
     ],
