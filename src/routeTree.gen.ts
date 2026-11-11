@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as PublicRouteImport } from './routes/_public'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -24,7 +25,6 @@ import { Route as AuthenticatedTrialRouteImport } from './routes/_authenticated/
 import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as PublicHowItWorksRouteImport } from './routes/_public/how-it-works'
 import { Route as PublicLoginRouteImport } from './routes/_public/login'
-import { Route as PublicResetPasswordRouteImport } from './routes/_public/reset-password'
 import { Route as PublicTryRouteImport } from './routes/_public/try'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -45,6 +45,11 @@ const PublicRoute = PublicRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -109,11 +114,6 @@ const PublicLoginRoute = PublicLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => PublicRoute,
 } as any)
-const PublicResetPasswordRoute = PublicResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => PublicRoute,
-} as any)
 const PublicTryRoute = PublicTryRouteImport.update({
   id: '/try',
   path: '/try',
@@ -162,6 +162,7 @@ const ApiPublicWaitlistExportRoute = ApiPublicWaitlistExportRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
   '/mcp': typeof McpRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -173,7 +174,6 @@ export interface FileRoutesByFullPath {
   '/trial': typeof AuthenticatedTrialRoute
   '/how-it-works': typeof PublicHowItWorksRoute
   '/login': typeof PublicLoginRoute
-  '/reset-password': typeof PublicResetPasswordRoute
   '/try': typeof PublicTryRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -186,6 +186,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
   '/mcp': typeof McpRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -196,7 +197,6 @@ export interface FileRoutesByTo {
   '/trial': typeof AuthenticatedTrialRoute
   '/how-it-works': typeof PublicHowItWorksRoute
   '/login': typeof PublicLoginRoute
-  '/reset-password': typeof PublicResetPasswordRoute
   '/try': typeof PublicTryRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -211,6 +211,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
   '/mcp': typeof McpRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -222,7 +223,6 @@ export interface FileRoutesById {
   '/_authenticated/trial': typeof AuthenticatedTrialRoute
   '/_public/how-it-works': typeof PublicHowItWorksRoute
   '/_public/login': typeof PublicLoginRoute
-  '/_public/reset-password': typeof PublicResetPasswordRoute
   '/_public/try': typeof PublicTryRoute
   '/_public/': typeof PublicIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -238,6 +238,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/mcp'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -249,7 +250,6 @@ export interface FileRouteTypes {
     | '/trial'
     | '/how-it-works'
     | '/login'
-    | '/reset-password'
     | '/try'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -262,6 +262,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/mcp'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -272,7 +273,6 @@ export interface FileRouteTypes {
     | '/trial'
     | '/how-it-works'
     | '/login'
-    | '/reset-password'
     | '/try'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -286,6 +286,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_public'
     | '/mcp'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -297,7 +298,6 @@ export interface FileRouteTypes {
     | '/_authenticated/trial'
     | '/_public/how-it-works'
     | '/_public/login'
-    | '/_public/reset-password'
     | '/_public/try'
     | '/_public/'
     | '/.lovable/oauth/consent'
@@ -313,6 +313,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   PublicRoute: typeof PublicRouteWithChildren
   McpRoute: typeof McpRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -342,6 +343,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -426,13 +434,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof PublicLoginRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_public/reset-password': {
-      id: '/_public/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof PublicResetPasswordRouteImport
       parentRoute: typeof PublicRoute
     }
     '/_public/try': {
@@ -536,7 +537,6 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 interface PublicRouteChildren {
   PublicHowItWorksRoute: typeof PublicHowItWorksRoute
   PublicLoginRoute: typeof PublicLoginRoute
-  PublicResetPasswordRoute: typeof PublicResetPasswordRoute
   PublicTryRoute: typeof PublicTryRoute
   PublicIndexRoute: typeof PublicIndexRoute
 }
@@ -544,7 +544,6 @@ interface PublicRouteChildren {
 const PublicRouteChildren: PublicRouteChildren = {
   PublicHowItWorksRoute: PublicHowItWorksRoute,
   PublicLoginRoute: PublicLoginRoute,
-  PublicResetPasswordRoute: PublicResetPasswordRoute,
   PublicTryRoute: PublicTryRoute,
   PublicIndexRoute: PublicIndexRoute,
 }
@@ -556,6 +555,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   PublicRoute: PublicRouteWithChildren,
   McpRoute: McpRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
