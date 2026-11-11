@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
 const GenerateInput = z.object({
   accountId: z.string().uuid(),
@@ -115,6 +117,16 @@ Operating philosophy:
 - If there is not enough information, recommend the next best question or trust-building action.
 - Treat prior visit history as ground truth for trajectory. Reference what has already been tried, what objections have recurred, and how the relationship is evolving — but do not invent details not present in the history.
 - When reference documents are on file (price lists, promo decks, range cards, account plans, masterfiles), treat them as the authoritative source for products, pricing, and promo mechanics. Cite the file name when you use a fact from one. Never invent SKUs, prices, or promo terms that are not in the documents or the rep's note.
+
+Grounding rule (applies to every field):
+- Use only facts found in the rep's note, the account memory, prior visit history, supporting context, or the reference documents/deals catalog.
+- Do not add job titles, people's names, deadlines or specific dates (e.g. "by Friday"), brands, products, volumes or commitments that are not in those sources.
+- Where to put something useful that is not in those sources:
+  - next_best_move and missed_opportunity are the only fields where you may go beyond the sources. There, label it clearly as a suggestion (start the sentence with "Suggestion:") so the rep can tell it apart from what actually happened.
+  - In the CRM note, write "Not captured" instead of filling a gap.
+  - In updated_account_memory, leave it out. Memory is treated as ground truth on the next visit, so it must contain only sourced facts.
+  - In the follow-up email, leave it out. The email goes to the customer as written, so never put "Suggestion:" or any note-to-rep text in it. Only propose a time or date if the rep's note gave one; otherwise invite the customer to suggest what suits ("happy to work around your schedule").
+- Sign the follow-up email with the rep's name given in the input. Never use a placeholder such as "[Rep Name]" and never sign as BEVI. If the rep's name is "(unknown)", end with just a closing line such as "Cheers," and no name.
 
 Never:
 - invent pricing, product commitments, supply guarantees
@@ -233,11 +245,78 @@ export type AiOutput = {
   targeted_deals?: TargetedDeal[];
 };
 
+/**
+ * The signed-in rep's name for the email sign-off. Profile display_name is the
+ * name the rep set on the Account page; signup metadata and the email local
+ * part are fallbacks so the email is never signed with a placeholder.
+ */
+async function resolveRepName(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  claims: Record<string, unknown> | undefined,
+): Promise<string> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+  const meta = (claims?.user_metadata ?? {}) as Record<string, unknown>;
+  const email = typeof claims?.email === "string" ? claims.email : "";
+  const candidates = [data?.display_name, meta.full_name, meta.name];
+  const name = candidates.find((c): c is string => typeof c === "string" && c.trim().length > 0);
+  if (name) return name.trim();
+  // Last resort: an address like "john.smith@" reads as a name; "lmarshall@" does not,
+  // and signing an email with a username looks worse than a plain closing line.
+  const local = email.split("@")[0] ?? "";
+  if (/^[a-z]+[._-][a-z]+$/i.test(local)) {
+    return local
+      .split(/[._-]/)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
+  }
+  return "";
+}
+
+// Placeholders the model has been seen to emit in place of a name:
+// "[Rep Name]", "[Your Name]", "[Name]", "<Your name>", "{rep_name}", and a bare "BEVI" sign-off.
+const NAME_PLACEHOLDER = /[[<{]\s*(?:your|rep|sender|my)?[\s_]*(?:full[\s_]*)?name\s*[\]>}]/gi;
+
+/**
+ * Makes the email end with the rep's real name: swaps placeholders, replaces a
+ * "BEVI" sign-off line, and appends a sign-off when the body has none.
+ */
+const BEVI_SIGNOFF = /^(?:-\s*)?BEVI\.?$/i;
+
+export function signOffEmail(body: string, repName: string): string {
+  if (!repName) {
+    // No known name: drop placeholders and a bare "BEVI" sign-off, leave the closing line.
+    const lines = body.replace(NAME_PLACEHOLDER, "").trimEnd().split("\n");
+    if (BEVI_SIGNOFF.test((lines[lines.length - 1] ?? "").trim())) lines.pop();
+    return lines.join("\n").trimEnd();
+  }
+  let out = body.replace(NAME_PLACEHOLDER, repName).trimEnd();
+  const lines = out.split("\n");
+  const last = (lines[lines.length - 1] ?? "").trim();
+  if (BEVI_SIGNOFF.test(last)) {
+    lines[lines.length - 1] = repName;
+    return lines.join("\n");
+  }
+  // Only the sign-off area counts: the name appearing earlier ("Hi Matt" when the
+  // venue contact shares the rep's first name) must not suppress the sign-off.
+  const tail = lines.slice(-3).join("\n");
+  if (!tail.includes(repName)) {
+    const closing =
+      /^(cheers|thanks|thank you|regards|kind regards|best|best regards|many thanks|talk soon)[,!.]?$/i;
+    out = closing.test(last) ? `${out}\n${repName}` : `${out}\n\nCheers,\n${repName}`;
+  }
+  return out;
+}
+
 export const generateVisitIntelligence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => GenerateInput.parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId, claims } = context;
 
     const { data: account, error: accErr } = await supabase
       .from("accounts")
@@ -248,6 +327,8 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       if (accErr) console.error("[DB error] fetch account", accErr);
       throw new Error("Account not found");
     }
+
+    const repName = await resolveRepName(supabase, userId, claims);
 
     // Auto-recall: last 5 prior visits for this account (RLS scopes to current user)
     const { data: priorVisits, error: priorErr } = await supabase
@@ -352,6 +433,7 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
 
     const userPrompt = `Account: ${account.name}
 Contact: ${account.contact ?? "(unknown)"}
+Rep (the person sending the follow-up email): ${repName || "(unknown)"}
 
 Current account memory:
 """
@@ -390,6 +472,9 @@ Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-re
       system: SYSTEM_PROMPT,
       user: userPrompt,
     });
+    if (parsed?.follow_up_email) {
+      parsed.follow_up_email.body = signOffEmail(parsed.follow_up_email.body ?? "", repName);
+    }
 
     const { data: visit, error: visitErr } = await supabase
       .from("visits")
