@@ -51,7 +51,13 @@ export function MemoryReviewCard({
   const [draft, setDraft] = useState(proposedMemory);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [savedOnce, setSavedOnce] = useState(false);
+  // What this card last did to the account memory. Drives the banner, so a
+  // revert visibly changes the screen instead of leaving "Memory updated"
+  // sitting there looking like nothing happened.
+  const [status, setStatus] = useState<"none" | "saved" | "reverted">("none");
+  // The memory that is now on the account after a revert, shown in the card so
+  // the rep can see the change without scrolling back up or reloading.
+  const [restoredMemory, setRestoredMemory] = useState<string | null>(null);
 
   const [historyOpen, setHistoryOpen] = useState(false);
   const [versions, setVersions] = useState<MemoryVersion[] | null>(null);
@@ -84,7 +90,7 @@ export function MemoryReviewCard({
         },
       });
       onSaved(draft);
-      setSavedOnce(true);
+      setStatus("saved");
       setMode("idle");
       if (historyOpen || versions !== null) await loadVersions();
     } catch (e) {
@@ -100,6 +106,11 @@ export function MemoryReviewCard({
     try {
       const res = await restore({ data: { versionId } });
       onSaved(res.memory);
+      setRestoredMemory(res.memory);
+      setStatus("reverted");
+      // Deliberately not forcing mode back to "idle": a restore triggered from
+      // History while the rep is mid-merge must not throw away their edit. In
+      // review mode the "Current memory" pane already shows the restored text.
       await loadVersions();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not restore memory.");
@@ -138,7 +149,7 @@ export function MemoryReviewCard({
         </div>
       </div>
 
-      {savedOnce && mode === "idle" && (
+      {status === "saved" && mode === "idle" && (
         <div className="mb-3 flex items-center justify-between flex-wrap gap-2 rounded-md border border-[var(--brand-cyan)]/40 bg-[var(--brand-cyan)]/10 px-3 py-2">
           <span className="text-xs text-[var(--brand-cyan)]">Memory updated</span>
           {latestVersion && (
@@ -151,6 +162,18 @@ export function MemoryReviewCard({
               Revert to previous
             </button>
           )}
+        </div>
+      )}
+
+      {status === "reverted" && mode === "idle" && (
+        <div className="mb-3 rounded-md border border-white/20 bg-white/[0.06] px-3 py-2">
+          <div className="text-xs text-white/70">
+            Reverted — this account's memory is back to the earlier version below. The proposed
+            memory is still here if you want to adopt it again.
+          </div>
+          <pre className="mt-2 text-[12px] text-white/75 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto">
+            {(restoredMemory ?? "").trim() || "(empty)"}
+          </pre>
         </div>
       )}
 
