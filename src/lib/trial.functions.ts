@@ -122,7 +122,7 @@ Grounding rule (applies to every field):
 - Use only facts found in the rep's note, the account memory, prior visit history, supporting context, or the reference documents/deals catalog.
 - Do not add job titles, people's names, deadlines or specific dates (e.g. "by Friday"), brands, products, volumes or commitments that are not in those sources.
 - Where to put something useful that is not in those sources:
-  - next_best_move and missed_opportunity are the only fields where you may go beyond the sources. There, label it clearly as a suggestion (start the sentence with "Suggestion:") so the rep can tell it apart from what actually happened.
+  - next_best_move and missed_opportunity are the only fields where you may go beyond the sources. These fields are advice by nature, so write the recommendation, specific_ask and missed_opportunity as plain, confident statements with no label. Use the prefix "Suggestion:" only on a specific detail that is not in the sources (a particular product, price, discount, date or person you are proposing), and put it on that clause alone, never on the whole recommendation or ask. If everything you say is drawn from the sources, use no label at all.
   - In the CRM note, write "Not captured" instead of filling a gap.
   - In updated_account_memory, leave it out. Memory is treated as ground truth on the next visit, so it must contain only sourced facts.
   - In the follow-up email, leave it out. The email goes to the customer as written, so never put "Suggestion:" or any note-to-rep text in it. Only propose a time or date if the rep's note gave one; otherwise invite the customer to suggest what suits ("happy to work around your schedule").
