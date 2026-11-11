@@ -16,6 +16,7 @@ import {
   type AccountBriefingVisit,
 } from "@/lib/trial.functions";
 import { ReviewImportedHistoryCard } from "@/features/prep/ReviewImportedHistoryCard";
+import { hasImportedMemoryDraft } from "@/lib/memory-diff";
 import { riskFromOutput, momentumFromTrend, type Momentum } from "@/lib/signals";
 
 // `visits` is newest-first throughout this file (visits[0] is the latest).
@@ -110,11 +111,9 @@ export function PreVisitView({ data }: { data: AccountBriefing }) {
           </Link>
         </header>
 
-        {data.memory.trim().length === 0 &&
-          data.memoryDraft &&
-          data.memoryDraft.trim().length > 0 && (
+        {hasImportedMemoryDraft(data.memoryDraft) && data.memoryDraft && (
             <div className="mt-8">
-              <ReviewImportedHistoryCard accountId={data.id} memoryDraft={data.memoryDraft} />
+              <ReviewImportedHistoryCard key={`${data.id}:${data.memoryDraft}`} accountId={data.id} currentMemory={data.memory} memoryDraft={data.memoryDraft} />
             </div>
           )}
 
