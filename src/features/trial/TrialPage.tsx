@@ -88,6 +88,28 @@ function loadDraft(): Draft | null {
   }
 }
 
+function clearDraft() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    /* storage unavailable - nothing to clear */
+  }
+}
+
+// Identity of what was actually sent to the model, so the autosave below can
+// tell "this note has already been generated" from "the rep has started
+// editing again". Attachment text is excluded - the id is enough to identify
+// the file and keeps the fingerprint cheap.
+function draftFingerprint(draft: Draft): string {
+  return JSON.stringify({
+    activeId: draft.activeId,
+    rawNote: draft.rawNote,
+    supportingContext: draft.supportingContext,
+    attachments: draft.attachments.map((a) => a.id),
+  });
+}
+
 function saveDraft(draft: Draft) {
   if (typeof window === "undefined") return;
   const isEmpty =
@@ -130,6 +152,13 @@ export function TrialPage() {
   // Skips the very first run of the account-switch reset effect below, so it
   // doesn't immediately wipe out a draft just restored from localStorage.
   const hasMountedRef = useRef(false);
+  // Fingerprint of the note that was last generated successfully. While the
+  // composer still holds exactly that content there is nothing in progress to
+  // protect, so the draft stays cleared - otherwise an already-logged visit
+  // comes back in the box on the next page load and the rep types their next
+  // note into the middle of it (or logs the same visit twice). Editing
+  // anything afterwards makes the fingerprint stale and autosave resumes.
+  const generatedFingerprintRef = useRef<string | null>(null);
 
   const generate = useServerFn(generateVisitIntelligence);
   const addAccount = useServerFn(createAccount);
@@ -172,7 +201,16 @@ export function TrialPage() {
   // field notes get lost and reps disengage. Cleared automatically once
   // there's nothing left worth keeping.
   useEffect(() => {
-    saveDraft({ activeId, rawNote, supportingContext, attachments });
+    const current: Draft = { activeId, rawNote, supportingContext, attachments };
+    if (generatedFingerprintRef.current !== null) {
+      if (generatedFingerprintRef.current === draftFingerprint(current)) {
+        // Already generated and untouched since - keep it out of storage.
+        clearDraft();
+        return;
+      }
+      generatedFingerprintRef.current = null;
+    }
+    saveDraft(current);
   }, [activeId, rawNote, supportingContext, attachments]);
 
   useEffect(() => {
@@ -243,11 +281,37 @@ export function TrialPage() {
       });
       setOutput(res.output);
       setVisitId(res.visitId);
+      // The visit is saved server-side now, so the autosaved draft has done its
+      // job. Drop it immediately (the autosave effect below won't re-run if no
+      // composer state changed) and remember what was sent, so it stays dropped
+      // until the rep actually starts a new note.
+      generatedFingerprintRef.current = draftFingerprint({
+        activeId: active.id,
+        rawNote: noteToSubmit,
+        supportingContext,
+        attachments,
+      });
+      clearDraft();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
+  }
+
+  // Explicit "done with this one" for a rep logging a second visit without
+  // switching venue. Without it the generated note sits in the composer and
+  // the next note gets typed into the middle of it. The pack itself is already
+  // saved against the account, so nothing is lost by clearing the screen.
+  function handleStartNewNote() {
+    setRawNote("");
+    setSupportingContext("");
+    setAttachments([]);
+    setOutput(null);
+    setVisitId(null);
+    setError(null);
+    generatedFingerprintRef.current = null;
+    clearDraft();
   }
 
   function handleMemorySaved(memory: string) {
@@ -602,6 +666,16 @@ export function TrialPage() {
                 </span>
               )}
               {error && <span className="text-sm text-[var(--signal-risk)]">{error}</span>}
+              {output && !loading && (
+                <button
+                  type="button"
+                  onClick={handleStartNewNote}
+                  title="Clears the note and this pack from the screen. The visit stays saved in this account's history."
+                  className="px-4 py-2.5 rounded-xl text-sm text-white border border-white/15 hover:bg-white/10"
+                >
+                  Start a new note
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => handleGenerate()}
