@@ -15,7 +15,6 @@ import {
 import { MemoryReviewCard } from "./MemoryReviewCard";
 import { copyToClipboard } from "@/lib/clipboard";
 
-
 type Account = { id: string; name: string; contact: string | null; memory: string };
 type AiOutput = {
   needs_more_info: boolean;
@@ -135,6 +134,7 @@ export function TrialPage() {
   const [activeId, setActiveId] = useState<string | null>(draft?.activeId ?? null);
   const [supportingContext, setSupportingContext] = useState(draft?.supportingContext ?? "");
   const [rawNote, setRawNote] = useState(draft?.rawNote ?? "");
+  const [contextOpen, setContextOpen] = useState(false);
   const [output, setOutput] = useState<AiOutput | null>(null);
   const [visitId, setVisitId] = useState<string | null>(null);
 
@@ -328,7 +328,6 @@ export function TrialPage() {
     if (!active) return;
     setAccounts((prev) => prev.map((a) => (a.id === active.id ? { ...a, memory } : a)));
   }
-
 
   async function handleCreate() {
     if (!newName.trim()) return;
@@ -577,60 +576,6 @@ export function TrialPage() {
             </GlassCard>
           )}
 
-          {/* File library */}
-          <LibraryPanel
-            activeAccountId={active?.id ?? null}
-            activeAccountName={active?.name ?? null}
-            onAttach={({ id, name, text }) => {
-              if (attachments.some((a) => a.id === id)) return;
-              setAttachments((prev) => [...prev, { id, name, size: text.length, text }]);
-            }}
-          />
-
-          {/* Supporting context — paste only */}
-          <GlassCard className="p-5">
-            <SignalLabel>Supporting context (optional)</SignalLabel>
-            <p className="text-xs text-white/50 mt-1">
-              Paste prior emails, masterfile rows, promo notes. Attached library files appear as
-              chips.
-            </p>
-
-            {attachments.length > 0 && (
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {attachments.map((a) => (
-                  <li
-                    key={a.id}
-                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-xs text-white/85"
-                  >
-                    <span
-                      className="inline-block w-1.5 h-1.5 rounded-full"
-                      style={{ background: "var(--brand-cyan)" }}
-                    />
-                    <span className="font-medium">{a.name}</span>
-                    <span className="text-white/40">
-                      · {(a.text.length / 1000).toFixed(1)}k chars
-                    </span>
-                    <button
-                      onClick={() => removeAttachment(a.id)}
-                      className="ml-1 text-white/40 hover:text-white"
-                      aria-label={`Remove ${a.name}`}
-                    >
-                      ×
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <textarea
-              value={supportingContext}
-              onChange={(e) => setSupportingContext(e.target.value)}
-              disabled={!active}
-              placeholder="Paste anything here — prior emails, masterfile rows, promo plan notes…"
-              className="mt-3 w-full min-h-[80px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
-            />
-          </GlassCard>
-
           {/* Note */}
           <GlassCard tone="strong" className="p-5">
             <div className="flex items-center justify-between mb-3">
@@ -670,9 +615,8 @@ export function TrialPage() {
               {/* A rep needs to know this is the real record, not a sandbox. */}
               {active && !loading && (
                 <span className="mr-auto text-xs text-white/55">
-                  Saves to{" "}
-                  <span className="font-medium text-white/80">{active.name}</span> in your account
-                  history.
+                  Saves to <span className="font-medium text-white/80">{active.name}</span> in your
+                  account history.
                 </span>
               )}
               {error && <span className="text-sm text-[var(--signal-risk)]">{error}</span>}
@@ -709,6 +653,72 @@ export function TrialPage() {
               </p>
             )}
           </GlassCard>
+
+          {/* File library */}
+          <LibraryPanel
+            activeAccountId={active?.id ?? null}
+            activeAccountName={active?.name ?? null}
+            onAttach={({ id, name, text }) => {
+              if (attachments.some((a) => a.id === id)) return;
+              setAttachments((prev) => [...prev, { id, name, size: text.length, text }]);
+            }}
+          />
+
+          {/* Supporting context — collapsed behind "+ Add context" unless it already has content */}
+          {!(contextOpen || supportingContext.trim() || attachments.length > 0) && (
+            <button
+              type="button"
+              onClick={() => setContextOpen(true)}
+              disabled={!active}
+              className="block text-sm text-white/70 hover:text-white disabled:opacity-40"
+            >
+              + Add context
+            </button>
+          )}
+          {(contextOpen || supportingContext.trim() || attachments.length > 0) && (
+            <GlassCard className="p-5">
+              <SignalLabel>Supporting context (optional)</SignalLabel>
+              <p className="text-xs text-white/50 mt-1">
+                Paste prior emails, masterfile rows, promo notes. Attached library files appear as
+                chips.
+              </p>
+
+              {attachments.length > 0 && (
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {attachments.map((a) => (
+                    <li
+                      key={a.id}
+                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-xs text-white/85"
+                    >
+                      <span
+                        className="inline-block w-1.5 h-1.5 rounded-full"
+                        style={{ background: "var(--brand-cyan)" }}
+                      />
+                      <span className="font-medium">{a.name}</span>
+                      <span className="text-white/40">
+                        · {(a.text.length / 1000).toFixed(1)}k chars
+                      </span>
+                      <button
+                        onClick={() => removeAttachment(a.id)}
+                        className="ml-1 text-white/40 hover:text-white"
+                        aria-label={`Remove ${a.name}`}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <textarea
+                value={supportingContext}
+                onChange={(e) => setSupportingContext(e.target.value)}
+                disabled={!active}
+                placeholder="Paste anything here — prior emails, masterfile rows, promo plan notes…"
+                className="mt-3 w-full min-h-[80px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[var(--brand-cyan)] resize-y"
+              />
+            </GlassCard>
+          )}
 
           {/* Output */}
           {output && (
@@ -770,7 +780,6 @@ function OutputPanel({
   onClarifyingAnswers: (answers: string[]) => void;
   loading: boolean;
 }) {
-
   const [rated, setRated] = useState<"good" | "needs_edit" | null>(null);
   const [clarifyingAnswers, setClarifyingAnswers] = useState<string[]>(() =>
     output.clarifying_questions.map(() => ""),
@@ -936,7 +945,6 @@ function OutputPanel({
         visitId={visitId}
         onSaved={onMemorySaved}
       />
-
 
       {/* 6. MISSED OPPORTUNITY */}
       {output.missed_opportunity && (
