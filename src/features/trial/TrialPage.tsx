@@ -159,6 +159,16 @@ export function TrialPage() {
   // note into the middle of it (or logs the same visit twice). Editing
   // anything afterwards makes the fingerprint stale and autosave resumes.
   const generatedFingerprintRef = useRef<string | null>(null);
+  // The result renders below the composer, often off-screen on a phone. Scroll
+  // to it once per generate (not on every re-render of the same output).
+  const outputRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!output) return;
+    const id = requestAnimationFrame(() =>
+      outputRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
+    return () => cancelAnimationFrame(id);
+  }, [output]);
 
   const generate = useServerFn(generateVisitIntelligence);
   const addAccount = useServerFn(createAccount);
@@ -702,17 +712,18 @@ export function TrialPage() {
 
           {/* Output */}
           {output && (
-            <OutputPanel
-              output={output}
-              accountId={active?.id ?? ""}
-              currentMemory={active?.memory ?? ""}
-              visitId={visitId}
-              onMemorySaved={handleMemorySaved}
-              onRate={handleRate}
-              onClarifyingAnswers={handleClarifyingAnswers}
-              loading={loading}
-            />
-
+            <div ref={outputRef} className="scroll-mt-24">
+              <OutputPanel
+                output={output}
+                accountId={active?.id ?? ""}
+                currentMemory={active?.memory ?? ""}
+                visitId={visitId}
+                onMemorySaved={handleMemorySaved}
+                onRate={handleRate}
+                onClarifyingAnswers={handleClarifyingAnswers}
+                loading={loading}
+              />
+            </div>
           )}
         </div>
       </div>

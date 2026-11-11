@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
 const GenerateInput = z.object({
   accountId: z.string().uuid(),
@@ -233,11 +235,57 @@ export type AiOutput = {
   targeted_deals?: TargetedDeal[];
 };
 
+/**
+ * The signed-in rep's name for the email sign-off. Profile display_name is the
+ * name the rep set on the Account page; signup metadata and the email local
+ * part are fallbacks so the email is never signed with a placeholder.
+ */
+async function resolveRepName(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  claims: Record<string, unknown> | undefined,
+): Promise<string> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+  const meta = (claims?.user_metadata ?? {}) as Record<string, unknown>;
+  const email = typeof claims?.email === "string" ? claims.email : "";
+  const candidates = [data?.display_name, meta.full_name, meta.name, email.split("@")[0]];
+  const name = candidates.find((c): c is string => typeof c === "string" && c.trim().length > 0);
+  return name?.trim() || "";
+}
+
+// Placeholders the model has been seen to emit in place of a name:
+// "[Rep Name]", "[Your Name]", "[Name]", "<Your name>", "{rep_name}", and a bare "BEVI" sign-off.
+const NAME_PLACEHOLDER = /[[<{]\s*(?:your|rep|sender|my)?[\s_]*(?:full[\s_]*)?name\s*[\]>}]/gi;
+
+/**
+ * Makes the email end with the rep's real name: swaps placeholders, replaces a
+ * "BEVI" sign-off line, and appends a sign-off when the body has none.
+ */
+export function signOffEmail(body: string, repName: string): string {
+  if (!repName) return body.replace(NAME_PLACEHOLDER, "").trimEnd();
+  let out = body.replace(NAME_PLACEHOLDER, repName).trimEnd();
+  const lines = out.split("\n");
+  const last = (lines[lines.length - 1] ?? "").trim();
+  if (/^(?:-\s*)?BEVI\.?$/i.test(last)) {
+    lines[lines.length - 1] = repName;
+    out = lines.join("\n");
+  } else if (!out.includes(repName)) {
+    const closing =
+      /^(cheers|thanks|thank you|regards|kind regards|best|many thanks|talk soon)[,!.]?$/i;
+    out = closing.test(last) ? `${out}\n${repName}` : `${out}\n\nCheers,\n${repName}`;
+  }
+  return out;
+}
+
 export const generateVisitIntelligence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => GenerateInput.parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId, claims } = context;
 
     const { data: account, error: accErr } = await supabase
       .from("accounts")
@@ -248,6 +296,8 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       if (accErr) console.error("[DB error] fetch account", accErr);
       throw new Error("Account not found");
     }
+
+    const repName = await resolveRepName(supabase, userId, claims);
 
     // Auto-recall: last 5 prior visits for this account (RLS scopes to current user)
     const { data: priorVisits, error: priorErr } = await supabase
@@ -352,6 +402,7 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
 
     const userPrompt = `Account: ${account.name}
 Contact: ${account.contact ?? "(unknown)"}
+Rep (the person sending the follow-up email): ${repName}
 
 Current account memory:
 """
@@ -390,6 +441,9 @@ Generate the BEVI output JSON now. Reconstruct the CRM note into labelled CRM-re
       system: SYSTEM_PROMPT,
       user: userPrompt,
     });
+    if (parsed?.follow_up_email) {
+      parsed.follow_up_email.body = signOffEmail(parsed.follow_up_email.body ?? "", repName);
+    }
 
     const { data: visit, error: visitErr } = await supabase
       .from("visits")
