@@ -118,11 +118,15 @@ Operating philosophy:
 - Treat prior visit history as ground truth for trajectory. Reference what has already been tried, what objections have recurred, and how the relationship is evolving — but do not invent details not present in the history.
 - When reference documents are on file (price lists, promo decks, range cards, account plans, masterfiles), treat them as the authoritative source for products, pricing, and promo mechanics. Cite the file name when you use a fact from one. Never invent SKUs, prices, or promo terms that are not in the documents or the rep's note.
 
-Grounding rule (applies to every field, including the CRM note and the follow-up email):
+Grounding rule (applies to every field):
 - Use only facts found in the rep's note, the account memory, prior visit history, supporting context, or the reference documents/deals catalog.
-- Do not add job titles, people's names, deadlines or dates (e.g. "by Friday"), brands, products, volumes or commitments that are not in those sources.
-- If you want to add something useful that is not in those sources, label it explicitly as a suggestion (prefix "Suggestion:") so the rep can tell it apart from what actually happened.
-- Sign the follow-up email with the rep's name given in the input. Never use a placeholder such as "[Rep Name]" and never sign as BEVI.
+- Do not add job titles, people's names, deadlines or specific dates (e.g. "by Friday"), brands, products, volumes or commitments that are not in those sources.
+- Where to put something useful that is not in those sources:
+  - next_best_move and missed_opportunity are the only fields where you may go beyond the sources. There, label it clearly as a suggestion (start the sentence with "Suggestion:") so the rep can tell it apart from what actually happened.
+  - In the CRM note, write "Not captured" instead of filling a gap.
+  - In updated_account_memory, leave it out. Memory is treated as ground truth on the next visit, so it must contain only sourced facts.
+  - In the follow-up email, leave it out. The email goes to the customer as written, so never put "Suggestion:" or any note-to-rep text in it. Only propose a time or date if the rep's note gave one; otherwise invite the customer to suggest what suits ("happy to work around your schedule").
+- Sign the follow-up email with the rep's name given in the input. Never use a placeholder such as "[Rep Name]" and never sign as BEVI. If the rep's name is "(unknown)", end with just a closing line such as "Cheers," and no name.
 
 Never:
 - invent pricing, product commitments, supply guarantees
@@ -258,9 +262,19 @@ async function resolveRepName(
     .maybeSingle();
   const meta = (claims?.user_metadata ?? {}) as Record<string, unknown>;
   const email = typeof claims?.email === "string" ? claims.email : "";
-  const candidates = [data?.display_name, meta.full_name, meta.name, email.split("@")[0]];
+  const candidates = [data?.display_name, meta.full_name, meta.name];
   const name = candidates.find((c): c is string => typeof c === "string" && c.trim().length > 0);
-  return name?.trim() || "";
+  if (name) return name.trim();
+  // Last resort: an address like "john.smith@" reads as a name; "lmarshall@" does not,
+  // and signing an email with a username looks worse than a plain closing line.
+  const local = email.split("@")[0] ?? "";
+  if (/^[a-z]+[._-][a-z]+$/i.test(local)) {
+    return local
+      .split(/[._-]/)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
+  }
+  return "";
 }
 
 // Placeholders the model has been seen to emit in place of a name:
@@ -271,17 +285,28 @@ const NAME_PLACEHOLDER = /[[<{]\s*(?:your|rep|sender|my)?[\s_]*(?:full[\s_]*)?na
  * Makes the email end with the rep's real name: swaps placeholders, replaces a
  * "BEVI" sign-off line, and appends a sign-off when the body has none.
  */
+const BEVI_SIGNOFF = /^(?:-\s*)?BEVI\.?$/i;
+
 export function signOffEmail(body: string, repName: string): string {
-  if (!repName) return body.replace(NAME_PLACEHOLDER, "").trimEnd();
+  if (!repName) {
+    // No known name: drop placeholders and a bare "BEVI" sign-off, leave the closing line.
+    const lines = body.replace(NAME_PLACEHOLDER, "").trimEnd().split("\n");
+    if (BEVI_SIGNOFF.test((lines[lines.length - 1] ?? "").trim())) lines.pop();
+    return lines.join("\n").trimEnd();
+  }
   let out = body.replace(NAME_PLACEHOLDER, repName).trimEnd();
   const lines = out.split("\n");
   const last = (lines[lines.length - 1] ?? "").trim();
-  if (/^(?:-\s*)?BEVI\.?$/i.test(last)) {
+  if (BEVI_SIGNOFF.test(last)) {
     lines[lines.length - 1] = repName;
-    out = lines.join("\n");
-  } else if (!out.includes(repName)) {
+    return lines.join("\n");
+  }
+  // Only the sign-off area counts: the name appearing earlier ("Hi Matt" when the
+  // venue contact shares the rep's first name) must not suppress the sign-off.
+  const tail = lines.slice(-3).join("\n");
+  if (!tail.includes(repName)) {
     const closing =
-      /^(cheers|thanks|thank you|regards|kind regards|best|many thanks|talk soon)[,!.]?$/i;
+      /^(cheers|thanks|thank you|regards|kind regards|best|best regards|many thanks|talk soon)[,!.]?$/i;
     out = closing.test(last) ? `${out}\n${repName}` : `${out}\n\nCheers,\n${repName}`;
   }
   return out;
@@ -408,7 +433,7 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
 
     const userPrompt = `Account: ${account.name}
 Contact: ${account.contact ?? "(unknown)"}
-Rep (the person sending the follow-up email): ${repName}
+Rep (the person sending the follow-up email): ${repName || "(unknown)"}
 
 Current account memory:
 """
