@@ -13,6 +13,7 @@ import {
   transcribeAudio,
 } from "@/lib/trial.functions";
 import { MemoryReviewCard } from "./MemoryReviewCard";
+import { WalkInCard, type LastVisit } from "./WalkInCard";
 import { copyToClipboard } from "@/lib/clipboard";
 
 type Account = { id: string; name: string; contact: string | null; memory: string };
@@ -146,6 +147,7 @@ export function TrialPage() {
   const [transcribing, setTranscribing] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>(draft?.attachments ?? []);
   const [memoryOpen, setMemoryOpen] = useState(true);
+  const [lastVisit, setLastVisit] = useState<LastVisit>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -235,6 +237,32 @@ export function TrialPage() {
       mediaStreamRef.current = null;
     };
   }, []);
+
+  // Latest saved visit for the selected venue, for the "Before you walk in"
+  // card. Refetched when a new visit is saved (visitId) so it stays current.
+  useEffect(() => {
+    setLastVisit(null);
+    if (!activeId) return;
+    let cancelled = false;
+    supabase
+      .from("visits")
+      .select("created_at, ai_output")
+      .eq("account_id", activeId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("[load last visit]", error);
+          return;
+        }
+        setLastVisit(data ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId, visitId]);
 
   // Intentionally keyed on activeId only, not `active`: this should reset the
   // composer when the user switches accounts, but must NOT re-fire when `active`
@@ -542,31 +570,13 @@ export function TrialPage() {
               product promise, and it was previously only visible baked into the
               AI output *after* the visit - too late to help the rep walk in. */}
           {active ? (
-            <GlassCard className="p-4">
-              <div className="flex items-center gap-2">
-                <SignalLabel>Before you walk in · {active.name}</SignalLabel>
-                {(active.memory ?? "").trim() && (
-                  <button
-                    type="button"
-                    onClick={() => setMemoryOpen((v) => !v)}
-                    className="ml-auto text-[11px] text-white/60 hover:text-white"
-                  >
-                    {memoryOpen ? "Hide" : "Show"}
-                  </button>
-                )}
-              </div>
-              {(active.memory ?? "").trim() ? (
-                memoryOpen && (
-                  <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-white/80">
-                    {active.memory}
-                  </p>
-                )
-              ) : (
-                <p className="mt-2 text-sm text-white/50">
-                  Nothing on file yet — this will be the first visit recorded for {active.name}.
-                </p>
-              )}
-            </GlassCard>
+            <WalkInCard
+              accountName={active.name}
+              memory={active.memory}
+              lastVisit={lastVisit}
+              open={memoryOpen}
+              onToggle={() => setMemoryOpen((v) => !v)}
+            />
           ) : (
             <GlassCard className="p-4">
               <SignalLabel>No account selected</SignalLabel>
