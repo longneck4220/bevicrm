@@ -77,14 +77,14 @@ export function RepDetailPage() {
         </Link>
         <div className="mt-6">
           {/* Rep header: name + smaller rings */}
-          <div className="flex items-center justify-between gap-4">
-            <div>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+            <div className="min-w-0 break-words">
               <h1 className="text-xl font-bold leading-tight">{rep.name}</h1>
               <div className="mt-0.5 text-sm text-muted-foreground">
                 {rep.email ?? `${rep.accountCount} account${rep.accountCount === 1 ? "" : "s"}`}
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 flex-col items-center gap-3 sm:flex-row">
               <RepRings
                 rings={{
                   volume: Math.min(rep.callsThisWeek / rep.target, 1),
