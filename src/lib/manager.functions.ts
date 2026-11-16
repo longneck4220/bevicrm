@@ -31,10 +31,9 @@ export type ManagerRep = {
 };
 
 /**
- * Real-data equivalent of the manager section's original mock (see
- * features/manager/data.ts). Any manager or admin can see every rep — there's
- * no per-manager team assignment in the schema yet, and with only a handful
- * of reps today a flat list covers it. Numbers shown are only ones with a
+ * Real-data rep overview for the manager section. Any manager or admin can
+ * see every rep — there's no per-manager team assignment in the schema yet,
+ * and with only a handful of reps today a flat list covers it. Numbers shown are only ones with a
  * real source: calls this week, notes quality (was the AI ever left without
  * enough info), and account momentum (risk flags + posture trend) — nothing
  * here is fabricated to fill a metric the app doesn't actually track.

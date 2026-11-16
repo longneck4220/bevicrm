@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
+import type { LibraryDeal } from "@/lib/library.functions";
 
 const GenerateInput = z.object({
   accountId: z.string().uuid(),
@@ -406,17 +407,9 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
 
     // Structured deals catalog (pre-extracted at upload) — primary source for end-of-call deal pitches.
     const dealsBlock = (() => {
-      type DealRow = {
-        product: string;
-        discount: string;
-        starts_on: string | null;
-        ends_on: string | null;
-        eligibility: string;
-        notes: string;
-      };
       const lines: string[] = [];
       for (const f of libFiles ?? []) {
-        const arr = (f.deals as unknown as DealRow[] | null) ?? [];
+        const arr = (f.deals as unknown as LibraryDeal[] | null) ?? [];
         if (!Array.isArray(arr) || !arr.length) continue;
         const scope = f.account_id ? "pinned" : "global";
         for (const d of arr) {

@@ -88,38 +88,3 @@ export function MomentumBadge({ momentum }: { momentum: "accelerating" | "steady
     </span>
   );
 }
-
-export function Sparkline({
-  values,
-  color = "var(--brand-cyan)",
-}: {
-  values: number[];
-  color?: string;
-}) {
-  const w = 120;
-  const h = 32;
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  const range = Math.max(max - min, 1);
-  const pts = values
-    .map((v, i) => `${(i / (values.length - 1)) * w},${h - ((v - min) / range) * h}`)
-    .join(" ");
-  return (
-    <svg width={w} height={h} className="overflow-visible">
-      <polyline
-        points={pts}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle
-        cx={w}
-        cy={h - ((values[values.length - 1] - min) / range) * h}
-        r="2.5"
-        fill={color}
-      />
-    </svg>
-  );
-}

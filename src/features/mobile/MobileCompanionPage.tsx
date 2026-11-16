@@ -4,14 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { GlassCard, RiskDot, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
-import { listVisits, type VisitListItem } from "@/lib/trial.functions";
-
-function visitRisk(v: VisitListItem): "low" | "medium" | "high" {
-  const flags = v.ai_output?.commercial_signals?.risk_flags?.length ?? 0;
-  if (flags >= 2) return "high";
-  if (flags === 1) return "medium";
-  return "low";
-}
+import { listVisits } from "@/lib/trial.functions";
+import { riskFromOutput } from "@/lib/signals";
 
 export function MobileCompanionPage() {
   const fetchVisits = useServerFn(listVisits);
@@ -70,7 +64,7 @@ export function MobileCompanionPage() {
             {today.map((v) => (
               <Link key={v.id} to="/visit/$id" params={{ id: v.id }}>
                 <GlassCard className="p-4 flex items-center gap-3 active:bg-white/[0.04] transition">
-                  <RiskDot risk={visitRisk(v)} />
+                  <RiskDot risk={riskFromOutput(v.ai_output)} />
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium text-white truncate">{v.account_name}</div>
                     <div className="text-[11px] text-white/50 truncate">

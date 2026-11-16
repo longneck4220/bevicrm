@@ -141,27 +141,3 @@ export function RingLegend() {
     </div>
   );
 }
-
-export function SplitBar({ onPremise }: { onPremise: number }) {
-  return (
-    <div>
-      <div
-        className="flex h-1.5 w-full overflow-hidden"
-        style={{ borderRadius: 2 }}
-      >
-        <div
-          style={{ width: `${onPremise}%`, background: "var(--foreground)" }}
-        />
-        <div
-          style={{
-            width: `${100 - onPremise}%`,
-            background: "rgba(255,255,255,0.15)",
-          }}
-        />
-      </div>
-      <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-        On premise {onPremise}% · Retail {100 - onPremise}%
-      </div>
-    </div>
-  );
-}

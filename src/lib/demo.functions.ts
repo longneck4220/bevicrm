@@ -25,8 +25,7 @@ export const generateDemoIntelligence = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("AI is not configured. Please try again later.");
 
-    const venue = data.venue.slice(0, 120);
-    const rawNote = data.rawNote.slice(0, 4000);
+    const { venue, rawNote } = data;
 
     const userPrompt = `Account: ${venue}
 Contact: (unknown)
