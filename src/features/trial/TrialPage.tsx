@@ -15,6 +15,7 @@ import {
 import { MemoryReviewCard } from "./MemoryReviewCard";
 import { WalkInCard, type LastVisit } from "./WalkInCard";
 import { CopyButton } from "@/features/shared/CopyButton";
+import { DeleteVenueControl } from "./DeleteVenueControl";
 
 type Account = { id: string; name: string; contact: string | null; memory: string };
 type AiOutput = {
@@ -288,6 +289,18 @@ export function TrialPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
+  // The deleted venue's half-written note must not linger in the composer.
+  function handleVenueDeleted() {
+    setActiveId(null);
+    setOutput(null);
+    setVisitId(null);
+    setRawNote("");
+    setSupportingContext("");
+    setAttachments([]);
+    setError(null);
+    loadAccounts();
+  }
+
   function buildSupportingContext(): string {
     const parts: string[] = [];
     if (supportingContext.trim()) {
@@ -536,6 +549,13 @@ export function TrialPage() {
                 </span>
               </div>
               <AccountSearch accounts={accounts} activeId={activeId} onSelect={setActiveId} />
+              {active && (
+                <DeleteVenueControl
+                  key={active.id}
+                  venue={{ id: active.id, name: active.name }}
+                  onDeleted={handleVenueDeleted}
+                />
+              )}
             </GlassCard>
 
             <GlassCard className="p-4">
