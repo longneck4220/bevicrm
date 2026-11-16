@@ -1,11 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
 import { GlassCard, SignalLabel, SignalChip } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { getVisit } from "@/lib/trial.functions";
-import { copyToClipboard } from "@/lib/clipboard";
+import { CopyButton } from "@/features/shared/CopyButton";
 
 export function VisitDetailPage({ id }: { id: string }) {
   const fetchVisit = useServerFn(getVisit);
@@ -13,7 +12,6 @@ export function VisitDetailPage({ id }: { id: string }) {
     queryKey: ["visit", id],
     queryFn: () => fetchVisit({ data: { id } }),
   });
-  const [copied, setCopied] = useState<"note" | "email" | null>(null);
 
   if (isLoading) {
     return (
@@ -35,12 +33,6 @@ export function VisitDetailPage({ id }: { id: string }) {
 
   const ai = data.ai_output;
   const created = new Date(data.created_at).toLocaleString();
-
-  async function copy(text: string, which: "note" | "email") {
-    const ok = await copyToClipboard(text);
-    setCopied(ok ? which : null);
-    setTimeout(() => setCopied(null), 1500);
-  }
 
   return (
     <main className="relative pt-28 pb-24">
@@ -153,14 +145,9 @@ export function VisitDetailPage({ id }: { id: string }) {
 
             {/* CRM note */}
             <GlassCard className="mt-6 p-6">
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                 <SignalLabel as="h2">CRM note</SignalLabel>
-                <button
-                  onClick={() => copy(ai.combined_crm_note, "note")}
-                  className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white"
-                >
-                  {copied === "note" ? "Copied" : "Copy"}
-                </button>
+                <CopyButton text={ai.combined_crm_note} />
               </div>
               <p className="mt-3 whitespace-pre-wrap text-sm text-white/85 leading-relaxed">
                 {ai.combined_crm_note}
@@ -169,19 +156,9 @@ export function VisitDetailPage({ id }: { id: string }) {
 
             {/* Follow-up email */}
             <GlassCard className="mt-6 p-6">
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                 <SignalLabel as="h2">Follow-up email</SignalLabel>
-                <button
-                  onClick={() =>
-                    copy(
-                      `Subject: ${ai.follow_up_email.subject}\n\n${ai.follow_up_email.body}`,
-                      "email",
-                    )
-                  }
-                  className="text-xs px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white"
-                >
-                  {copied === "email" ? "Copied" : "Copy"}
-                </button>
+                <CopyButton text={`Subject: ${ai.follow_up_email.subject}\n\n${ai.follow_up_email.body}`} />
               </div>
               <div className="mt-3 text-sm text-white/85">
                 <div className="text-white font-medium">{ai.follow_up_email.subject}</div>

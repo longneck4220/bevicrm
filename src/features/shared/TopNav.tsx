@@ -10,7 +10,7 @@ export function BeviLogo({ compact = false }: { compact?: boolean }) {
     <Link to="/" className="flex items-center gap-2.5 group">
       <BeviMark size={30} />
       {!compact && (
-        <div className="leading-none">
+        <div className="hidden min-[400px]:block leading-none">
           <div className="text-[16px] font-semibold tracking-[0.18em] text-white">BEVI</div>
           <div
             className="signal-label font-sans font-bold !text-[9px] mt-1"
@@ -107,10 +107,10 @@ export function TopNav() {
           compact ? "h-14 border-white/10" : "h-[72px] border-transparent"
         }`}
       >
-        <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-5 sm:px-6">
+        <div className="mx-auto grid grid-cols-[minmax(0,1fr)_auto] gap-2 h-full max-w-7xl items-center px-5 sm:px-6 xl:flex xl:justify-between">
           <BeviLogo />
 
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden xl:flex shrink-0 items-center gap-1 whitespace-nowrap">
             {items.map((l) => {
               const isActive = isNavActive(path, l.to);
               return (
@@ -173,7 +173,7 @@ export function TopNav() {
               onClick={() => setMenuOpen((v) => !v)}
               aria-label="Menu"
               aria-expanded={menuOpen}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-white/85 hover:bg-white/5"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-white/85 hover:bg-white/5"
             >
               <span className="flex w-5 flex-col gap-[5px]">
                 <span className="block h-[2px] w-full rounded bg-current" />

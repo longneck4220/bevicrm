@@ -24,7 +24,7 @@ export function ManagerHeader({ subtitle }: { subtitle?: string }) {
             {subtitle}
           </span>
         )}
-        <span className="flex items-center gap-3">
+        <span className="flex min-w-0 items-center gap-3">
           {role === "admin" && (
             <Link
               to="/admin"
@@ -35,7 +35,7 @@ export function ManagerHeader({ subtitle }: { subtitle?: string }) {
           )}
           <Link
             to="/account"
-            className="text-sm font-medium text-foreground transition-colors duration-200 hover:text-muted-foreground"
+            className="min-w-0 max-w-28 truncate text-sm font-medium text-foreground transition-colors duration-200 hover:text-muted-foreground sm:max-w-48"
             title="Account settings"
           >
             {displayName}
