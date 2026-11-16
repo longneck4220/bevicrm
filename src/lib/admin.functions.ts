@@ -46,7 +46,10 @@ export const listUsersForAdmin = createServerFn({ method: "GET" })
       .order("created_at", { ascending: true });
     if (pErr) throw new Error("Failed to load users");
 
-    const { data: roles } = await supabaseAdmin.from("user_roles").select("user_id, role");
+    const { data: roles, error: rolesErr } = await supabaseAdmin
+      .from("user_roles")
+      .select("user_id, role");
+    if (rolesErr) throw new Error("Failed to load user roles");
     const rolesByUser = new Map<string, string[]>();
     for (const r of roles ?? []) {
       rolesByUser.set(r.user_id, [...(rolesByUser.get(r.user_id) ?? []), r.role as string]);
@@ -94,44 +97,6 @@ export const listUsersForAdmin = createServerFn({ method: "GET" })
       };
     });
 
-    return { users };
-  });
-
-export type RepProfileOption = {
-  userId: string;
-  displayName: string | null;
-  email: string | null;
-  role: AppRole;
-};
-
-/**
- * Lightweight roster for the import preview: lets the UI check each rep name
- * in an uploaded file against a real BEVI account before anything is written.
- */
-export const listRepProfiles = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: profiles, error: pErr } = await supabaseAdmin
-      .from("profiles")
-      .select("user_id, display_name, email")
-      .order("display_name", { ascending: true });
-    if (pErr) throw new Error("Failed to load users");
-
-    const { data: roles } = await supabaseAdmin.from("user_roles").select("user_id, role");
-    const rolesByUser = new Map<string, string[]>();
-    for (const r of roles ?? []) {
-      rolesByUser.set(r.user_id, [...(rolesByUser.get(r.user_id) ?? []), r.role as string]);
-    }
-
-    const users: RepProfileOption[] = (profiles ?? []).map((p) => ({
-      userId: p.user_id,
-      displayName: p.display_name,
-      email: p.email,
-      role: pickRole(rolesByUser.get(p.user_id) ?? []) ?? "rep",
-    }));
     return { users };
   });
 
