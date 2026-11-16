@@ -1,61 +1,54 @@
-// Cross-environment clipboard write. Handles: preview iframe (no
-// clipboard-write permission), older Safari, and non-secure contexts.
-// Returns true on success.
-// Copies verbatim. Never transform the text on the way out — what the rep
-// sees on screen has to be exactly what lands in the paste buffer.
+// Copies text verbatim: what the rep sees on screen is exactly what lands in
+// the paste buffer. Never transform the text.
+//
+// On iPhone and iPad, copy through a text selection (the same mechanism as
+// long-press → Copy). Copied text starts with "Subject:" or "Contact:", which
+// iOS can read as a link; apps like Messages then paste the percent-encoded
+// link (%20, %0A) instead of the plain text.
 export async function copyToClipboard(text: string): Promise<boolean> {
-  // Path 0: write an explicit text/plain flavour. On iPadOS/Safari a plain
-  // writeText of text that starts with or contains URL-ish fragments can be
-  // re-typed by the receiving app as a link, which is what produces %20 in
-  // place of spaces when pasted. Declaring text/plain up front prevents that.
-  try {
-    if (
-      typeof navigator !== "undefined" &&
-      navigator.clipboard?.write &&
-      typeof ClipboardItem !== "undefined"
-    ) {
-      const item = new ClipboardItem({
-        "text/plain": new Blob([text], { type: "text/plain" }),
-      });
-      await navigator.clipboard.write([item]);
-      return true;
-    }
-  } catch {
-    // fall through
-  }
-  // Path 1: modern async clipboard API. Rejects silently in iframes lacking
-  // the clipboard-write permission, so we fall through on any failure.
+  if (isAppleTouchDevice() && copyViaSelection(text)) return true;
   try {
     if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);
       return true;
     }
   } catch {
-    // fall through
+    // Fall through: blocked in iframes without clipboard-write permission.
   }
-  // Path 2: legacy execCommand fallback via a hidden textarea. Works in
-  // iframes and older Safari where the async API is blocked.
+  return copyViaSelection(text);
+}
+
+function isAppleTouchDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return (
+    /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
+}
+
+// Must run synchronously inside the tap handler, before any await, or iOS
+// refuses the copy.
+function copyViaSelection(text: string): boolean {
+  if (typeof document === "undefined") return false;
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.setAttribute("aria-hidden", "true");
+  ta.style.position = "fixed";
+  ta.style.top = "0";
+  ta.style.left = "0";
+  ta.style.opacity = "0";
+  ta.style.fontSize = "16px"; // smaller text makes iOS zoom the page on focus
+  document.body.appendChild(ta);
+  let ok = false;
   try {
-    if (typeof document === "undefined") return false;
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.setAttribute("readonly", "");
-    // iPadOS needs a contenteditable host for select()+copy to take the plain
-    // text rather than a re-typed clipboard flavour.
-    ta.contentEditable = "true";
-    ta.style.position = "fixed";
-    ta.style.top = "0";
-    ta.style.left = "0";
-    ta.style.opacity = "0";
-    ta.style.pointerEvents = "none";
-    document.body.appendChild(ta);
-    ta.focus();
     ta.select();
     ta.setSelectionRange(0, text.length);
-    const ok = document.execCommand("copy");
-    document.body.removeChild(ta);
-    return ok;
+    ok = document.execCommand("copy");
   } catch {
-    return false;
+    ok = false;
   }
+  document.body.removeChild(ta);
+  window.getSelection()?.removeAllRanges();
+  return ok;
 }
