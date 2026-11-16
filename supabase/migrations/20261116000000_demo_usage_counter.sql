@@ -32,3 +32,6 @@ $$;
 
 REVOKE ALL ON FUNCTION public.increment_demo_usage(text, date) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.increment_demo_usage(text, date) TO service_role;
+
+-- Lovable Cloud does not default-grant new tables to service_role. Explicit grant, service_role only.
+GRANT ALL ON public.demo_usage TO service_role;
