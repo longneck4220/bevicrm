@@ -338,7 +338,10 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       .eq("account_id", data.accountId)
       .order("created_at", { ascending: false })
       .limit(5);
-    if (priorErr) console.error("[DB error] fetch prior visits", priorErr);
+    if (priorErr) {
+      console.error("[DB error] fetch prior visits", priorErr);
+      throw new Error("Could not load this account's visit history. Please try again.");
+    }
 
     const historyBlock = (() => {
       const rows = (priorVisits ?? [])
@@ -370,7 +373,10 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       .or(`account_id.eq.${data.accountId},account_id.is.null`)
       .order("created_at", { ascending: false })
       .limit(40);
-    if (libErr) console.error("[DB error] fetch library_files", libErr);
+    if (libErr) {
+      console.error("[DB error] fetch library_files", libErr);
+      throw new Error("Could not load your reference documents. Please try again.");
+    }
 
     const referenceDocsBlock = (() => {
       const rows = (libFiles ?? []).filter((f) => (f.extracted_text ?? "").trim().length > 0);

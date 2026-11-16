@@ -49,7 +49,7 @@ export const listTeamOverview = createServerFn({ method: "GET" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const [{ data: profiles }, { data: roles }, { data: accounts }, { data: visits }] =
+    const [profilesRes, rolesRes, accountsRes, visitsRes] =
       await Promise.all([
         supabaseAdmin.from("profiles").select("user_id, display_name, email"),
         supabaseAdmin.from("user_roles").select("user_id, role"),
@@ -59,6 +59,16 @@ export const listTeamOverview = createServerFn({ method: "GET" })
           .select("id, account_id, owner_id, created_at, ai_output")
           .order("created_at", { ascending: true }),
       ]);
+
+    const failed = [profilesRes, rolesRes, accountsRes, visitsRes].find((r) => r.error);
+    if (failed?.error) {
+      console.error("[DB error] team overview", failed.error);
+      throw new Error("Failed to load team overview");
+    }
+    const profiles = profilesRes.data;
+    const roles = rolesRes.data;
+    const accounts = accountsRes.data;
+    const visits = visitsRes.data;
 
     const rolesByUser = new Map<string, string[]>();
     for (const r of roles ?? []) {
