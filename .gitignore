@@ -31,5 +31,8 @@ dist-ssr
 *.sln
 *.sw?
 
-# Claude Code local harness config (lives one level up in the workspace root)
-.claude/
+# Claude Code local harness config (lives one level up in the workspace root).
+# The agent definitions and shared settings are tracked; everything else is ignored.
+.claude/*
+!.claude/agents/
+!.claude/settings.json
