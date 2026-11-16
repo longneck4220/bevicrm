@@ -31,13 +31,13 @@ export type ManagerRep = {
 };
 
 /**
- * Real-data equivalent of the manager section's original mock (see
- * features/manager/data.ts). Any manager or admin can see every rep — there's
- * no per-manager team assignment in the schema yet, and with only a handful
- * of reps today a flat list covers it. Numbers shown are only ones with a
- * real source: calls this week, notes quality (was the AI ever left without
- * enough info), and account momentum (risk flags + posture trend) — nothing
- * here is fabricated to fill a metric the app doesn't actually track.
+ * Real-data rep overview for the manager section. Any manager or admin can
+ * see every rep — there's no per-manager team assignment in the schema yet,
+ * and with only a handful of reps today a flat list covers it. Numbers shown
+ * are only ones with a real source: calls this week, notes quality (was the
+ * AI ever left without enough info), and account momentum (risk flags +
+ * posture trend) — nothing here is fabricated to fill a metric the app
+ * doesn't actually track.
  */
 export const listTeamOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -50,16 +50,25 @@ export const listTeamOverview = createServerFn({ method: "GET" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const [{ data: profiles }, { data: roles }, { data: accounts }, { data: visits }] =
-      await Promise.all([
-        supabaseAdmin.from("profiles").select("user_id, display_name, email"),
-        supabaseAdmin.from("user_roles").select("user_id, role"),
-        supabaseAdmin.from("accounts").select("id, name, owner_id"),
-        supabaseAdmin
-          .from("visits")
-          .select("id, account_id, owner_id, created_at, ai_output")
-          .order("created_at", { ascending: true }),
-      ]);
+    const [profilesRes, rolesRes, accountsRes, visitsRes] = await Promise.all([
+      supabaseAdmin.from("profiles").select("user_id, display_name, email"),
+      supabaseAdmin.from("user_roles").select("user_id, role"),
+      supabaseAdmin.from("accounts").select("id, name, owner_id"),
+      supabaseAdmin
+        .from("visits")
+        .select("id, account_id, owner_id, created_at, ai_output")
+        .order("created_at", { ascending: true }),
+    ]);
+
+    const failed = [profilesRes, rolesRes, accountsRes, visitsRes].find((r) => r.error);
+    if (failed?.error) {
+      console.error("[DB error] team overview", failed.error);
+      throw new Error("Failed to load team overview");
+    }
+    const profiles = profilesRes.data;
+    const roles = rolesRes.data;
+    const accounts = accountsRes.data;
+    const visits = visitsRes.data;
 
     const rolesByUser = new Map<string, string[]>();
     for (const r of roles ?? []) {

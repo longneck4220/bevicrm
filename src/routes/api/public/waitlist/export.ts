@@ -19,8 +19,8 @@ export const Route = createFileRoute("/api/public/waitlist/export")({
         const expected = process.env["WAITLIST_EXPORT_TOKEN"];
         if (!expected) return new Response("Not configured", { status: 503 });
 
-        const url = new URL(request.url);
-        const provided = request.headers.get("x-waitlist-token") ?? url.searchParams.get("token") ?? "";
+        // Header only: a token in the query string would end up in access logs and browser history.
+        const provided = request.headers.get("x-waitlist-token") ?? "";
         const a = Buffer.from(provided);
         const b = Buffer.from(expected);
         if (a.length !== b.length || !timingSafeEqual(a, b)) {

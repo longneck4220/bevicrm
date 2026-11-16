@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
+import type { LibraryDeal } from "@/lib/library.functions";
 
 const GenerateInput = z.object({
   accountId: z.string().uuid(),
@@ -337,7 +338,10 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       .eq("account_id", data.accountId)
       .order("created_at", { ascending: false })
       .limit(5);
-    if (priorErr) console.error("[DB error] fetch prior visits", priorErr);
+    if (priorErr) {
+      console.error("[DB error] fetch prior visits", priorErr);
+      throw new Error("Could not load this account's visit history. Please try again.");
+    }
 
     const historyBlock = (() => {
       const rows = (priorVisits ?? [])
@@ -369,7 +373,10 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
       .or(`account_id.eq.${data.accountId},account_id.is.null`)
       .order("created_at", { ascending: false })
       .limit(40);
-    if (libErr) console.error("[DB error] fetch library_files", libErr);
+    if (libErr) {
+      console.error("[DB error] fetch library_files", libErr);
+      throw new Error("Could not load your reference documents. Please try again.");
+    }
 
     const referenceDocsBlock = (() => {
       const rows = (libFiles ?? []).filter((f) => (f.extracted_text ?? "").trim().length > 0);
@@ -406,17 +413,9 @@ export const generateVisitIntelligence = createServerFn({ method: "POST" })
 
     // Structured deals catalog (pre-extracted at upload) — primary source for end-of-call deal pitches.
     const dealsBlock = (() => {
-      type DealRow = {
-        product: string;
-        discount: string;
-        starts_on: string | null;
-        ends_on: string | null;
-        eligibility: string;
-        notes: string;
-      };
       const lines: string[] = [];
       for (const f of libFiles ?? []) {
-        const arr = (f.deals as unknown as DealRow[] | null) ?? [];
+        const arr = (f.deals as unknown as LibraryDeal[] | null) ?? [];
         if (!Array.isArray(arr) || !arr.length) continue;
         const scope = f.account_id ? "pinned" : "global";
         for (const d of arr) {
