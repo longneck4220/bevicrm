@@ -1,4 +1,9 @@
 import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { TypedConfirmDeleteDialog } from "@/components/TypedConfirmDeleteDialog";
+import { userDeleteImpactLines } from "@/lib/delete-impact";
+import { deleteMyLogin, getMyLoginDeleteImpact } from "@/lib/delete.functions";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -284,6 +289,62 @@ function PasswordSection() {
   );
 }
 
+function DeleteLoginSection() {
+  const { user, signOut } = useAuth();
+  const [open, setOpen] = useState(false);
+  const impactFn = useServerFn(getMyLoginDeleteImpact);
+  const deleteFn = useServerFn(deleteMyLogin);
+
+  const impact = useQuery({
+    queryKey: ["my-login-delete-impact"],
+    queryFn: () => impactFn(),
+    enabled: open,
+    gcTime: 0,
+  });
+
+  const remove = useMutation({
+    mutationFn: (typedEmail: string) => deleteFn({ data: { confirmEmail: typedEmail } }),
+    onSuccess: async () => {
+      // The login no longer exists server-side; clear the local session.
+      await signOut();
+    },
+  });
+
+  return (
+    <GlassCard className="p-6 sm:p-7">
+      <SignalLabel>Delete my login</SignalLabel>
+      <p className="mt-3 max-w-md text-[15px] text-white/60">
+        Permanently removes your sign-in and all of your venues, visits, account memory and files.
+      </p>
+      <button
+        type="button"
+        onClick={() => {
+          remove.reset();
+          setOpen(true);
+        }}
+        className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-lg border border-red-500/40 px-5 text-sm font-medium text-red-300 hover:bg-red-500/10"
+      >
+        Delete my login
+      </button>
+      <TypedConfirmDeleteDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Delete your login?"
+        expectedText={user?.email ?? ""}
+        expectedLabel="email"
+        impact={{
+          loading: impact.isLoading,
+          error: impact.isError ? "Could not check what will be deleted." : null,
+          lines: impact.data ? userDeleteImpactLines(impact.data, "Your sign-in") : [],
+        }}
+        pending={remove.isPending}
+        errorMessage={remove.error?.message ?? null}
+        onConfirm={(typed) => remove.mutate(typed)}
+      />
+    </GlassCard>
+  );
+}
+
 export function AccountPage() {
   return (
     <main className="mx-auto max-w-3xl px-5 pb-20 pt-24 sm:px-6">
@@ -294,6 +355,7 @@ export function AccountPage() {
       <div className="mt-8 space-y-6">
         <ProfileSection />
         <PasswordSection />
+        <DeleteLoginSection />
       </div>
     </main>
   );

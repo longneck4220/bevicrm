@@ -8,6 +8,9 @@ import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import {
   listUsersForAdmin,
   adminDeleteAccount,
+  adminDeleteUser,
+  adminGetAccountDeleteImpact,
+  adminGetUserDeleteImpact,
   adminSetUserRole,
   adminInviteManager,
   type AdminUser,
@@ -16,16 +19,23 @@ import {
 import { ROLE_LABEL, ROLE_OPTIONS, type AppRole } from "@/lib/roles";
 import { listWaitlist, type WaitlistRow } from "@/lib/waitlist.functions";
 import { CsvImportSection } from "@/features/admin/CsvImportSection";
+import { TypedConfirmDeleteDialog } from "@/components/TypedConfirmDeleteDialog";
+import { impactLines, userDeleteImpactLines } from "@/lib/delete-impact";
 
 export function AdminUsersPage() {
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, loading, user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const listFn = useServerFn(listUsersForAdmin);
   const deleteFn = useServerFn(adminDeleteAccount);
+  const deleteUserFn = useServerFn(adminDeleteUser);
+  const accountImpactFn = useServerFn(adminGetAccountDeleteImpact);
+  const userImpactFn = useServerFn(adminGetUserDeleteImpact);
 
   const [query, setQuery] = useState("");
   const [openUser, setOpenUser] = useState<string | null>(null);
+  const [accountToDelete, setAccountToDelete] = useState<AdminAccount | null>(null);
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -34,8 +44,33 @@ export function AdminUsersPage() {
   });
 
   const del = useMutation({
-    mutationFn: (accountId: string) => deleteFn({ data: { accountId } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
+    mutationFn: (vars: { accountId: string; confirmName: string }) => deleteFn({ data: vars }),
+    onSuccess: () => {
+      setAccountToDelete(null);
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+
+  const delUser = useMutation({
+    mutationFn: (vars: { userId: string; confirmEmail: string }) => deleteUserFn({ data: vars }),
+    onSuccess: () => {
+      setUserToDelete(null);
+      setOpenUser(null);
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+
+  const accountImpact = useQuery({
+    queryKey: ["admin-account-delete-impact", accountToDelete?.id],
+    queryFn: () => accountImpactFn({ data: { accountId: accountToDelete!.id } }),
+    enabled: !!accountToDelete,
+    gcTime: 0,
+  });
+  const userImpact = useQuery({
+    queryKey: ["admin-user-delete-impact", userToDelete?.user_id],
+    queryFn: () => userImpactFn({ data: { userId: userToDelete!.user_id } }),
+    enabled: !!userToDelete,
+    gcTime: 0,
   });
 
   const setRoleFn = useServerFn(adminSetUserRole);
@@ -164,6 +199,21 @@ export function AdminUsersPage() {
                       saving={roleMut.isPending && roleMut.variables?.userId === u.user_id}
                       onChange={(role) => roleMut.mutate({ userId: u.user_id, role })}
                     />
+
+                    {u.user_id !== user?.id && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          delUser.reset();
+                          setUserToDelete(u);
+                        }}
+                        aria-label={`Delete login for ${u.email ?? "this user"}`}
+                        title="Delete login"
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-red-300 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
 
 
@@ -177,13 +227,9 @@ export function AdminUsersPage() {
                             key={a.id}
                             account={a}
                             onDelete={() => {
-                              const warn =
-                                a.visit_count > 0 || a.has_memory
-                                  ? `Delete "${a.name}"? This has ${a.visit_count} visit(s)${a.has_memory ? " and account memory" : ""}. This cannot be undone.`
-                                  : `Delete "${a.name}"? This cannot be undone.`;
-                              if (confirm(warn)) del.mutate(a.id);
+                              del.reset();
+                              setAccountToDelete(a);
                             }}
-                            deleting={del.isPending && del.variables === a.id}
                           />
                         ))
                       )}
@@ -198,6 +244,42 @@ export function AdminUsersPage() {
         <div className="mt-10">
           <CsvImportSection />
         </div>
+
+        <TypedConfirmDeleteDialog
+          open={!!accountToDelete}
+          onOpenChange={(open) => !open && setAccountToDelete(null)}
+          title={`Delete venue "${accountToDelete?.name ?? ""}"?`}
+          expectedText={accountToDelete?.name ?? ""}
+          expectedLabel="venue name"
+          impact={{
+            loading: accountImpact.isLoading,
+            error: accountImpact.isError ? "Could not check what will be deleted." : null,
+            lines: accountImpact.data ? impactLines(accountImpact.data) : [],
+          }}
+          pending={del.isPending}
+          errorMessage={del.error?.message ?? null}
+          onConfirm={(typed) =>
+            accountToDelete && del.mutate({ accountId: accountToDelete.id, confirmName: typed })
+          }
+        />
+
+        <TypedConfirmDeleteDialog
+          open={!!userToDelete}
+          onOpenChange={(open) => !open && setUserToDelete(null)}
+          title={`Delete login ${userToDelete?.email ?? ""}?`}
+          expectedText={userToDelete?.email ?? ""}
+          expectedLabel="email"
+          impact={{
+            loading: userImpact.isLoading,
+            error: userImpact.isError ? "Could not check what will be deleted." : null,
+            lines: userImpact.data ? userDeleteImpactLines(userImpact.data, "Their sign-in") : [],
+          }}
+          pending={delUser.isPending}
+          errorMessage={delUser.error?.message ?? null}
+          onConfirm={(typed) =>
+            userToDelete && delUser.mutate({ userId: userToDelete.user_id, confirmEmail: typed })
+          }
+        />
       </div>
     </div>
   );
@@ -295,11 +377,9 @@ function InviteManagerSection() {
 function AccountRow({
   account,
   onDelete,
-  deleting,
 }: {
   account: AdminAccount;
   onDelete: () => void;
-  deleting: boolean;
 }) {
   return (
     <div className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-white/5">
@@ -316,12 +396,11 @@ function AccountRow({
       </div>
       <button
         onClick={onDelete}
-        disabled={deleting}
-        className="shrink-0 inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+        className="shrink-0 inline-flex min-h-[44px] items-center gap-1 px-3 rounded-md text-xs text-red-300 hover:bg-red-500/10"
         title="Delete account"
       >
         <Trash2 className="w-3.5 h-3.5" />
-        {deleting ? "Deleting…" : "Delete"}
+        Delete
       </button>
     </div>
   );
