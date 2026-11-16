@@ -180,6 +180,8 @@ Tables: `accounts` (incl. the `memory` text field and `memory_draft`; owner colu
 
 `npx tsc --noEmit` works on Matt's local Windows machine. `tsgo` exists only inside Lovable's sandbox. The Lovable Vite plugin's build fails on Windows paths (pre-existing, not a code bug).
 
-Document text extraction is **local, not model-based**: `unpdf`, `mammoth`, `xlsx`, `jszip`. Images are stored but not text-extracted.
+Document text extraction is **local, not model-based**: `pdfjs-dist`, `mammoth`, `xlsx`, `jszip`. Images are stored but not text-extracted.
+
+The waitlist export endpoint is header-only (`x-waitlist-token`, no query-string token), and the `/try` demo is capped at 5 generations per visitor per UTC day (counter in `demo_usage`, disposable, excluded from the offsite backup).
 
 Retrieval budgets in `generateVisitIntelligence` — last 5 visits, up to 40 files, 15k chars/file, 60k total, 200 deal lines. These exist to control cost and context size; changing them has both quality and billing consequences.
