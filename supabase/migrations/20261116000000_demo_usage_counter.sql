@@ -1,7 +1,7 @@
 -- Per-visitor daily counter for the public /try demo, which calls the paid AI
 -- without a login. The key is a sha256 hash of client IP + day, never the raw IP.
 -- Disposable counter data: not part of the offsite backup.
-CREATE TABLE public.demo_usage (
+CREATE TABLE IF NOT EXISTS public.demo_usage (
   key text NOT NULL,
   day date NOT NULL,
   count integer NOT NULL DEFAULT 0,
