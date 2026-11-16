@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { pickRole, type AppRole } from "@/lib/roles";
+import { typedTextMatches } from "@/lib/typed-confirm";
 
 async function assertAdmin(supabase: SupabaseClient<Database>, userId: string) {
   const { data, error } = await supabase.rpc("has_role", {
@@ -150,14 +151,93 @@ export const adminInviteManager = createServerFn({ method: "POST" })
     return { ok: true, email };
   });
 
-export const adminDeleteAccount = createServerFn({ method: "POST" })
+export const adminGetAccountDeleteImpact = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => z.object({ accountId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { countAccountContents } = await import("@/lib/purge.server");
+    return countAccountContents(supabaseAdmin, [data.accountId]);
+  });
+
+export const adminDeleteAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) =>
+    z.object({ accountId: z.string().uuid(), confirmName: z.string().max(300) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { deletePinnedFiles } = await import("@/lib/purge.server");
+
+    const { data: account, error: lookupError } = await supabaseAdmin
+      .from("accounts")
+      .select("name")
+      .eq("id", data.accountId)
+      .maybeSingle();
+    if (lookupError) {
+      console.error("[adminDeleteAccount] lookup failed", lookupError);
+      throw new Error("Could not find that venue. Nothing was deleted.");
+    }
+    // Already deleted (for example a double click): nothing left to do.
+    if (!account) return { ok: true };
+
+    // The dialog enforces this too; checking here stops a hand-made request.
+    if (!typedTextMatches(data.confirmName, account.name)) {
+      throw new Error("The venue name you typed does not match. Nothing was deleted.");
+    }
+
+    await deletePinnedFiles(supabaseAdmin, [data.accountId]);
     const { error } = await supabaseAdmin.from("accounts").delete().eq("id", data.accountId);
-    if (error) throw new Error("Failed to delete account");
+    if (error) {
+      console.error("[adminDeleteAccount] delete failed", error);
+      throw new Error("Could not delete that venue. Try again.");
+    }
+    return { ok: true };
+  });
+
+export const adminGetUserDeleteImpact = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) => z.object({ userId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { countUserContents } = await import("@/lib/purge.server");
+    return countUserContents(supabaseAdmin, data.userId);
+  });
+
+export const adminDeleteUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) =>
+    z.object({ userId: z.string().uuid(), confirmEmail: z.string().max(320) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    if (data.userId === context.userId) {
+      throw new Error("You cannot delete your own login here. Use Account settings instead.");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { isLastAdmin, purgeUserData } = await import("@/lib/purge.server");
+
+    const { data: found, error: lookupError } = await supabaseAdmin.auth.admin.getUserById(
+      data.userId,
+    );
+    if (lookupError && lookupError.status !== 404) {
+      console.error("[adminDeleteUser] lookup failed", lookupError);
+      throw new Error("Could not look up that user. Nothing was deleted.");
+    }
+    // Already deleted: nothing left to do.
+    if (lookupError || !found?.user) return { ok: true };
+
+    if (!typedTextMatches(data.confirmEmail, found.user.email ?? "")) {
+      throw new Error("The email you typed does not match. Nothing was deleted.");
+    }
+    if (await isLastAdmin(supabaseAdmin, data.userId)) {
+      throw new Error("You cannot delete the last admin.");
+    }
+
+    await purgeUserData(supabaseAdmin, data.userId);
     return { ok: true };
   });
 
