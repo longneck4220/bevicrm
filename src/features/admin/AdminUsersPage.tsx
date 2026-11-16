@@ -20,7 +20,7 @@ import { ROLE_LABEL, ROLE_OPTIONS, type AppRole } from "@/lib/roles";
 import { listWaitlist, type WaitlistRow } from "@/lib/waitlist.functions";
 import { CsvImportSection } from "@/features/admin/CsvImportSection";
 import { TypedConfirmDeleteDialog } from "@/components/TypedConfirmDeleteDialog";
-import { impactLines } from "@/lib/delete-impact";
+import { impactLines, userDeleteImpactLines } from "@/lib/delete-impact";
 
 export function AdminUsersPage() {
   const { isAdmin, loading, user } = useAuth();
@@ -258,9 +258,8 @@ export function AdminUsersPage() {
           }}
           pending={del.isPending}
           errorMessage={del.error?.message ?? null}
-          onConfirm={() =>
-            accountToDelete &&
-            del.mutate({ accountId: accountToDelete.id, confirmName: accountToDelete.name })
+          onConfirm={(typed) =>
+            accountToDelete && del.mutate({ accountId: accountToDelete.id, confirmName: typed })
           }
         />
 
@@ -273,23 +272,12 @@ export function AdminUsersPage() {
           impact={{
             loading: userImpact.isLoading,
             error: userImpact.isError ? "Could not check what will be deleted." : null,
-            lines: userImpact.data
-              ? [
-                  ...impactLines({
-                    venues: userImpact.data.venues,
-                    visits: userImpact.data.visits,
-                    memoryVersions: userImpact.data.memoryVersions,
-                    files: userImpact.data.files,
-                  }),
-                  "Their sign-in",
-                ]
-              : [],
+            lines: userImpact.data ? userDeleteImpactLines(userImpact.data, "Their sign-in") : [],
           }}
           pending={delUser.isPending}
           errorMessage={delUser.error?.message ?? null}
-          onConfirm={() =>
-            userToDelete &&
-            delUser.mutate({ userId: userToDelete.user_id, confirmEmail: userToDelete.email ?? "" })
+          onConfirm={(typed) =>
+            userToDelete && delUser.mutate({ userId: userToDelete.user_id, confirmEmail: typed })
           }
         />
       </div>

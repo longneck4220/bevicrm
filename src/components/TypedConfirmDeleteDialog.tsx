@@ -25,7 +25,8 @@ type Props = {
   impact: DeleteImpact;
   pending: boolean;
   errorMessage: string | null;
-  onConfirm: () => void;
+  /** Receives exactly what was typed; the server checks it against the real name or email. */
+  onConfirm: (typed: string) => void;
 };
 
 /**
@@ -57,7 +58,7 @@ export function TypedConfirmDeleteDialog({
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    if (canDelete) onConfirm();
+    if (canDelete) onConfirm(typed);
   }
 
   return (

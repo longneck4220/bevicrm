@@ -31,3 +31,27 @@ export function impactLines(counts: {
   if (counts.files) lines.push(plural(counts.files, "library file"));
   return lines;
 }
+
+/**
+ * Dialog lines for deleting a whole login: everything it owns, plus the
+ * sign-in itself ("Their sign-in" for an admin, "Your sign-in" for self).
+ */
+export function userDeleteImpactLines(
+  counts: {
+    venues: number;
+    visits: number;
+    memoryVersions: number;
+    files: number;
+  },
+  signInLabel: string,
+): string[] {
+  return [
+    ...impactLines({
+      venues: counts.venues,
+      visits: counts.visits,
+      memoryVersions: counts.memoryVersions,
+      files: counts.files,
+    }),
+    signInLabel,
+  ];
+}

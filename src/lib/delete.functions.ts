@@ -43,7 +43,9 @@ export const getMyVenueDeleteImpact = createServerFn({ method: "GET" })
       context.userId,
       data.accountId,
     );
-    if (!venue) throw new Error("That venue no longer exists.");
+    // Already deleted: report nothing attached, matching deleteMyVenue, which
+    // treats a missing venue as done.
+    if (!venue) return { visits: 0, memoryVersions: 0, pinnedFiles: 0 };
     return countAccountContents(context.supabase, [venue.id]);
   });
 
@@ -58,6 +60,8 @@ export const deleteMyVenue = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const { deletePinnedFiles } = await import("@/lib/purge.server");
     const venue = await loadOwnVenue(
       context.supabase,
@@ -73,7 +77,13 @@ export const deleteMyVenue = createServerFn({ method: "POST" })
       );
     }
 
-    await deletePinnedFiles(context.supabase, [venue.id]);
+    // Service role only after the owner and typed-name checks above: pinned
+    // files may have been uploaded by someone else, which the caller's own
+    // RLS client could not delete, leaving them to become global files.
+    //
+    // If this fails part-way, the venue still exists and the rep can retry:
+    // already-removed files are simply not found the second time.
+    await deletePinnedFiles(supabaseAdmin, [venue.id]);
     const { error } = await context.supabase
       .from("accounts")
       .delete()

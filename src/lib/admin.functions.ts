@@ -183,11 +183,16 @@ export const adminDeleteAccount = createServerFn({ method: "POST" })
     // Already deleted (for example a double click): nothing left to do.
     if (!account) return { ok: true };
 
-    // The dialog enforces this too; checking here stops a hand-made request.
+    // The typed text is compared with the name loaded from the database just
+    // above, never with a value the browser supplies. This is the real second
+    // factor: a request made without typing the name is refused here.
     if (!typedTextMatches(data.confirmName, account.name)) {
       throw new Error("The venue name you typed does not match. Nothing was deleted.");
     }
 
+    // Pinned files go first, then the venue. If a step fails part-way the
+    // venue still exists, so the admin can retry; already-removed files are
+    // simply not found the second time.
     await deletePinnedFiles(supabaseAdmin, [data.accountId]);
     const { error } = await supabaseAdmin.from("accounts").delete().eq("id", data.accountId);
     if (error) {

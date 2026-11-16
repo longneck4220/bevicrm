@@ -29,8 +29,8 @@ export function DeleteVenueControl({
   });
 
   const remove = useMutation({
-    mutationFn: () =>
-      deleteFn({ data: { accountId: venue.id, confirmName: venue.name } }),
+    mutationFn: (typedName: string) =>
+      deleteFn({ data: { accountId: venue.id, confirmName: typedName } }),
     onSuccess: () => {
       setOpen(false);
       onDeleted();
@@ -65,7 +65,7 @@ export function DeleteVenueControl({
         }}
         pending={remove.isPending}
         errorMessage={remove.error?.message ?? null}
-        onConfirm={() => remove.mutate()}
+        onConfirm={(typed) => remove.mutate(typed)}
       />
     </>
   );

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { TypedConfirmDeleteDialog } from "@/components/TypedConfirmDeleteDialog";
-import { impactLines } from "@/lib/delete-impact";
+import { userDeleteImpactLines } from "@/lib/delete-impact";
 import { deleteMyLogin, getMyLoginDeleteImpact } from "@/lib/delete.functions";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import { useAuth } from "@/hooks/use-auth";
@@ -303,7 +303,7 @@ function DeleteLoginSection() {
   });
 
   const remove = useMutation({
-    mutationFn: () => deleteFn({ data: { confirmEmail: user?.email ?? "" } }),
+    mutationFn: (typedEmail: string) => deleteFn({ data: { confirmEmail: typedEmail } }),
     onSuccess: async () => {
       // The login no longer exists server-side; clear the local session.
       await signOut();
@@ -335,21 +335,11 @@ function DeleteLoginSection() {
         impact={{
           loading: impact.isLoading,
           error: impact.isError ? "Could not check what will be deleted." : null,
-          lines: impact.data
-            ? [
-                ...impactLines({
-                  venues: impact.data.venues,
-                  visits: impact.data.visits,
-                  memoryVersions: impact.data.memoryVersions,
-                  files: impact.data.files,
-                }),
-                "Your sign-in",
-              ]
-            : [],
+          lines: impact.data ? userDeleteImpactLines(impact.data, "Your sign-in") : [],
         }}
         pending={remove.isPending}
         errorMessage={remove.error?.message ?? null}
-        onConfirm={() => remove.mutate()}
+        onConfirm={(typed) => remove.mutate(typed)}
       />
     </GlassCard>
   );
