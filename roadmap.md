@@ -1,5 +1,7 @@
 # Roadmap
 
+- [open] Sweep CRM/email copy controls and phone/tablet usability; fix reproduced issues and verify real signed-in flows.
+
 - [done] Colour-coded review for imported account memory updates, including existing memory; edit, skip, confirm, saved read-back and history verified on desktop/mobile.
 
 - [done] Rep column drives assignment: imported outlets are owned by the named rep (matched by name/email, else a holding login is created); existing outlets under the importer move across; done summary lists per-rep outcome.
