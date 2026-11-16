@@ -1,6 +1,6 @@
 # Roadmap
 
-- [open] Sweep CRM/email copy controls and phone/tablet usability; fix reproduced issues and verify real signed-in flows.
+- [done] Sweep CRM/email copy controls and phone/tablet usability: shared touch-sized copy feedback, navigation and team-card fixes; four viewport checks and signed-in saved-copy, venue selection, draft recovery, password visibility and prep checks passed. Physical iOS Messages/keyboard/dictation remain device-only checks.
 
 - [done] Colour-coded review for imported account memory updates, including existing memory; edit, skip, confirm, saved read-back and history verified on desktop/mobile.
 
