@@ -184,4 +184,6 @@ Document text extraction is **local, not model-based**: `pdfjs-dist`, `mammoth`,
 
 The waitlist export endpoint is header-only (`x-waitlist-token`, no query-string token), and the `/try` demo is capped at 5 generations per visitor per UTC day (counter in `demo_usage`, disposable, excluded from the offsite backup).
 
+`drizzle.config.ts` and the `drizzle/` folder are scaffolding Lovable's platform added when it applied the `demo_usage` migration (Nov 2026). No app code uses them and they are not a second source of truth: migrations live in `supabase/migrations/`. Leave them in place so Lovable's migration tooling keeps working; don't edit them or build on them.
+
 Retrieval budgets in `generateVisitIntelligence` — last 5 visits, up to 40 files, 15k chars/file, 60k total, 200 deal lines. These exist to control cost and context size; changing them has both quality and billing consequences.
