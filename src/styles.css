@@ -122,6 +122,20 @@
     background-attachment: fixed;
     min-height: 100vh;
   }
+  main :where(p, pre, h1, h2, h3, dd) {
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 1199px), (pointer: coarse) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), textarea, select {
+      font-size: 16px !important;
+    }
+    button:not([aria-label="Close menu"]), a[href] {
+      min-height: 44px;
+    }
+    button:not([aria-label="Close menu"]) {
+      min-width: 44px;
+    }
+  }
   ::selection {
     background: oklch(0.74 0.13 195 / 0.35);
     color: white;

@@ -110,7 +110,7 @@ export function TopNav() {
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-5 sm:px-6">
           <BeviLogo />
 
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden xl:flex shrink-0 items-center gap-1 whitespace-nowrap">
             {items.map((l) => {
               const isActive = isNavActive(path, l.to);
               return (

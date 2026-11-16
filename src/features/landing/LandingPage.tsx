@@ -19,7 +19,7 @@ export function LandingPage() {
   const isMobile = useIsMobile();
 
   return (
-    <main className="relative pt-24 sm:pt-28 pb-24 sm:pb-32">
+    <main className="relative overflow-x-clip pt-24 sm:pt-28 pb-24 sm:pb-32">
       <ScrollProgress />
       <ParticleField count={36} />
       <div className="absolute inset-0 grid-overlay pointer-events-none" aria-hidden />

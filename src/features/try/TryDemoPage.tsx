@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { GlassCard, SignalLabel } from "@/features/shared/primitives";
 import { BeviMark } from "@/features/shared/BeviMark";
 import { ParticleField } from "@/features/shared/ParticleField";
-import { copyToClipboard } from "@/lib/clipboard";
+import { CopyButton } from "@/features/shared/CopyButton";
 import { generateDemoIntelligence } from "@/lib/demo.functions";
 import type { AiOutput } from "@/lib/trial.functions";
 
@@ -294,7 +294,7 @@ export function TryDemoPage() {
 
             {/* 3. CRM NOTE */}
             <GlassCard className="p-5">
-              <div className="flex items-center justify-between mb-2">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 mb-2">
                 <SignalLabel as="h2">CRM NOTE</SignalLabel>
                 <CopyButton text={output.combined_crm_note} />
               </div>
@@ -306,7 +306,7 @@ export function TryDemoPage() {
             {/* 4. FOLLOW-UP EMAIL */}
             {output.follow_up_email && (
               <GlassCard className="p-5">
-                <div className="flex items-center justify-between mb-2">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 mb-2">
                   <SignalLabel as="h2">Follow-up Email</SignalLabel>
                   <CopyButton
                     text={`Subject: ${output.follow_up_email.subject}\n\n${output.follow_up_email.body}`}
@@ -419,23 +419,3 @@ function LockedTile({ label, body }: { label: string; body: string }) {
   );
 }
 
-function CopyButton({ text }: { text: string }) {
-  const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
-  return (
-    <button
-      type="button"
-      onClick={async () => {
-        const ok = await copyToClipboard(text);
-        setStatus(ok ? "copied" : "failed");
-        setTimeout(() => setStatus("idle"), 1800);
-      }}
-      className="text-xs px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white"
-    >
-      {status === "copied"
-        ? "Copied ✓"
-        : status === "failed"
-          ? "Couldn't copy — select manually"
-          : "Copy"}
-    </button>
-  );
-}
