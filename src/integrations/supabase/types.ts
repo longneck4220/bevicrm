@@ -136,6 +136,24 @@ export type Database = {
           },
         ]
       }
+      demo_usage: {
+        Row: {
+          count: number
+          day: string
+          key: string
+        }
+        Insert: {
+          count?: number
+          day: string
+          key: string
+        }
+        Update: {
+          count?: number
+          day?: string
+          key?: string
+        }
+        Relationships: []
+      }
       library_files: {
         Row: {
           account_id: string | null
@@ -316,6 +334,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_demo_usage: {
+        Args: { p_day: string; p_key: string }
+        Returns: number
       }
       set_user_role: {
         Args: {
