@@ -149,6 +149,9 @@ These are two distinct tracks with different purposes. Conflating them has alrea
 **The AI generation outage.** Visit generation failed with "AI service error" on every call. Root cause was an abandoned experiment to add a Claude/Anthropic provider switch: Lovable's gateway has no Anthropic passthrough, so `anthropic/claude-sonnet-5` was never valid. It was patched in one call site and left inconsistent in others, so `demo.functions.ts` and `library.functions.ts` sat on a stale model ID.
 **Rules:** (a) all AI calls go through the **Lovable AI Gateway** only — there is no direct-provider path, don't reintroduce one; (b) the model ID must be **consistent across every call site** — currently `google/gemini-3.6-flash` for generation, deal extraction and the demo, plus `openai/gpt-4o-transcribe` for dictation. A partial fix across call sites is how this broke in the first place.
 
+**The image-upload failure (migration drift).** Uploading any photo to the file library failed with "Could not save file record. Please try again." The UI had supported images for months, but the live `library_file_type` enum had no `image` value. `supabase/migrations/20260706090000_library_admin_read_only_and_images.sql` had been committed to the repo and **never run against the live database**, so its policy renames were missing too. Fixed on 2026-11-16 by running that file's SQL against the live DB via `query_database` (it is idempotent), then checking with a test insert and delete.
+**Rule:** a migration file in `supabase/migrations/` is not proof the change is live. When a database error doesn't make sense, compare the live schema (`pg_enum`, `pg_policies`, `information_schema`) with the migration files before suspecting the code. `src/integrations/supabase/types.ts` can lag the live schema too, and casts like `as never` hide the mismatch.
+
 ## Data, storage and backup
 
 - **The live database is Lovable Cloud's managed Supabase** (`trbwtgggcsmnustzidbi`), queried via Lovable `query_database`. It is **not** in Matt's own Supabase account.
@@ -169,6 +172,9 @@ These are two distinct tracks with different purposes. Conflating them has alrea
 2. Bug sweep via a browser: start the session on Matt's computer (Claude desktop / Claude in Chrome). Cloud sessions cannot reach his Chrome tab, and cannot fetch bevipvi.com or bevicrm.lovable.app (network policy).
 3. Why the five signed-up reps haven't logged a first visit.
 4. The 3-day "bevicrm health check (via Lovable)" scheduled task (`trig_0199EZXmXPqYN3x84Zw2HytT`) was **paused** on 2026-11-11. It was tied to an old chat and had produced about 20 clean, no-action reports. Lovable's agent also ignored "diagnosis only" once and pushed to production, and its platform injects files (e.g. `.lovable/north-star/`) even under a "zero changes" instruction. Re-enable only with Matt's OK; event-driven checks after real changes beat time-based polling.
+5. **Rep-facing account profile page** (from the 2026-11-16 field-rep walkthrough). Clicking a venue opens its latest visit; no page shows the venue's full visit history, contacts, memory and versions in one place. (`/account` is the user's own settings page, not this.) It's a new feature, so Matt has to approve it first.
+6. **No way to mark a "Today's next moves" item as done.** The dashboard ranks moves from all visit history by confidence and recency; it isn't limited to today, so a move the rep actioned yesterday keeps reappearing. A done/dismissed state needs a schema change. Matt's call.
+7. **Sessions can run in parallel.** Matt sometimes has more than one Claude session working on this repo and the live DB at once. Run `git fetch` and check `main` before starting, and don't assume a commit you didn't make, or a "Paused"/"incomplete" commit, is abandoned. Check with Matt.
 
 ## Technical facts worth knowing
 
