@@ -213,6 +213,7 @@ function CustomerSheet({
 
           {save.isError && (
             <p role="alert" className="text-sm text-[#F87171]">
+              {/* Zod validation failures arrive as a JSON array string. */}
               {save.error.message.startsWith("[")
                 ? "Please check the details and try again."
                 : save.error.message}
@@ -300,7 +301,7 @@ function CustomerRowItem({
       )}
       {customer.email && (
         <a
-          href={`mailto:${customer.email}`}
+          href={`mailto:${encodeURIComponent(customer.email)}`}
           title="Email"
           aria-label={`Email ${customer.name}`}
           className={iconButtonClass}

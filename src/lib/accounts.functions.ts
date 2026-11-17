@@ -149,10 +149,14 @@ export const listCustomers = createServerFn({ method: "GET" })
 
     // RLS already limits a rep to their own rows. Only an admin sees other
     // people's venues, and only then are owner names looked up.
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc(
+      "has_role",
+      { _user_id: context.userId, _role: "admin" },
+    );
+    if (roleError) {
+      console.error("[listCustomers] role check failed", roleError);
+      throw new Error("Could not load your customers. Please try again.");
+    }
     if (!isAdmin) return rows.map((r) => ({ ...r, owner_name: null }));
 
     const { supabaseAdmin } =
