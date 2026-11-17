@@ -8,6 +8,13 @@
       "when": 1794816887251,
       "tag": "0000_demo_usage_counter",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794880223645,
+      "tag": "0001_account_contact_details",
+      "breakpoints": true
     }
   ]
 }
