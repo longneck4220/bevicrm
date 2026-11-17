@@ -30,6 +30,7 @@ type NavItem = {
     | "/how-it-works"
     | "/try"
     | "/trial"
+    | "/customers"
     | "/dashboard"
     | "/mobile"
     | "/account"
@@ -54,6 +55,7 @@ const publicLinks: NavItem[] = [
 const repLinks: NavItem[] = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/trial", label: "Log a visit" },
+  { to: "/customers", label: "Customers" },
   { to: "/mobile", label: "Mobile" },
 ];
 const accountLink: NavItem = { to: "/account", label: "Account" };
