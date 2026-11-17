@@ -61,35 +61,47 @@ export type Database = {
       }
       accounts: {
         Row: {
+          address: string | null
           contact: string | null
           created_at: string
+          email: string | null
           id: string
           memory: string
           memory_draft: string | null
           name: string
+          notes: string | null
           owner_id: string
+          phone: string | null
           suburb: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
           contact?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           memory?: string
           memory_draft?: string | null
           name: string
+          notes?: string | null
           owner_id: string
+          phone?: string | null
           suburb?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
           contact?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           memory?: string
           memory_draft?: string | null
           name?: string
+          notes?: string | null
           owner_id?: string
+          phone?: string | null
           suburb?: string | null
           updated_at?: string
         }
